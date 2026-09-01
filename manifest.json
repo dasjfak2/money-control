@@ -1,0 +1,9 @@
+{
+  "name": "Money Control - Personal Finance",
+  "short_name": "Money Control",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#f7f3ea",
+  "theme_color": "#3f2a56",
+  "description": "Offline personal finance and budget tracker"
+}

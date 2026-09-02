@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Privacy Policy — FexaFY</title>
+<meta name="robots" content="noindex">
+<style>
+  :root{
+    --bg:#f7f3ea; --card:#ffffff; --plum:#3f2a56; --text:#2a2330; --muted:#6b5f75; --line:#e7ddc9;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; padding:0; background:var(--bg); color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    line-height:1.6;
+  }
+  .wrap{max-width:760px; margin:0 auto; padding:32px 20px 80px}
+  .top{display:flex; align-items:center; gap:12px; margin-bottom:8px}
+  .top h1{font-size:22px; color:var(--plum); margin:0}
+  .badge{display:inline-block; font-size:12px; font-weight:700; color:#1F7A5C; background:#e4f3ec; padding:3px 9px; border-radius:999px; margin-bottom:20px}
+  .updated{color:var(--muted); font-size:13px; margin-bottom:28px}
+  .card{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:20px 22px; margin-bottom:16px}
+  h2{font-size:16px; color:var(--plum); margin:0 0 8px}
+  p{margin:0 0 12px; font-size:14.5px}
+  ul{margin:0 0 12px; padding-left:20px}
+  li{margin-bottom:6px; font-size:14.5px}
+  .placeholder{background:#fff6df; border:1px dashed #d9a441; border-radius:8px; padding:10px 12px; font-size:13.5px; color:#6b4f14}
+  .home{display:inline-block; margin-top:6px; color:var(--plum); font-weight:700; text-decoration:none; font-size:14px}
+  .home:hover{text-decoration:underline}
+  table{width:100%; border-collapse:collapse; font-size:13.5px; margin-bottom:8px}
+  th,td{text-align:left; padding:7px 8px; border-bottom:1px solid var(--line); vertical-align:top}
+  th{color:var(--muted); font-weight:700}
+  code{background:#f1ece0; padding:1px 5px; border-radius:4px; font-size:13px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><h1>Privacy Policy — FexaFY</h1></div>
+  <span class="badge">No analytics · No ad trackers</span>
+  <div class="updated">Last updated: September 3, 2026</div>
+
+  <div class="card">
+    <h2>1. What this app is</h2>
+    <p>FexaFY is a personal finance and budget tracker that runs entirely in your browser (a client-only "Progressive Web App"). There is no company backend server for your financial data — your entries live on your own device, and are optionally backed up to your own Google Drive if you choose to sign in with Google.</p>
+  </div>
+
+  <div class="card">
+    <h2>2. Data this app stores, and where</h2>
+    <table>
+      <tr><th>Data</th><th>Where it's stored</th></tr>
+      <tr><td>Transactions, bills, debts, budgets, goals, net worth entries, receipt photos</td><td>On your device only, in the browser's local storage — encrypted at rest (AES-256-GCM) with a key generated on and never leaving your device. Optionally also in a private, app-only area of your own Google Drive ("appDataFolder"), if you sign in with Google.</td></tr>
+      <tr><td>Profile (name, phone number, email)</td><td>Same as above — local device storage, and your own Google Drive if signed in.</td></tr>
+      <tr><td>App Lock PIN</td><td>Never stored as the PIN itself — only a salted SHA-256 hash of it, on your device.</td></tr>
+      <tr><td>Fingerprint / face data (if you enable biometric unlock)</td><td>Never touches this app or any server — handled entirely by your device's own operating system via WebAuthn.</td></tr>
+      <tr><td>Language, currency, theme preference</td><td>On your device only.</td></tr>
+    </table>
+    <p>None of this data is sent to us, sold, or shared with advertisers, because there is no "us" collecting it — the app has no backend server of its own. The only place your data ever travels to is your own Google Drive, and only if and when you choose to sign in with Google.</p>
+  </div>
+
+  <div class="card">
+    <h2>3. No analytics, no advertising</h2>
+    <p>This app does <b>not</b> use any analytics SDK (e.g. Google Analytics, Firebase Analytics, Mixpanel, Meta Pixel), does <b>not</b> use any advertising SDK or ad network, and does <b>not</b> contain any hidden trackers. Nothing about how you use this app is measured, profiled, or monetized. If that ever changes in a future version, this section will be updated to name the tool and explain exactly what it collects — you don't need to hunt through settings to find out.</p>
+  </div>
+
+  <div class="card">
+    <h2>4. Third-party services this app talks to</h2>
+    <p>The app is mostly offline. It only contacts the following outside services, and only for the specific features named below:</p>
+    <table>
+      <tr><th>Service</th><th>Used for</th><th>What it receives</th></tr>
+      <tr><td>Google Identity Services &amp; Google Drive API</td><td>"Sign in with Google" and backing up your data to your own private Drive app-data folder</td><td>Your Google account info (name, email) and your app data (only if you sign in — this is entirely optional, see "Continue without Google")</td></tr>
+      <tr><td>Google Fonts</td><td>Loading the app's typeface</td><td>Standard font-request data (e.g. your IP address, as with any web font request), no app data</td></tr>
+      <tr><td>SheetJS (cdnjs.cloudflare.com)</td><td>Generating the "Export to Excel" file</td><td>Nothing — the library runs locally in your browser and builds the file from data already on your device; no data is uploaded anywhere</td></tr>
+      <tr><td>jsPDF (cdnjs.cloudflare.com)</td><td>Generating the one-click PDF report</td><td>Nothing — same as above, runs locally, no data leaves your device</td></tr>
+      <tr><td>Your own Vercel + Upstash + cron-job.org backend <i>(only if you set this up yourself, and only if you also turn on the in-app "Background push" toggle)</i></td><td>Optional true background push notifications — lets a reminder reach you even when the app is fully closed. Described in <code>push-backend/SETUP.md</code></td><td>A device push-subscription (no account/email), and a small reminder summary: unpaid bill names, amounts and due dates, and whether this month is over budget. No transactions, balances, accounts, or profile data are included. This only ever reaches a Vercel project and Upstash database you create and control — never the app's original author.</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>5. Your control over your data</h2>
+    <ul>
+      <li>Export a full backup (JSON) or a per-period Excel/PDF report at any time from Account &amp; Backup.</li>
+      <li>Delete everything on this device at any time from Account &amp; Backup → Reset All Data.</li>
+      <li>Sign out at any time; your local data stays on the device unless you also reset it.</li>
+      <li>Revoke this app's access to your Google Drive at any time from your Google Account's "Third-party access" settings.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>6. Children's privacy</h2>
+    <p>This app is a general-purpose personal finance tool and is not directed at children. It does not knowingly collect data from children.</p>
+  </div>
+
+  <div class="card">
+    <h2>7. Changes to this policy</h2>
+    <p>If this app's data practices change, this page will be updated and the "Last updated" date above will change accordingly.</p>
+  </div>
+
+  <div class="card">
+    <h2>8. Contact</h2>
+    <div class="placeholder">App owner: replace this line with your own name/organization and a real contact email before publishing, e.g. "Questions about this policy? Contact <code>your-email@example.com</code>."</div>
+  </div>
+
+  <a class="home" href="./index.html">← Back to FexaFY</a>
+</div>
+</body>
+</html>

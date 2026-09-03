@@ -9,7 +9,7 @@
 // installed device — follows automatically. index.html listens for the
 // new service worker and shows a "new version ready, tap to refresh"
 // banner to the user automatically; nothing else to wire up.
-const APP_VERSION = "v24";
+const APP_VERSION = "v25";
 const CACHE = "money-control-" + APP_VERSION;
 const ASSETS = ["./", "./index.html", "./manifest.json", "./privacy-policy.html", "./terms.html", "./icon.svg", "./icon-192.png", "./icon-512.png", "./icon-512-maskable.png"];
 

@@ -1,0 +1,118 @@
+FEXAFY — ONE-TIME FIRST-RUN MENU TOUR (2026-09-12, v47)
+=============================================================
+Files touched: index.html, sw.js (v46 -> v47). xlsx.full.min.js /
+jspdf.umd.min.js: untouched, not re-included in this delivery — no
+need to re-upload them. Verified: all 3 real inline <script> blocks
+in index.html parse cleanly with `node --check`, same for sw.js.
+The step-navigation logic (Next/Back/Skip/Finish) was extracted and
+run through 5 scripted scenarios with a mocked step index — back at
+step 1 stays put, stepping Next through all 13 lands exactly on
+Finish-with-budget-redirect, Skip from step 1 marks it seen without
+redirecting, repeated Back calls clamp at 0, repeated Next calls past
+the end don't overshoot — all 5 pass. The account-gating logic
+(defaultDb/migrateDb) was separately extracted and tested against a
+brand-new account, a legacy account with no onboarding field at all,
+an account that already has the field set to true, and an account
+with no meta object whatsoever — all 4 land on the correct on/off
+state. HTML tag balance (div/button/span) and duplicate-ID checks
+were re-run after the change — everything still matches.
+
+--------------------------------------------------------------------
+WHAT WAS ADDED
+--------------------------------------------------------------------
+A short, one-time walkthrough that appears automatically the moment
+a brand-new signup finishes (right after the profile step, for both
+Google and local/no-Google accounts) — a 13-step card, one topic per
+step, each with its own icon, a one-line title, and a short plain-
+language description:
+
+  1. Welcome
+  2. Home — what "Left to spend" means and the breakdown cards below it
+  3. Tx (Daily Transactions) — the + button, tap-to-edit, swipe-to-edit/delete
+  4. Budget (Budget Setup) — start here first; income + goal amounts
+  5. Limits (Category Budgets) — per-category spending limits
+  6. Bills — recurring bills with due-date reminders
+  7. Goals — Savings & Emergency Fund targets
+  8. Debt — listing debts + Generate plan
+  9. Future — savings goals for planned big purchases
+  10. Net (Net Worth) — assets minus debts
+  11. Calc — loan/deposit calculators
+  12. Sync (Account & Backup) — Google Drive backup, language/currency,
+      notification sounds, Privacy mode
+  13. Finish — a "Let's go" button that jumps straight into Budget Setup,
+      the natural first real step in actually using the app
+
+Controls: Next / Back (hidden on step 1) / a dot-progress indicator /
+a "Skip" link (hidden on the last step, since the last step already
+has its own clear finishing action). Escape also skips it, matching
+how the rest of the app already treats that key. Skipping or finishing
+both close the tour and mark it as seen — the only difference is that
+finishing also opens Budget Setup, while skipping just returns you to
+wherever you already were (your normal Home screen).
+
+WHO SEES IT: only genuinely brand-new accounts, and only once, ever.
+This isn't a "haven't visited this screen yet" check per menu item —
+it's one flag (db.meta.onboardingSeen) that starts false only for an
+account created fresh by this update, and is set to true immediately
+for every account that already existed before this update (handled
+the exact same safe way db.setup.configured and db.settings.hideIncome
+already are — see migrateDb()). There is no scenario where a returning
+user, on any device, suddenly sees this pop up.
+
+--------------------------------------------------------------------
+WHAT'S DELIBERATELY OUT OF SCOPE
+--------------------------------------------------------------------
+- This is one consolidated walkthrough shown once up front, not a
+  separate coach-mark/tooltip pinned to each menu's own screen the
+  first time you visit it individually. Both read as "separate, short
+  instructions per menu" from what was asked, but this version is far
+  less code spread across every screen's render logic, which means
+  far less surface area for something to quietly break later. If you
+  specifically want on-screen contextual tips instead (or in addition
+  — e.g. a tip bubble that appears the first time you land on Bills,
+  separate from this tour), that's a bigger, separate follow-up.
+- No "replay tour" button was added anywhere in Settings. Once
+  dismissed, the only way to see it again today is manually via the
+  browser console (or I can add a "Replay welcome tour" button in
+  Account & Backup as a quick follow-up if you'd like one).
+- Full translation into the other 8 supported languages (Hindi, Urdu,
+  Arabic, Spanish, French, Portuguese, Russian, Chinese) wasn't done
+  for the 13 new steps, same limitation as the last few updates —
+  English and Bangla are complete; the rest fall back to the English
+  text automatically rather than showing anything broken or blank.
+
+--------------------------------------------------------------------
+HOW IT'S BUILT (why it's safe)
+--------------------------------------------------------------------
+One new field, db.meta.onboardingSeen (plain boolean, saved/loaded
+the same way every other field in this app already is). One small
+content array, ONBOARDING_STEPS (icon name + two translation keys per
+step — all existing icons already used elsewhere in the app, no new
+artwork). A handful of small functions (maybeShowOnboardingTour,
+renderOnboardingStep, onbNext/onbBack/skipOnboarding/finishOnboarding)
+that only read/write that one field and toggle one overlay's contents
+— nothing else in the app was touched or restructured to make this
+work. No new external domains, scripts, or endpoints of any kind.
+
+--------------------------------------------------------------------
+CLEANLINESS CHECK
+--------------------------------------------------------------------
+- No eval()/new Function()/document.write anywhere (checked directly).
+- Diffed against the file you uploaded before packaging — every
+  changed/added line is accounted for above; nothing else was touched.
+- No existing feature, screen, or setting was removed or changed in
+  behavior.
+- index.html's own APP_VERSION constant and sw.js's were confirmed
+  already back in sync at v46 (no drift this time) before both were
+  bumped together to v47.
+
+--------------------------------------------------------------------
+DEPLOYMENT
+--------------------------------------------------------------------
+Upload index.html and sw.js together, same folder, overwriting what's
+there (xlsx.full.min.js and jspdf.umd.min.js don't need re-uploading
+— they're unchanged). Installed users will see the usual "A new
+version is ready — Refresh" banner (service worker bumped to v47)
+next time they open the app — existing users won't see the tour
+itself, only that refresh banner, since their accounts are already
+marked as having seen it.

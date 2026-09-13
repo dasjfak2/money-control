@@ -1,0 +1,79 @@
+FEXAFY — HOTFIX: NEW SIGNUPS COULDN'T GET PAST THE WELCOME SLIDES
+(2026-09-13, v48)
+=====================================================================
+Files touched: index.html, sw.js (v47 -> v48). xlsx.full.min.js /
+jspdf.umd.min.js: untouched, not re-included — no need to re-upload.
+Verified: all 3 real inline <script> blocks in index.html and sw.js
+parse cleanly with `node --check`. The exact collision was reproduced
+in isolation first (two functions named the same thing, second one
+silently wins) to confirm the real cause before touching anything,
+then re-tested after the fix to confirm the original function runs
+correctly again. A file-wide scan for any other duplicate top-level
+function/const/let name was also run — this was the only one.
+
+--------------------------------------------------------------------
+THIS ONE'S ON ME — WHAT WENT WRONG
+--------------------------------------------------------------------
+Your screenshot showed it exactly right: the pre-login "welcome
+slides" carousel (4 slides ending in "Private by design") — this
+already existed in your app before I touched anything — stopped
+working. Tapping "Get started" (or "Skip") did nothing, which meant
+nobody could reach the sign-up screen at all. Confirmed from your
+screenshot and the code together.
+
+CAUSE: in the last update (v47, the one-time post-signup menu tour),
+I named its "close and continue" function finishOnboarding() — not
+realizing this file already had a completely different, pre-existing
+finishOnboarding() function, used by that welcome-slides carousel to
+hide itself and reveal the actual sign-in screen. JavaScript allows
+two functions with the same name in the same file; whichever is
+defined LAST silently overrides the other, with no error or warning
+anywhere. Mine was defined later in the file, so it silently replaced
+the original — meaning "Get started"/"Skip" on the welcome slides
+were, from that point on, running my brand-new-menu-tour cleanup code
+instead of the real "show the sign-in screen" code. That's the whole
+bug: one accidental duplicate name, nothing more, and nothing to do
+with your data or account setup.
+
+I should have checked for a name collision against the rest of the
+file before introducing a new function name, not just checked that my
+own new code worked in isolation — noted for every update from here.
+
+--------------------------------------------------------------------
+THE FIX
+--------------------------------------------------------------------
+Renamed only my function, finishOnboarding(goToBudget) ->
+endMenuTour(goToBudget), and updated its two call sites (from the
+menu tour's Next-on-last-step and Skip). The original, pre-existing
+finishOnboarding() — the one your welcome-slides carousel actually
+needs — was not touched at all; it's exactly what it was before v47,
+doing exactly what it always did (mark onboarding done, hide the
+welcome slides, show the sign-in screen, call initAuthUI()). A
+comment was added directly above the renamed function explaining why
+it must never be renamed back to finishOnboarding(), so this specific
+mistake can't quietly happen again in a future update.
+
+--------------------------------------------------------------------
+CLEANLINESS CHECK
+--------------------------------------------------------------------
+- Diffed against the v47 file you had before this fix: exactly 4
+  lines changed (2 call sites renamed, the function renamed, one
+  explanatory comment block added) — nothing else touched.
+- HTML tag balance (div/button/span) unchanged and matched.
+- No duplicate top-level function, const, or let names anywhere else
+  in the file — checked the whole file this time, not just the new
+  code from the last update.
+- No eval()/new Function()/document.write anywhere.
+- No new external domains, scripts, or endpoints — this was a rename,
+  nothing was added or removed functionally.
+
+--------------------------------------------------------------------
+DEPLOYMENT — PLEASE DO THIS ONE RIGHT AWAY
+--------------------------------------------------------------------
+Upload index.html and sw.js together, same folder, overwriting what's
+there. This one matters more than usual to get live quickly, since
+until it's deployed, nobody new can sign up at all. Installed/existing
+users just see the normal "A new version is ready — Refresh" banner
+(service worker bumped to v48); they were never affected by this bug
+in the first place, since it only sat in the path a brand-new visitor
+takes before ever reaching sign-in.

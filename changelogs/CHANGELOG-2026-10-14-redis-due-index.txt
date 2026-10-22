@@ -1,0 +1,84 @@
+FEXAFY — BACKEND: REDIS SORTED-SET INDEX (STOP SCANNING EVERY DEVICE EVERY RUN)
+=====================================================================
+Files: check.js, register.js. package.json, index.html, sw.js: untouched.
+This is the #3 item from the priority list (Redis design change).
+
+PROBLEM
+Every 15 minutes, check.js SCANned and GET'd every single device record in
+Redis, whether or not that device had anything to send. On the free Upstash
+plan (500k commands/month) this put a hard ceiling of roughly 170 devices on
+the whole app, regardless of how little most devices actually needed.
+
+WHAT CHANGED
+A sorted set, fexafy:due (member = deviceId, score = the next UTC
+millisecond that device could possibly have something to send — the
+earliest of: its soonest unpaid bill's due date, "now" if over budget, or
+its next daily-log reminder time), is kept up to date by register.js
+whenever a device's data changes, and by check.js after every send/cleanup.
+
+A normal check.js run now asks Redis for just the devices due <= now
+(ZRANGE ... BYSCORE) instead of fetching every device — for an app where
+most devices have nothing due most of the time, this cuts Redis command use
+dramatically and raises the effective device ceiling well above ~170 on the
+same free plan.
+
+SAFETY NET (this is the part worth reading)
+Because a bug in brand-new scheduling math would be worse than the old
+"just check everyone, harmlessly, every time" — once every UTC day, check.js
+still does the full old-style scan of every device and rebuilds the index
+from scratch. This means:
+  - Devices registered before this change (never indexed) get picked up
+    automatically, with zero manual migration step.
+  - Any drift between the new math and reality self-heals within 24 hours,
+    worst case.
+  - If the sorted-set lookup itself ever errors (e.g. a transient Upstash
+    hiccup), that one run falls back to the old full-scan behavior instead
+    of silently sending nothing.
+Net effect: ~1 run a day pays the old cost; the other ~95 runs/day pay a
+small fraction of it. Nothing about WHEN a notification fires, or its text,
+changed — the decide/send/404-cleanup/retire logic is byte-for-byte the same
+code as before, just moved into a shared per-device function so the index-
+driven path and the once-a-day full scan can both call it.
+
+The response JSON gained one new field, `reconciled` (true on the once-a-
+day full-scan run, false otherwise) — `checked/sent/removed/retired` mean
+the same thing as before, except `checked` is now usually a small number
+(only the devices actually looked at that run) rather than always ~=
+total device count.
+
+TESTED (no real Redis touched)
+- 185–200 cross-checks, run at 4 different times of day/year, proving the
+  new "when is this device next due" math exactly matches the OLD
+  check.js's real "is it due right now" decision logic at the computed
+  time, and never fires early, across 9 UTC-offset timezones (-12:00 to
+  +14:00, including half/quarter-hour zones), swapped morning/night times,
+  bills due in the past/future/not-at-all, and every notified/not-notified
+  combination.
+- A full in-memory mock of @upstash/redis and web-push, with check.js and
+  register.js imported and actually run (not just read): new device with a
+  future bill gets indexed but not sent; a device with an already-due bill
+  gets sent and removed from the index; a device with nothing due is never
+  indexed; unsubscribing removes it from both the record store and the
+  index; the first-ever run reconciles (full scan) and finds/sends the due
+  device; the very next run the same day uses the fast zrange path (no
+  scan) and sends nothing new; jumping the clock to a future bill's due
+  date, the fast path correctly finds and sends it; a 410 (uninstalled)
+  response still removes the device from both the record store and the
+  index; a device that keeps failing for a non-404/410 reason is retried
+  every run (untouched score) and is retired after 5 consecutive failures,
+  removed from both places.
+- A forced zrange failure was confirmed to fall back to a full scan for
+  that one run (checked the one real device present, 200 response, no
+  crash) rather than erroring out or sending nothing.
+- node --check clean on both files.
+NOT TESTED: against your real Upstash/Vercel deployment (no credentials
+available here) — please watch the first few cron-job.org runs after
+deploying and check the JSON response looks sane (reconciled:true once,
+then false), and keep an eye on Upstash's command-count graph over the
+next few days to confirm the drop.
+
+DEPLOY
+Redeploy check.js and register.js to your Vercel project (same two files,
+same /api/check and /api/register routes — no URL changes, nothing to
+update in cron-job.org or index.html). No new environment variables, no
+new dependency (package.json unchanged). Frontend: nothing to re-upload.

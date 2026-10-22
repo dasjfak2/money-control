@@ -1,0 +1,213 @@
+FEXAFY — DRIVE SYNC ENCRYPTED + FORGOT-PIN COOLDOWN (2026-10-04, v79)
+=====================================================================
+Files touched: index.html, sw.js (v78 -> v79). All other files:
+untouched. Verified: all 6 real inline <script> blocks parse cleanly
+with `node --check`. No TRUE top-level duplicate declarations.
+div/button/span/svg/label tag counts balanced before and after (span
+went 397 -> 398, expected: one new status line's own span). Both
+pieces of real logic — the Drive encrypt/decrypt round-trip and the
+cooldown timer's persistence behavior — were unit-tested in isolation
+before being wired in. Results for both below.
+
+This closes the two items you flagged as still open from the earlier
+review.
+
+=====================================================================
+PART 1 — GOOGLE DRIVE SYNC IS NOW ENCRYPTED
+=====================================================================
+driveUpload()/driveDownload() previously sent/received the whole `db`
+object as plain JSON to Drive's appDataFolder — the same issue the
+local backup export had, fixed separately a few rounds ago. Couldn't
+reuse that fix directly: an export password is one-off and never
+persisted, but Drive sync needs a STABLE key this device can reuse
+silently on every automatic background sync — re-asking for a
+password every time would make "seamless cloud backup" pointless.
+
+--------------------------------------------------------------------
+HOW IT WORKS NOW
+--------------------------------------------------------------------
+A password-derived AES-256-GCM key (same cipher as everywhere else in
+this app), asked for ONCE per device, then cached locally — same place
+this app already keeps its other device-local secrets (the PIN hash,
+the local-storage encryption key). Every routine sync after that first
+time is silent and automatic, exactly as before.
+
+  - First device to ever use Drive sync: gets prompted to SET a
+    password. A random salt is generated, the key derived, and both
+    the raw key (for this device to reuse silently) and the salt
+    (so OTHER devices can later derive the same key from the same
+    password) are saved — the salt travels inside every uploaded
+    envelope going forward.
+  - A second device signing in later: successfully authenticates with
+    Google and can see there's cloud data, but downloading it hits an
+    encrypted envelope it has no local key for — it gets prompted to
+    ENTER the existing password (not set a new one), with up to 3
+    attempts before giving up gracefully for that sync round.
+  - Every device after its first successful password entry: fully
+    silent from then on, reusing its locally cached key.
+
+Net effect: a compromised Google account alone is no longer enough to
+read a Drive backup — the separate password is also required, on each
+new device, exactly once.
+
+--------------------------------------------------------------------
+WHEN IT'S ALLOWED TO ASK FOR A PASSWORD (and when it refuses to)
+--------------------------------------------------------------------
+Every encrypt/decrypt call takes an explicit allowPrompt flag — true
+ONLY at moments the person is already actively engaged with sign-in or
+sync, never from a silent background timer:
+
+  allowPrompt = true  (prompting OK):
+    - Right after a fresh Google sign-in (enterApp)
+    - Right after upgrading a local account to Google-backed
+    - Tapping "Sync now" explicitly
+    - The "Reset all data" flow's cloud-clear step (already a
+      deliberate, confirmed user action)
+
+  allowPrompt = false (never prompts; pauses sync with a clear status
+  instead — see "Drive backup locked — tap Sync now" below):
+    - scheduleSync()'s debounced background sync after a save
+    - The silent token-refresh path that runs after Google's own
+      script finishes loading post-cache-restore (already documented
+      in the existing code as deliberately non-interactive, for the
+      same reason)
+
+One deliberate judgment call, flagged rather than silently decided:
+enterGoogleAppFromCache() (reopening the app using a locally cached
+Google session) was LEFT non-interactive rather than switched to
+allowPrompt=true. Reasoning: that path is documented in its own
+existing comment as a deliberately "quiet" background refresh after
+the person has already started using the app from cached data —
+popping a password prompt right as someone opens the app felt more
+likely to confuse than help. If a key's needed there, it degrades to
+the same "tap Sync now" status as any other non-interactive case,
+resolved whenever they next explicitly sync. Worth revisiting if it
+turns out to be the wrong call in practice.
+
+If sync is ever paused this way, the status line now reads
+"Drive backup locked — tap Sync now" instead of a generic error, so
+it's clear this is waiting on a password, not a connectivity problem.
+
+--------------------------------------------------------------------
+BACKWARD COMPATIBILITY
+--------------------------------------------------------------------
+An existing, already-uploaded PLAIN (pre-fix) Drive file is still read
+and restored normally — no password needed for that one-time migration
+read, since driveDecryptPayload() passes anything without the new
+__mcDriveEnc marker straight through unchanged. The next upload after
+that is encrypted, same as any first-time setup — no separate
+migration step was needed; it falls out of the exact same logic that
+handles a brand-new device.
+
+--------------------------------------------------------------------
+HOW PART 1 WAS VALIDATED
+--------------------------------------------------------------------
+- Simulated the full real-world flow in isolation: Device A sets a
+  password and encrypts a sample record (with an obviously
+  identifiable name and email) — confirmed NEITHER appears anywhere in
+  the resulting envelope. Device B, given only the envelope and the
+  CORRECT password, decrypts it back to an exact match of the
+  original. Device C, with the WRONG password, correctly fails to
+  decrypt rather than producing garbage or partial data. A legacy
+  (pre-fix) plain object was confirmed to be correctly detected as
+  "pass through unchanged" rather than mistakenly run through
+  decryption.
+- All 6 inline <script> blocks still pass node --check.
+- No duplicate top-level declarations; every new function/constant
+  name appears exactly once, checked by name individually.
+- div/button/span/svg/label tags balanced before and after.
+
+=====================================================================
+PART 2 — "FORGOT PIN" WITHOUT BIOMETRIC: MANDATORY COOLDOWN
+=====================================================================
+The previous round required biometric verification for "Forgot PIN"
+WHEN biometric was set up. You correctly noted the gap: a device with
+no biometric registered still bypassed the lock behind nothing but a
+generic confirm() dialog — tap OK, done, instantly.
+
+--------------------------------------------------------------------
+WHAT CHANGED
+--------------------------------------------------------------------
+With no biometric available, there's no stronger LOCAL factor left to
+require — so instead of an instant bypass, it now takes a mandatory,
+clearly-visible 60-second wait before App Lock actually turns off:
+
+  1. Tap "Forgot PIN?" -> a confirm() explains the 60-second wait and
+     that it's cancellable.
+  2. If accepted: the lock screen's message area starts visibly
+     counting down ("Turning off App Lock in 47s — tap 'Forgot PIN?'
+     again to cancel.").
+  3. A second tap on "Forgot PIN?" at any point during the wait
+     CANCELS it — App Lock stays on, nothing changes.
+  4. If the full 60 seconds elapses without being cancelled, App Lock
+     turns off automatically — same end result as before, just no
+     longer instant.
+
+The point isn't to stop someone willing to calmly hold the device
+untouched for a full minute — it's to turn a silent, near-instant
+bypass into a slow, openly-announced one. The realistic threat here is
+a brief, opportunistic grab (someone picks up an unattended unlocked
+phone for a few seconds), not a patient attacker — a visible 60-second
+countdown gives the device's real owner a real chance to notice and
+take it back.
+
+Persisted in localStorage, same pattern as the PIN lockout feature —
+closing and reopening the app mid-wait can't be used to skip or
+restart it. Two edge cases handled explicitly:
+  - App closed for the ENTIRE 60 seconds, then reopened: the wait is
+    detected as already complete, and App Lock turns off immediately
+    on reopen — it does not make the person wait through another full
+    60 seconds.
+  - App closed partway through, reopened before the wait finishes: the
+    countdown resumes showing the correct remaining time, not a fresh
+    60 seconds.
+
+Biometric verification (from the previous round) is unaffected and
+still takes priority — this cooldown only applies when there's no
+biometric credential to check against at all.
+
+--------------------------------------------------------------------
+HOW PART 2 WAS VALIDATED
+--------------------------------------------------------------------
+Simulated the cooldown's actual persistence logic against a fake
+localStorage and a manually-advanced clock (5 scenarios):
+  1. Starting the cooldown correctly marks one as pending.
+  2. A simulated reload (fresh in-memory state, same localStorage)
+     still reports the correct ~60000ms remaining — confirms reload
+     can't skip the wait.
+  3. Advancing the clock past 60s brings remaining time to exactly 0.
+  4. Closing the app for 5 real minutes (well past the 60s) and then
+     checking on "reopen" correctly detects the wait as already
+     elapsed, rather than needing to run again.
+  5. A second tap while a cooldown is pending correctly clears it
+     (cancel), rather than restarting or extending it.
+All 5 passed as designed. Also confirmed via node --check (see Part 1
+section above — both parts were validated together in the same final
+check since they're both in index.html) and the top-level duplicate-
+name check specifically for every new function/constant this part
+introduced (forgotPin, forgotPinCooldownUntil, clearForgotPinCooldown,
+runForgotPinCooldown, disableLockAfterForgotPin, and the two new
+constants) — each appears exactly once.
+
+Also cleaned up: the explanatory comment left over from the previous
+round's biometric fix described the no-biometric path as "just
+confirm()", which was no longer accurate after this change — trimmed
+to point at the new cooldown explanation right below it instead of
+leaving two conflicting descriptions in the code.
+
+=====================================================================
+DEPLOYMENT
+=====================================================================
+Frontend: upload index.html and sw.js to your web hosting, overwriting
+what's there. Backend: nothing changed, no redeploy needed.
+
+For anyone who already uses Google Drive sync: their first sync after
+this update will prompt them to set a Drive backup password (at
+whichever interactive moment — sign-in or "Sync now" — comes next for
+them). Nothing is lost or blocked in the meantime; the app keeps
+working normally, with sync simply paused on a clear "tap Sync now"
+status until that one-time password is set. Anyone who doesn't use
+Google Drive sync at all sees no change from Part 1. Anyone without
+biometric unlock set up will see the new 60-second cooldown the next
+time they use "Forgot PIN" — nothing changes for anyone who remembers
+their PIN or has biometric already set up.

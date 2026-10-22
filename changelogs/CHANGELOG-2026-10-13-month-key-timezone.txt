@@ -1,0 +1,44 @@
+FEXAFY - MONTH/DATE FIX FOR AMERICAS TIMEZONES + DARK ICON (2026-10-13, v99)
+============================================================================
+Files touched: index.html, sw.js (v98 -> v99). Nothing else.
+
+THE BUG
+monthKey() and fmtDate() turned a date-only text such as "2026-10-01" into a
+Date, which JavaScript reads as midnight UTC. In any timezone BEHIND UTC (US,
+Canada, ...) that is the previous evening, so:
+  - an entry dated the 1st of a month was counted in the PREVIOUS month
+    (Home "Spent"/"Left to spend", stat tiles, analytics, trends, budgets)
+  - dates were shown one day early (Oct 1 shown as Sep 30)
+Bangladesh (UTC+6) and anywhere ahead of UTC were never affected, which is
+why it didn't show up here.
+
+THE FIX
+- monthKey(): a date-only text ("YYYY-MM-DD" or "YYYY-MM") is now read
+  straight from the text. Dates, timestamps and text containing a time go
+  through new Date() exactly as before.
+- fmtDate(): a "YYYY-MM-DD" text is built as a local date before formatting.
+Result: unchanged in Bangladesh/UTC and ahead; corrected in the Americas.
+
+NOT CHANGED (on purpose)
+- "Days until due" counters (bills, debts, future expenses) still compare
+  midnight UTC with the current time. Changing them would shift results by
+  hours for everyone, so they were left alone; in the Americas they can be
+  off by one day around midnight.
+
+DARK MODE
+- The clock/calendar icon inside time and date fields (e.g. Reminder time)
+  was dark on a dark field and invisible; it is now light.
+
+VERIFIED
+- Real extracted functions compared old vs new in Asia/Dhaka, America/New_York
+  and Pacific/Honolulu over 8 inputs: Dhaka identical on every input; New York
+  and Honolulu corrected for 1st-of-month and last-day dates.
+- Real app in headless Chromium with the timezone set: an expense dated the 1st
+  of this month showed Spent $0 in New York with v98 and $300 with v99; Dhaka
+  showed $300 in both.
+- 6 inline script blocks pass node --check; no duplicate functions.
+- Dark Account page screenshot: clock icon visible. No page errors.
+- Not tested on a real phone.
+
+DEPLOYMENT
+Upload index.html and sw.js. No backend change.

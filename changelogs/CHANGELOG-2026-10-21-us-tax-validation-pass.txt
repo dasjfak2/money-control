@@ -1,0 +1,167 @@
+FexaFY — CHANGELOG
+Date: 2026-10-21
+Feature: US Income Tax Estimator — validation pass against popular public
+tax-calculator sites, 3 confirmed corrections
+App version: v104 -> v105 (index.html + sw.js, kept in sync)
+
+================================================================
+WHY THIS PASS HAPPENED
+================================================================
+You asked me to specifically cross-check the US Tax Estimator's figures
+against the data used by popular, widely-trusted US tax-calculator
+websites (the kind people already use and compare against), and fix
+anything that didn't line up — so the feature actually serves people
+correctly, not just structurally works.
+
+I could not run live computed results through those sites' own
+interactive calculators (that needs real browser form-filling, which
+this session can't do), so instead I cross-checked the underlying DATA
+each of them publishes/relies on — federal and state bracket tables,
+standard deductions, FICA figures, and special per-state rules — against
+3-4 independent sources per figure wherever possible, specifically
+targeting every number my original research had flagged as
+"single-sourced" or uncertain.
+
+================================================================
+WHAT WAS RE-CHECKED (all confirmed correct, no changes)
+================================================================
+  - Federal Single / Married Filing Jointly / Married Filing Separately
+    brackets and all 4 standard deduction amounts — cross-checked against
+    cpapracticeadvisor.com, AARP, and an IRS-COLA-citing source. All match.
+  - Social Security wage base ($184,500), Medicare rate, Additional
+    Medicare Tax threshold/rate — confirmed via a payroll-industry source.
+  - Child Tax Credit ($2,200/child, $1,700 refundable, $200k/$400k
+    phase-out starts) — confirmed via a second source citing the same
+    OBBBA legislative language.
+  - California's full 10-bracket progressive schedule (incl. the 13.3%
+    top rate with the Mental Health Services surcharge baked in) —
+    re-confirmed against its original source; unchanged.
+  - New York State's bracket table and New York City's local bracket
+    table — both confirmed EXACT matches against independent sources
+    (previously only single-sourced for NYC specifically).
+  - Philadelphia's resident/non-resident wage tax rates (3.735% /
+    3.425%, effective 2026-07-01) — confirmed exact match.
+  - Colorado (4.4% flat), Illinois (4.95% flat), Pennsylvania (3.07%
+    flat), Ohio (2.75% flat), Massachusetts (5% + 4% surtax over
+    $1,107,750), New Jersey (10.75% top rate) — all confirmed correct.
+  - Virginia's standard deduction ($8,750 / $17,500) and its 4-bracket
+    schedule — confirmed exact match.
+
+================================================================
+WHAT WAS WRONG, AND WHAT CHANGED
+================================================================
+Three real issues were found and fixed, all backed by newly-found
+sources (not guesses):
+
+1. FEDERAL HEAD OF HOUSEHOLD BRACKET — WRONG, NOW FIXED
+   The original data had the 24% bracket starting at $103,700 and the
+   32% bracket starting at $201,775. These were flagged as uncertain
+   from day one (the one source used, kiplinger.com, had an internal
+   rounding inconsistency on exactly these two numbers). Three
+   independent sources now confirm the REAL 2026 thresholds are
+   $105,700 and $201,750. This specifically affects anyone using Head
+   of Household status (commonly single parents) with taxable income
+   roughly between $103,700-$105,700 or $201,750-$201,775 — a narrow
+   income band, but the estimate was genuinely wrong for people landing
+   in it, and the bracket-math machinery itself needed the right number.
+   Single, Married Filing Jointly, and Married Filing Separately were
+   re-confirmed correct and are unchanged.
+
+2. GEORGIA'S 2026 RATE — WRONG, NOW FIXED (this one had real dollar
+   impact for every Georgia filer)
+   The original data had Georgia's flat rate at 5.19% — which was
+   correct for 2025, under the ORIGINAL legislated schedule of a
+   further 0.1-point-per-year reduction. But a LATER law (Georgia
+   H.B. 463) accelerated this, cutting 2026 straight to 4.99% instead
+   (retroactive to 2026-01-01) — a 0.20-percentage-point difference.
+   Confirmed directly from Georgia's own Department of Revenue 2026
+   Employer's Tax Guide, which states outright: "The income tax rate
+   has been reduced from a flat rate of 5.19% to a flat rate of 4.99%."
+   This is exactly the kind of after-the-fact legislative change a
+   single pre-season research pass can miss, which is the whole reason
+   this re-validation pass was worth doing. Every Georgia filer's
+   estimate was overstating their state tax by about 4% of their state
+   tax bill before this fix.
+
+3. VIRGINIA'S PERSONAL EXEMPTION — MISSING, NOW ADDED
+   Virginia grants a flat personal exemption ($930 per filer, $1,860 for
+   Married Filing Jointly) ON TOP OF its standard deduction — this
+   wasn't modelled at all before, making every Virginia estimate a
+   little too high. Now added as its own field in the data, and the
+   calculation engine was extended with a small, generic
+   "personalExemption" mechanism (only applies to states that define
+   it — right now just Virginia; harmless and inactive for every other
+   state) rather than a Virginia-specific hack.
+
+================================================================
+TESTING PERFORMED FOR THIS PASS
+================================================================
+Same rigor as the original feature build, extended with new checks
+targeting exactly these 3 fixes:
+
+  1. Added 6 new hand-verified regression checks to the standalone
+     engine test suite, each pinned to the corrected numbers (so a
+     future data update can't silently reintroduce the same 3 errors):
+     a boundary check that Head-of-Household income just above the old
+     (wrong) $103,700 threshold is still correctly taxed at 22% rather
+     than jumping to 24%; an exact Georgia 4.99% tax check; Virginia's
+     combined standard-deduction-plus-exemption total for both Single
+     and Married Filing Jointly; and a sanity check that a state with
+     no personal exemption (California) is completely unaffected by the
+     new code path. Full suite: 914/914 passed (908 original + 6 new).
+
+  2. Re-ran the inline-vs-standalone parity suite after applying the
+     fixes to the in-app copy: 12,340/12,340 passed — confirms the
+     production code matches the newly-corrected engine exactly, with
+     no transcription drift introduced while fixing it.
+
+  3. Real headless-browser verification of all 3 fixes through the
+     ACTUAL app UI (not just the engine): set a Head-of-Household
+     filer's income so their taxable income lands exactly at the
+     disputed boundary, and the on-screen federal tax matched the
+     independently hand-computed correct answer ($15,781) exactly;
+     drove a Georgia scenario through the real state dropdown and
+     confirmed the on-screen state tax uses 4.99%; drove a Virginia
+     scenario and confirmed the on-screen state tax reflects both the
+     standard deduction and the new personal exemption together.
+
+  4. Re-ran the full prior regression suite (BD tax, Zakat, Loan,
+     Deposit tabs, country-code gating, the three previously-tested US
+     scenarios for Texas/New York/Philadelphia) to confirm these fixes
+     changed ONLY what they were supposed to change — every other
+     number came back byte-identical to before this pass, and zero
+     JavaScript errors throughout.
+
+================================================================
+WHAT THIS PASS DID NOT COVER (being upfront about limits)
+================================================================
+  - I could not drive the actual interactive calculators on sites like
+    SmartAsset, NerdWallet or PaycheckCity to get a computed number to
+    diff against directly — browser automation to fill in and submit
+    their forms isn't available from here. Instead I verified against
+    the underlying bracket/rate data those kinds of sites are built on,
+    cross-checked across multiple independent sources per figure. This
+    is the same category of accuracy check a careful human reviewer
+    would do, but it is not literally "the same answer as SmartAsset.com
+    today."
+  - This pass focused on the figures flagged as lower-confidence in the
+    original research (single-sourced states/figures) plus a spot-check
+    of several major, high-population states. It did not re-verify all
+    51 jurisdictions line-by-line against a second source — that would
+    be the next incremental step if you want it taken further.
+  - The known, already-disclosed simplifications from the original
+    feature (most states' deduction fallback to the federal figure,
+    only NYC/Philadelphia local tax modelled, no AMT/NIIT/state credits)
+    are unchanged and still clearly disclosed in the app itself.
+
+================================================================
+FILES CHANGED
+================================================================
+  - index.html — 3 data corrections (federal HoH brackets, Georgia's
+    rate, Virginia's personal exemption) plus the small, generic
+    personal-exemption calculation step in usComputeStateTax().
+    APP_VERSION bumped v104 -> v105.
+  - sw.js — APP_VERSION bumped to match (v105).
+
+No UI, panel layout, or other feature code was touched — this was
+purely a data-accuracy correction pass.

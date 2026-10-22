@@ -1,0 +1,80 @@
+FEXAFY — FRONTEND: REAL CLICKJACKING PROTECTION (CSP meta tag was a no-op for this)
+=====================================================================
+Files: index.html (v102 -> v103). sw.js bumped to v103 too, to stay in
+sync (no other change in sw.js). check.js/register.js: untouched.
+
+THE FINDING (confirmed against the real file, not just in theory)
+The CSP <meta> tag in <head> has always included `frame-ancestors 'none'`,
+intended as clickjacking protection (stop this app from being loaded
+inside someone else's <iframe>). It never actually worked: per the CSP
+spec, `frame-ancestors` (along with `sandbox` and `report-uri`/`report-to`)
+can ONLY be delivered via a real HTTP response header — a
+`<meta http-equiv="Content-Security-Policy">` tag is specifically
+required to ignore it. Confirmed directly: loading the real file in a
+real browser prints this exact warning to the console:
+  "The Content Security Policy directive 'frame-ancestors' is ignored
+   when delivered via a <meta> element."
+Since this app is hosted on GitHub Pages (static hosting, no custom HTTP
+headers possible), there was never a way to make that directive actually
+take effect — it's been silently doing nothing since it was added.
+
+WHAT CHANGED
+Added a small inline <script> right at the very top of <head> (before
+every other tag except charset/viewport/theme-color) that does the real
+job: if the page is ever loaded inside a frame on a different origin, it
+navigates the TOP window away to this same page, breaking out of the
+frame before a user could be shown anything clickable inside it.
+
+  try {
+    if (window.top !== window.self) {
+      window.top.location.replace(window.self.location.href);
+    }
+  } catch (e) { /* nothing more to do from inside the frame */ }
+
+This runs synchronously, before anything renders, and is a complete no-op
+in every normal case (opened directly, bookmarked, installed as a PWA) —
+window.top === window.self then, so the check does nothing at all.
+
+The frame-ancestors 'none' entry in the CSP meta tag was left in place
+(for documentation, and as a safety net for any future hosting that DOES
+deliver this over a real header), but both CSP comments in the file were
+corrected to stop overclaiming what it actually does today.
+
+DISCLOSED LIMITATION (same honesty standard as the other security
+changelogs in this project)
+A frame using the HTML `sandbox` attribute without `allow-top-navigation`
+can block even this script's attempt to navigate away, silently, with
+nothing the script can do about it from inside the frame. This is a
+narrow, deliberate attack setup, not the common case — and there's no way
+to close that specific gap from pure static hosting; doing so would mean
+serving a real `X-Frame-Options`/`Content-Security-Policy` HTTP header,
+which means hosting this file somewhere that supports custom headers
+(e.g. Vercel — which already hosts the push backend — or Netlify/
+Cloudflare Pages) instead of GitHub Pages. Not changed here since you're
+currently on GitHub Pages by choice; worth keeping in mind if that ever
+changes.
+
+TESTED (real browser, not just reasoning about it)
+- Loaded the actual, final index.html in headless Chromium:
+    - Normal top-level load: window.top === window.self, the page
+      renders and behaves exactly as before (boot skeleton still shows
+      then hides normally, APP_VERSION reads v103), zero uncaught JS
+      errors. The frame-ancestors console warning from Chrome itself is
+      the independent confirmation of the original finding -- it's
+      informational, not a new error introduced by this change.
+    - Framed load: wrapped the real app in a same-origin test <iframe>
+      and loaded that — the TOP-level page's own URL changed away from
+      the wrapper to the app itself, confirming the busting script
+      actually fires and actually works, not just that it doesn't crash.
+- node --check clean on sw.js (index.html isn't pure JS, so this doesn't
+  apply to it the same way — verified it with the real-browser load
+  above instead, which is the stronger check for an HTML file).
+- Diffed the whole file against the previous delivered version: only
+  these three changes (the new script+comment, the two corrected CSP
+  comments, and the version bump) — nothing else touched.
+
+DEPLOY
+Replace index.html and sw.js in your GitHub repo (same two files, same
+names, nothing else changes). Push as usual — your existing GitHub
+Pages setup picks it up automatically. No backend redeploy needed, no
+new environment variables, no URL changes.

@@ -1,0 +1,126 @@
+FEXAFY — BACKEND RESOURCE-ABUSE FIXES (2026-10-03)
+=====================================================================
+Files touched: check.js, register.js. package.json: untouched — both
+fixes use only Node's built-in `crypto` module and Redis commands
+(INCR/EXPIRE) your @upstash/redis client already supports, so no new
+dependency was needed. index.html, sw.js and all other frontend files:
+untouched, this round is backend-only. Verified: both files pass
+`node --check`, and the two new pure functions (isValidSubscription,
+safeCompare) were unit-tested directly against real and adversarial
+inputs (valid subscription, empty object, wrong-length secret, etc.)
+before being wired into the handlers — results below.
+
+This follows the security review you asked for. All 3 fixes you
+picked are in. Here's exactly what changed and why.
+
+--------------------------------------------------------------------
+1) /api/register: SUBSCRIPTION VALIDATION + PER-IP RATE LIMIT
+--------------------------------------------------------------------
+This was the main finding: the endpoint had no authentication (by
+necessity — a PushSubscription is itself the only credential it was
+ever going to have) AND no validation on what counted as a
+"subscription" AND no rate limiting. Omitting deviceId always
+generates a brand-new Redis key via crypto.randomUUID(), so anyone who
+found the public URL (it's sitting in index.html's client code as
+PUSH_ENDPOINT) could script repeated POSTs and grow your Redis storage
+without limit.
+
+Two changes, both additive, neither touches the existing request/
+response shape for legitimate callers:
+
+  a) isValidSubscription() now checks the real PushSubscription shape
+     before anything gets written — endpoint must be an https:// URL
+     under 2048 chars, keys.p256dh and keys.auth must both be
+     non-empty strings. A request that fails this gets a 400 and
+     nothing is stored. Unit-tested against a real subscription
+     (passes), {}, "x", null, an http:// endpoint, and missing/empty
+     keys (all correctly rejected).
+
+  b) A per-IP rate limit — 15 requests per 60 seconds, tracked with a
+     simple Redis INCR+EXPIRE counter under a separate
+     fexafy:ratelimit:register: prefix (reuses the Redis connection
+     already open here, no new service). Generous enough for a
+     household with several devices registering/re-syncing normally;
+     tight enough to stop a script hammering the endpoint. This is a
+     best-effort limit — someone rotating IPs isn't stopped by it —
+     but it closes the realistic single-source-flooding case. If the
+     rate-limit check itself fails for some reason (a transient Redis
+     hiccup), it fails OPEN rather than breaking registration for
+     everyone over a side-concern; validation (a) still applies either
+     way.
+
+  Also added: an upper bound (128 chars) on deviceId, alongside the
+  existing minimum-length check, so an oversized string can't be used
+  as part of the Redis key.
+
+--------------------------------------------------------------------
+2) /api/check: RETIRE SUBSCRIPTIONS THAT NEVER ACTUALLY WORK
+--------------------------------------------------------------------
+Before fix #1 existed, a malformed "subscription" (anything truthy)
+could get stored, and the ONLY cleanup path was a real 404/410 from an
+actual webpush.sendNotification() call — which a shape like {} would
+never even reach, since web-push throws a different kind of error
+first trying to use it. That left genuine junk sitting in Redis
+forever with nothing to clear it out.
+
+Fix #1 now stops most of this at the source. This is the defense-in-
+depth half: every device record gets a new failCount field (starts at
+0). A send that fails with something OTHER than 404/410 — e.g. a
+subscription that validated correctly in shape but never actually
+works — increments it; a send that succeeds resets it back to 0; 5
+consecutive failures (roughly 75 minutes of a cron job running every
+15 minutes) retires the record. The existing 404/410-means-uninstalled
+cleanup is completely unchanged — that path still deletes immediately,
+same as before. The /api/check response now reports `retired`
+separately from `removed` so you can tell the two apart in the logs.
+
+--------------------------------------------------------------------
+3) /api/check: CONSTANT-TIME CRON_SECRET COMPARISON
+--------------------------------------------------------------------
+The secret check used plain `!==`, which short-circuits at the first
+mismatched character — in principle, enough precisely-timed attempts
+could let someone infer CRON_SECRET one character at a time from
+response-time differences. Replaced with safeCompare(), built on
+Node's built-in crypto.timingSafeEqual, which takes the same time
+regardless of where a mismatch is. It still checks buffer length first
+(timingSafeEqual throws on a length mismatch rather than returning
+false), which leaks only "right length or not" — a standard, accepted
+trade-off, and not something that helps guess any individual
+character. Unit-tested: matching secret -> true, wrong secret -> false,
+different-length secret -> false, undefined/missing secret -> false.
+
+--------------------------------------------------------------------
+WHAT'S STILL OUT OF SCOPE (flagged in the original review, not part
+of what you picked this round)
+--------------------------------------------------------------------
+- The Sentry DSN in index.html is still public (inherent to how
+  Sentry's browser SDK works — not something fixable on the backend
+  side). If you want it hardened, Sentry's "Allowed Domains" setting,
+  if your plan has it, is the lever for that.
+- The Google OAuth Client ID is still a hardcoded public default —
+  normal/expected, just worth confirming "Authorized JavaScript
+  origins" is locked to your real domain in Google Cloud Console.
+Neither needed code changes here, which is why they're not in the
+diff.
+
+--------------------------------------------------------------------
+CLEANLINESS CHECK
+--------------------------------------------------------------------
+- No eval()/new Function()/document.write anywhere.
+- No new dependencies added — package.json unchanged.
+- node --check clean on both check.js and register.js.
+- isValidSubscription and safeCompare unit-tested directly against
+  real and adversarial inputs before being wired into the handlers.
+- Existing behavior for every legitimate caller — real subscriptions,
+  real unsubscribe calls, real cron requests with the right secret —
+  is unchanged; every new check only narrows what was already being
+  silently accepted.
+
+--------------------------------------------------------------------
+DEPLOYMENT
+--------------------------------------------------------------------
+Redeploy check.js and register.js to your Vercel project (same two
+files, same /api/check and /api/register routes — no URL changes, so
+nothing to update in the cron-job.org schedule or in index.html's
+PUSH_ENDPOINT). No new environment variables needed. Frontend: nothing
+to re-upload this round.

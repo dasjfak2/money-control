@@ -1,0 +1,103 @@
+FEXAFY — BACKEND: MONTHLY REVIEW PUSH NOTIFICATION
+=====================================================================
+Files: check.js, register.js. package.json, index.html, sw.js: untouched
+(index.html already had the ?review=1 handling built in from the earlier
+Monthly Review merge — this is just the backend half that nudges people
+to go open it).
+
+WHAT THIS ADDS
+On the 1st-3rd of each UTC month, every registered device that hasn't
+already gotten this month's nudge gets a generic push:
+  title: "Your monthly review is ready"
+  body:  "See how last month went vs your budget."
+  url:   "./?review=1"   (tag: "monthlyReview", no "FexaFY —" prefix,
+                           same as the two daily-log tags)
+Tapping it opens the app straight into the Monthly Review screen via the
+?review=1 URL param — that part already existed in index.html, this
+change only adds the "hey, go look" push itself.
+
+WHY IT'S GENERIC
+This backend only ever stores { bills, budgetOver, dailyLog-settings } —
+never your actual transactions or balances (see privacy-policy.html).
+So it can't say "you spent X on Y" in the push text. The real numbers
+are computed and shown entirely on-device, from on-device data, by
+handleMonthlyReviewShortcut() in index.html the moment the link is
+opened — the push is just the doorbell, not the report.
+
+HOW IT FITS THE EXISTING DUE-INDEX (2026-10-14 change)
+Monthly review is now an unconditional candidate in computeNextCheckAt()
+in both files — every device is eventually due for it, unlike
+bills/budget/daily-log which only apply if that data exists. It's the
+lowest priority of the four tags (checked last, after bills/budget/
+daily-log) since it's the least time-sensitive. It uses UTC day-of-month
+rather than each device's own local time (like bills/budget, and unlike
+daily-log) — a deliberate simplification: a day or two of slack on which
+local date a review lands on doesn't matter for a once-a-month nudge the
+way it would for a twice-a-day reminder.
+
+notified.monthlyReview stores the "YYYY-MM" of the month LAST reviewed,
+so: it only fires once per window no matter how many times the 1st-3rd
+is checked; a device that's been offline for months (app closed, phone
+off, etc.) gets only the MOST RECENTLY completed month next time it's
+seen — it never back-fills every missed month in a row of pushes.
+
+A side effect worth knowing: because this candidate is unconditional, a
+device with nothing else pending (no bills, budget fine, daily-log off)
+no longer drops out of the fexafy:due index entirely — it now stays
+indexed, scheduled for next month's 1st. This is expected and correct
+(that's the point — it needs to be found again next month) and the
+integration tests check for it explicitly.
+
+A SMALL TIMING TRADE-OFF, FOUND WHILE TESTING
+The fast index path (ZRANGE ... BYSCORE) only promises a device will be
+looked at by its scheduled instant, not continuously after that. For a
+daily-repeating candidate (bills/budget "not notified today"), once the
+scheduled run crosses into a new UTC day, that part of the decision
+logic legitimately re-arms itself — this is pre-existing behavior, not
+new — but it means a device that's overdue AND past its day boundary
+could in theory wait for the once-a-day full-scan reconcile (worst case
+~24h) rather than firing the instant its score says. This was already
+true before this change; adding monthlyReview as an always-present
+candidate just made it show up in testing (the old tests' sampling
+windows got wider since `next` can now be a month away). Fixed the test
+itself to only check for false early-firing within the window
+computeNextCheckAt() actually promises — this isn't a code bug, just a
+documented property of the fast-path/reconcile split, same as the
+2026-10-14 changelog already describes for the index design generally.
+
+TESTED (no real Redis or push service touched)
+- Cross-validation: 273 checks per anchor time, run at the default
+  anchor plus 10+ others including month/year rollovers — the new
+  nextMonthlyReviewAt() scheduling math checked against a verbatim copy
+  of the real decision logic (orig_decide.js), confirming it never
+  fires early and always fires correctly at its scheduled instant,
+  stacked on top of the existing bills/budget/daily-log scenarios.
+- Full in-memory mocked end-to-end run (real check.js/register.js code,
+  actually executed, not just read) — 43/43 checks, including:
+    - a device with nothing else pending gets indexed for the next
+      1st-3rd window (not dropped from the index)
+    - a push sent inside the window has the exact title/body/url/tag
+    - the SAME device checked again later in the SAME window does NOT
+      get a second push, and is re-indexed for the following month
+    - checked again in the FOLLOWING month's window, it fires again
+    - notified.monthlyReview is stamped with the month that was
+      reviewed, not the month the push was sent in
+    - a device dormant for 6+ months still fires, and only gets
+      stamped for the most recently completed month (no back-fill of
+      the 5 months it missed)
+- Fallback path re-confirmed against the final code: a forced ZRANGE
+  failure still falls back to a full scan, 200 response, no crash.
+- node --check clean on both files.
+NOT TESTED: against your real Upstash/Vercel deployment (no credentials
+available here). After deploying, the easiest way to confirm it's
+working without waiting for the 1st-3rd: temporarily register a test
+device whose notified.monthlyReview is unset and check the response
+JSON / your push arrives when a cron run lands inside day 1-3 UTC; or
+just wait for next month's window and watch normally.
+
+DEPLOY
+Redeploy check.js and register.js to your Vercel project (same two
+files, same /api/check and /api/register routes — no URL changes,
+nothing to update in cron-job.org or index.html, no new environment
+variables, no new dependency). Frontend: nothing to re-upload, this was
+already shipped in the earlier Monthly Review merge.

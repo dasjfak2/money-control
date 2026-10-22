@@ -1,0 +1,88 @@
+FEXAFY — "FORGOT PIN" NOW REQUIRES RE-VERIFICATION (2026-10-04, v75)
+=====================================================================
+Files touched: index.html, sw.js (v74 -> v75). All other files:
+untouched. Verified: all 6 real inline <script> blocks parse cleanly
+with `node --check`. No TRUE top-level duplicate function/async
+function/const/let names. div/button/span/svg/label tag counts
+balanced before and after (0 diff). Control flow for all three
+real-world paths (no biometric / biometric success / biometric
+failure) was traced through by hand against the actual code before
+shipping — see below.
+
+This fixes the finding you raised, and closes the gap flagged (by me,
+honestly this time — the last two rounds I'd corrected a
+misattribution, this one really was mine) at the end of the previous
+PIN-lockout fix: "Forgot PIN" disabled App Lock behind nothing but a
+generic confirm() dialog, even on a device where biometric unlock was
+already set up and sitting right there, unused, the whole time.
+
+--------------------------------------------------------------------
+WHAT CHANGED
+--------------------------------------------------------------------
+forgotPin() now checks whether a biometric credential is registered
+for this device (the same BIOMETRIC_CRED_KEY the lock screen's own
+fingerprint button already checks):
+
+  - Biometric IS set up: tapping "Forgot PIN" now triggers an actual
+    Face ID / Touch ID / Windows Hello challenge via
+    unlockWithBiometric() — the exact same function the lock screen's
+    fingerprint button already calls, so this isn't new trust surface,
+    just reusing an existing one somewhere it wasn't being checked
+    before. Only on a SUCCESSFUL biometric match does App Lock get
+    disabled. A failed or cancelled attempt shows "Verification
+    failed — App Lock was not changed" and leaves the PIN, biometric
+    credential, and App Lock setting completely untouched — nothing
+    is bypassed.
+
+  - Biometric is NOT set up: falls back to exactly the original
+    confirm()-based flow, unchanged. There's no stronger local factor
+    to require in that case, and this app has no backend account/
+    email system to build a real recovery flow on top of — "never
+    risk losing your own data to a forgotten PIN" still has to win
+    when biometric was never an option to begin with.
+
+Deliberately no silent fallback from the biometric path back to the
+old confirm()-only path on failure — a fallback there would just let
+anyone cancel the biometric prompt and bypass it exactly as before,
+undoing the entire fix. Tapping "Forgot PIN" again simply retries
+biometric normally.
+
+--------------------------------------------------------------------
+WHY THIS DOESN'T RISK A NEW LOCKOUT FOR THE ACTUAL OWNER
+--------------------------------------------------------------------
+Worth being explicit about, since "require biometric or you're stuck"
+could sound like a new way to lose access. It isn't, for two reasons:
+the legitimate owner is, by definition, the one person whose actual
+face/fingerprint the credential was registered to, so they can always
+pass this check — it's an attacker without that specific biometric who
+gets stopped, not the owner. And this only gates forgetting the PIN;
+anyone who still remembers their real PIN can keep unlocking with it
+exactly as before, untouched by this change.
+
+--------------------------------------------------------------------
+HOW THIS WAS VALIDATED
+--------------------------------------------------------------------
+- Traced all three real paths by hand against the final code:
+    1) No biometric registered -> confirm() shown, same as the
+       original behavior, nothing else changed.
+    2) Biometric registered, verification succeeds -> proceeds to
+       disable App Lock exactly as before (same cleanup, same toast).
+    3) Biometric registered, verification fails/cancels -> returns
+       immediately, BEFORE any localStorage changes -- App Lock, PIN
+       hash, salt, and biometric credential all remain fully intact.
+- Confirmed forgotPin()'s only call site is the existing
+  onclick="forgotPin()" on the lock screen's button, with nothing else
+  depending on it being synchronous — converting it to async (needed
+  to await the biometric check) is safe.
+- All 6 inline <script> blocks still pass node --check.
+- No duplicate top-level declarations.
+- div/button/span/svg/label tags balanced before and after.
+
+--------------------------------------------------------------------
+DEPLOYMENT
+--------------------------------------------------------------------
+Frontend: upload index.html and sw.js to your web hosting, overwriting
+what's there. Backend: nothing changed, no redeploy needed. Anyone
+who already has biometric unlock set up gets this protection
+automatically, no action needed on their end; anyone without it sees
+no change in behavior at all.

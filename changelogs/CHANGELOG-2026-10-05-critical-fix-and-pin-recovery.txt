@@ -1,0 +1,203 @@
+FEXAFY — CRITICAL BUG FIX + BEST-AVAILABLE PIN RECOVERY (2026-10-05, v80)
+=====================================================================
+Files touched: index.html, sw.js (v79 -> v80). All other files:
+untouched. Verified: all 6 real inline <script> blocks parse cleanly
+with `node --check`. No TRUE top-level duplicate declarations.
+div/button/span/svg/label tag counts balanced before and after
+(0 diff). Both pieces below were tested end-to-end using the ACTUAL
+extracted source code from the shipped file (not simplified
+reimplementations — more on why that distinction mattered this round,
+below) running in fully isolated simulated "devices," not just
+checked for syntax errors.
+
+Read this one fully before deploying — the first part matters more
+than the second.
+
+=====================================================================
+PART 1 — CRITICAL: LAST ROUND'S DRIVE ENCRYPTION WAS BROKEN
+=====================================================================
+While building today's feature (below), I found that deriveDriveKey()
+— shipped last round (v79) as part of the Google Drive sync encryption
+fix — created its AES key with `extractable: false`. But the very next
+step, saveDriveEncState(), immediately calls
+crypto.subtle.exportKey("raw", key) to cache that key locally. A
+non-extractable key CANNOT be exported — that call throws
+InvalidAccessException every time.
+
+Practically, this meant: setupNewDriveEncKey() and unlockDriveEncKey()
+— the two functions that run the first time anyone sets up or restores
+Drive sync encryption — crashed immediately. The whole Drive-sync-
+encryption feature from last round never actually worked for anyone
+who tried to use it.
+
+I did test v79 before shipping it, but only the encryption/decryption
+MATH in isolation — I wrote simplified standalone functions to check
+the cipher logic was sound, which it was, but that test never actually
+called the real saveDriveEncState() and its exportKey() line, so it
+couldn't have caught this. Today, building the new feature below
+required extracting and running the ACTUAL shipped functions verbatim
+(not reimplementations) to test against, which is what surfaced it —
+and genuinely, that's the right lesson for how I should have tested it
+the first time. Flagging this directly rather than quietly folding the
+fix into today's changelog as if it were routine.
+
+--------------------------------------------------------------------
+THE FIX
+--------------------------------------------------------------------
+One word: deriveDriveKey()'s `extractable` parameter changed from
+`false` to `true`. The key this produces is only ever used for local
+AES-GCM encrypt/decrypt and this one local caching export — marking it
+extractable doesn't expose it anywhere it wasn't already headed as raw
+bytes in localStorage anyway.
+
+--------------------------------------------------------------------
+HOW THIS WAS RE-VALIDATED (properly, this time)
+--------------------------------------------------------------------
+Extracted the real, verbatim functions from the fixed file (using
+brace-depth tracking rather than regex, after regex extraction caused
+its own false alarms earlier — noted so the method itself is
+transparent) and ran them through genuinely isolated process-per-
+"device" scenarios, each with its own fresh localStorage and no shared
+in-memory state:
+  - Device A: setupNewDriveEncKey() with a real password -> SUCCEEDED
+    (this exact call is what crashed in v79).
+  - Device A: encrypts a sample record -> envelope contains neither
+    the sample name nor email anywhere.
+  - Device A, same session: decrypts its own upload -> matches
+    original exactly.
+  - Device B, brand new/empty localStorage: downloads Device A's
+    envelope, enters the CORRECT password -> decrypts correctly,
+    matching the original exactly.
+  - Device C, brand new/empty localStorage: enters the WRONG password
+    three times -> fails cleanly with needsDriveKey:true, no crash,
+    no partial/garbage data returned.
+An earlier pass of this same test showed an unexpected "wrong password
+succeeded" result for one scenario — traced it to my own test reusing
+in-memory state across simulated devices rather than a real bug;
+re-ran with full process isolation per device before trusting the
+result.
+
+--------------------------------------------------------------------
+WHAT TO DO ABOUT THIS
+--------------------------------------------------------------------
+If you deployed v79 and anyone tried setting up Drive sync encryption
+since, it would have failed/errored at that moment rather than
+silently corrupting anything — nothing to undo or clean up, just
+redeploy this version. If no one's tried it yet, nothing to do beyond
+updating the file.
+
+=====================================================================
+PART 2 — "FORGOT PIN": BEST AVAILABLE RECOVERY, LAYERED
+=====================================================================
+You asked me to think through the best way to handle PIN recovery,
+given everything already connected in this app. Here's the reasoning,
+not just the result.
+
+--------------------------------------------------------------------
+THE THINKING
+--------------------------------------------------------------------
+What "recovery" actually needs to verify is identity — proving
+whoever's tapping "Forgot PIN" is the real owner, not just whoever's
+holding the device. This app has no backend account system and no
+email, so a traditional "reset link" recovery flow isn't available
+without building new infrastructure. But it already has THREE things
+that can serve as identity signals, of genuinely different strength,
+and the best design uses whichever is strongest for a given person's
+setup rather than picking just one:
+
+  1. Biometric (Face/Touch ID) — "something you are." Strongest: tied
+     to a specific person's body, can't be guessed or extracted from
+     the device. Already required when available (previous round).
+
+  2. The Google Drive backup password — "something you know," and
+     specifically a secret this app NEVER stores in readable form
+     anywhere — only a derived key, which is useless for recovering
+     the original password. Someone with full access to the device's
+     storage still can't recover this password from it. That makes it
+     a genuinely strong factor, not just an inconvenience.
+
+  3. Time + visibility (the 60-second cooldown, previous round) — not
+     an identity check at all, just friction and a chance for the real
+     owner to notice. The right fallback when neither of the above is
+     available, but strictly weaker than either.
+
+I considered a fourth option and rejected it: re-triggering Google
+sign-in as a recovery factor. The problem is that on a device already
+signed into the relevant Google account in the same browser — exactly
+the scenario that matters here — re-showing Google's consent screen
+often just silently re-confirms the existing session rather than
+actually asking for a password again. It would have looked like a
+security check without reliably being one. Didn't want to ship
+something that reads as "more secure" without actually being so; said
+so here rather than quietly leaving it out.
+
+I also confirmed the local EXPORT backup password (exportJSON(),
+different from the Drive one) genuinely can't be reused for this: it's
+one-off by design and deliberately never stored anywhere on the
+device, so there's nothing locally to check a guess against — unlike
+the Drive password, which has a cached key specifically for this kind
+of comparison.
+
+--------------------------------------------------------------------
+THE RESULT: forgotPin() NOW TRIES, IN ORDER
+--------------------------------------------------------------------
+  1. Biometric, if registered -> instant, as before.
+  2. If biometric fails or is declined, AND a Drive backup password
+     exists on this device -> offers it as a fallback (handles a
+     genuine sensor hiccup, not just "no biometric at all").
+  3. If no biometric at all, but a Drive backup password exists ->
+     tries that directly, instant on success, 3 attempts before giving
+     up for this round.
+  4. If nothing above applies or none of it is remembered -> the
+     60-second visible cooldown from the previous round, unchanged.
+
+Each tier is purely additive — cancelling or failing one always falls
+through cleanly to the next, never to a dead end. Nobody who has
+neither biometric nor a Drive password sees any change at all.
+
+--------------------------------------------------------------------
+HOW THE VERIFICATION ITSELF WORKS
+--------------------------------------------------------------------
+tryDrivePasswordUnlock() derives a candidate key from the entered
+password using the SAME salt and iteration count already cached for
+this device's Drive key, exports its raw bytes, and compares them
+byte-for-byte (constant-time comparison) against the cached key's own
+raw bytes. Entirely local and offline — no network call, doesn't touch
+Drive, doesn't re-encrypt anything. A wrong guess just fails the
+comparison; the cached key itself is never modified by a failed
+attempt.
+
+--------------------------------------------------------------------
+HOW PART 2 WAS VALIDATED
+--------------------------------------------------------------------
+Same rigorous approach as Part 1 — extracted the actual
+tryDrivePasswordUnlock() verbatim and ran it against 5 scenarios, each
+in its own isolated process with a real pre-established Drive key
+fixture:
+  1. Correct password, first try -> unlocks.
+  2. Wrong, wrong, then correct on the 3rd attempt -> unlocks (confirms
+     the retry loop itself works, not just a single-shot check).
+  3. All 3 attempts wrong -> returns false cleanly, no crash.
+  4. Cancelling immediately -> returns false cleanly, no crash.
+  5. No Drive password set up on this device at all -> returns false
+     immediately, confirmed NO prompt is shown (doesn't bother asking
+     when there's nothing to check against).
+All 5 passed as designed.
+
+=====================================================================
+CLEANLINESS CHECK (both parts)
+=====================================================================
+- No eval()/new Function()/document.write anywhere.
+- No new external domains, scripts, or endpoints.
+- node --check clean on all 6 inline <script> blocks and on sw.js.
+- No TRUE top-level duplicate declarations; every new name (including
+  constantTimeEqualBytes, tryDrivePasswordUnlock, and the corrected
+  deriveDriveKey) appears exactly once.
+- div/button/span/svg/label tags balanced before and after.
+
+=====================================================================
+DEPLOYMENT
+=====================================================================
+Frontend: upload index.html and sw.js to your web hosting, overwriting
+what's there — this is a required update if v79 is currently live, not
+an optional one. Backend: nothing changed, no redeploy needed.

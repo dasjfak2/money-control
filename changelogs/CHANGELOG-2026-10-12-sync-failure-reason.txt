@@ -1,0 +1,37 @@
+FEXAFY - SYNC FAILURE REASON SHOWN (2026-10-12, v97)
+====================================================
+Files touched: index.html, sw.js (v96 -> v97). Nothing else.
+
+WHY
+"Sync paused - tap Reconnect below" appears only after 3 failed sync attempts
+in a row; a wrong Drive password or cancelling the password prompt does NOT
+count (those show "Drive backup locked - tap Sync now"). The failures that do
+count are (a) Google not renewing the sign-in silently, which many mobile
+browsers block, and (b) a Drive request returning an error. Until now the
+message never said which one, so the cause of a "paused" report couldn't be
+told apart from the code alone.
+
+WHAT CHANGED
+- Under "Sync failed" and "Sync paused" a small line now says why, e.g.
+  "Reason: Google would not renew the sign-in silently" or
+  "Reason: Drive upload failed (HTTP 401)".
+- Drive errors now include the HTTP status code.
+- The reason is cleared after the next successful sync, and is HTML-escaped.
+- Counting rules and sync behaviour are unchanged.
+
+NOT CHANGED / STILL OPEN
+- The "paused after entering the password" report is not reproduced yet. If it
+  happens again, send a screenshot including the Reason line.
+- If the reason is "Google would not renew the sign-in silently": that is the
+  browser blocking Google's silent renewal; the Reconnect button is the
+  intended fix and the app cannot work around it.
+
+VERIFIED
+- 6 inline script blocks pass node --check; no duplicate functions.
+- Real extracted functions run with a fake status element: reason shows for
+  failed/paused, hidden when empty, markup in a reason is escaped, the locked
+  state is unchanged.
+- No page errors in headless Chromium. Not tested against real Google sign-in.
+
+DEPLOYMENT
+Upload index.html and sw.js. No backend change.

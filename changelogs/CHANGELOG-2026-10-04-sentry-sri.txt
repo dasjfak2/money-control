@@ -1,0 +1,96 @@
+FEXAFY — SRI HASH ADDED TO THE SENTRY CDN SCRIPT (2026-10-04, v76)
+=====================================================================
+Files touched: index.html, sw.js (v75 -> v76). All other files:
+untouched. Verified: all 6 real inline <script> blocks parse cleanly
+with `node --check`. No TRUE top-level duplicate declarations.
+div/button/span/svg/label tag counts balanced before and after
+(0 diff). The hash itself was independently sanity-checked (decodes
+to exactly 48 bytes, the correct length for SHA-384, and round-trips
+losslessly through base64) before being wired in.
+
+This fixes the finding you raised: the Sentry crash-reporting script
+is loaded from browser.sentry-cdn.com with a version pinned right in
+the URL (7.120.0), but had no Subresource Integrity (SRI) hash — so if
+that CDN, or the network path to it, were ever compromised, the
+browser would execute whatever showed up with no way to notice. You
+also correctly noted why the Google GSI script right above it can't
+get the same treatment: that URL has no version in it at all (Google's
+own rolling script), so any SRI hash on it would break the moment
+Google updates their side — nothing to fix there, it's a different
+situation, not an oversight.
+
+--------------------------------------------------------------------
+WHAT CHANGED
+--------------------------------------------------------------------
+The dynamically-created Sentry <script> element in initCrashReporting()
+now sets:
+
+    s.integrity = "sha384-IDUZ4TLzLVVJBrAVtnp+7wFfhZCU12V7TY5aTUOF2fYY2U1+uajA2SItOGQudpYE";
+
+alongside the s.crossOrigin = "anonymous" that was already there
+(required for SRI to work cross-origin — this app already had it set,
+so that part needed no change). If the file at that pinned URL ever
+doesn't match this hash byte-for-byte, the browser refuses to execute
+it rather than silently running it.
+
+Also added an s.onerror handler, which didn't exist before — previously
+a failed Sentry load (for any reason) failed completely silently. Now
+it logs a console warning. Either way, this was already true and stays
+true: Sentry is fully optional here. The window.addEventListener
+handlers for error/unhandledrejection write to local, on-device crash
+storage regardless of whether Sentry's script loads at all — nothing
+about on-device crash logging depends on this script succeeding.
+
+--------------------------------------------------------------------
+WHERE THE HASH CAME FROM
+--------------------------------------------------------------------
+Worth being precise about, since a wrong SRI hash is worse than none —
+it would silently stop Sentry from ever loading again. Couldn't fetch
+browser.sentry-cdn.com directly from here to hash the file myself (not
+on this environment's reachable-domains list), so instead:
+
+  1) Found, via Sentry's own current CDN docs, that they explicitly
+     point to their open-source release registry for exactly this —
+     hashes for SDK versions other than the latest one:
+     github.com/getsentry/sentry-release-registry
+  2) Fetched the official per-version manifest for this exact pinned
+     version directly from that repo:
+     github.com/getsentry/sentry-release-registry/blob/master/packages/npm/%40sentry/browser/7.120.0.json
+  3) Read the "bundle.min.js" entry's sha384-base64 field from that
+     manifest — the exact file this app loads, the exact version this
+     app pins.
+  4) Tried to independently re-derive the same hash by downloading the
+     actual @sentry/browser@7.120.0 npm package and hashing its
+     contents myself, as a cross-check — this didn't pan out, because
+     the npm package only ships ESM/CJS source for bundlers, not the
+     separate pre-built CDN bundle artifact; that confirmed why
+     Sentry's own release registry is the right source to use here,
+     rather than an extra step to skip.
+
+The exact URL to re-check this hash yourself before deploying, if
+you'd like independent confirmation, is in a code comment right next
+to where the hash is used.
+
+--------------------------------------------------------------------
+HOW THIS WAS VALIDATED
+--------------------------------------------------------------------
+- The hash decodes to exactly 48 bytes (the correct length for
+  SHA-384) and re-encodes back to the identical base64 string —
+  catches a transcription typo, which a merely-plausible-looking wrong
+  hash wouldn't otherwise reveal until Sentry silently stopped working
+  in production.
+- All 6 inline <script> blocks still pass node --check.
+- No duplicate top-level declarations introduced.
+- div/button/span/svg/label tags balanced before and after.
+- Confirmed the integrity attribute and hash appear exactly once in
+  the shipped file, attached to the one script tag that needed it.
+
+--------------------------------------------------------------------
+DEPLOYMENT
+--------------------------------------------------------------------
+Frontend: upload index.html and sw.js to your web hosting, overwriting
+what's there. Backend: nothing changed, no redeploy needed. No visible
+change for anyone unless Sentry's CDN content were ever tampered with
+— in which case, instead of silently running it, the browser now just
+refuses to load it, and this app keeps working normally either way
+(crash reporting is best-effort and optional, by design, as before).

@@ -1,0 +1,93 @@
+FEXAFY — CRASH REPORTS NOW SCRUB PHONE/ID NUMBERS TOO (2026-10-04, v77)
+=====================================================================
+Files touched: index.html, sw.js (v76 -> v77). All other files:
+untouched. Verified: all 6 real inline <script> blocks parse cleanly
+with `node --check`. No TRUE top-level duplicate declarations.
+div/button/span/svg/label tag counts balanced before and after
+(0 diff). The regex itself was tested against 13 realistic inputs
+before being wired in, then re-extracted from the actual shipped file
+and re-tested a second time to confirm the embedded copy behaves
+identically to what was tested — results below.
+
+This fixes the code half of the finding you raised. The other half —
+Sentry's own project-level IP/PII settings — isn't something I can
+check or change from here (explained below).
+
+--------------------------------------------------------------------
+WHAT CHANGED IN THE CODE
+--------------------------------------------------------------------
+scrubSensitive() previously only redacted two things: currency amounts
+and email addresses. Now also redacts phone numbers and other long
+digit sequences (card numbers, account numbers, ID numbers) — any run
+of 7+ digits, with or without +/space/dash/paren/dot separators.
+Deliberately broad: this is defense-in-depth for a crash report headed
+to a third party, so over-redacting an occasional harmless number
+(a date, a reference ID) is an acceptable trade-off for not missing a
+real phone or account number even once. It does NOT touch
+file:line:col in stack traces (":" isn't in the matched character
+set) or short version strings like "fexafy@v76" — those still come
+through intact, so crash reports stay just as useful for debugging.
+
+Also fixed, while already in this exact function: the amount pattern
+used to be [\s\d,.]+, which greedily consumed trailing whitespace
+along with the digits — "৳12,450.00 today" became "[amount]today"
+with the space gone. Tightened to only consume a single optional space
+right after the currency symbol. Small, unrelated to what you asked
+for, but a real bug sitting in the same three lines I was already
+editing, so fixed rather than left as-is.
+
+--------------------------------------------------------------------
+WHAT I CAN'T DO FROM HERE: SENTRY'S OWN DASHBOARD SETTINGS
+--------------------------------------------------------------------
+You're right that this is worth checking, and I want to be direct that
+I have no access to your Sentry account — this needs your own login at
+sentry.io, not a code change. Specifically, worth checking:
+
+  1) Settings > Projects > (your project) > Security & Privacy
+     - "Store IP Address" / "Prevent Storing of IP Addresses" — if
+       this is ON, Sentry captures the reporting device's IP with every
+       event in addition to whatever scrubSensitive() already redacted
+       client-side. Turning it off stops that at the source, which is
+       more reliable than any client-side scrubbing.
+     - "Data Scrubber" (sometimes called "Security & Privacy >
+       Advanced Data Scrubbing") — Sentry has its own SERVER-SIDE
+       scrubbing with configurable field-name and regex rules, applied
+       in addition to whatever reaches them from the client. Worth
+       reviewing what's enabled there as a second layer behind the
+       app's own scrubSensitive().
+  2) Settings > Projects > (your project) > General Settings >
+     "Client Security" / data retention period — how long raw events
+     are kept before Sentry deletes them.
+
+This app's own client-side scrubbing (scrubSensitive(), just extended
+above) and Sentry's own server-side settings are two independent
+layers — fixing one doesn't substitute for checking the other, which
+is exactly why you were right to flag both separately.
+
+--------------------------------------------------------------------
+HOW THE CODE CHANGE WAS VALIDATED
+--------------------------------------------------------------------
+- Tested the new regex against 13 cases before writing it into the
+  file: international and local phone formats, parenthesized phone
+  formats, a card number, an account number, an email (still works),
+  an amount (spacing now correct), a stack trace file:line:col
+  (confirmed untouched), a version string (confirmed untouched), and
+  an idempotency check (running it on already-scrubbed text changes
+  nothing further).
+- After editing the real file, re-extracted the actual embedded
+  scrubSensitive() function (not my test copy) and re-ran the same
+  checks against it directly — confirmed byte-for-byte identical
+  behavior to what was tested.
+- All 6 inline <script> blocks still pass node --check.
+- No duplicate top-level declarations; scrubSensitive appears exactly
+  once.
+- div/button/span/svg/label tags balanced before and after.
+
+--------------------------------------------------------------------
+DEPLOYMENT
+--------------------------------------------------------------------
+Frontend: upload index.html and sw.js to your web hosting, overwriting
+what's there. Backend: nothing changed, no redeploy needed. For the
+Sentry dashboard settings above, that's a separate step on your end at
+sentry.io whenever you get to it — not blocked on or related to this
+file upload.

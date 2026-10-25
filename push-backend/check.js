@@ -11,6 +11,19 @@ import crypto from "crypto";
 const redis = Redis.fromEnv();
 const KEY_PREFIX = "fexafy:device:";
 
+/* PLUS-GATE-BEGIN (check.js) -- background push is a Plus feature.
+   Only enforced when the Vercel env PLUS_PUSH_ENFORCE is exactly "true";
+   otherwise behaviour is unchanged. A device is entitled during its 7-day
+   trial or while a paid plan has not expired (both stored by register.js
+   from a verified licence token). */
+const PLUS_TRIAL_MS = 7 * 86400000;
+function isPushEntitled(ent, now) {
+  if (!ent) return false;
+  if (typeof ent.trialStart === "number" && now < ent.trialStart + PLUS_TRIAL_MS) return true;
+  return ent.plan === "plus" && Number(ent.expiry) > now;
+}
+/* PLUS-GATE-END */
+
 webpush.setVapidDetails(
   process.env.VAPID_SUBJECT || "mailto:admin@example.com",
   process.env.VAPID_PUBLIC_KEY,
@@ -191,7 +204,7 @@ export default async function handler(req, res) {
 
   const now = Date.now();
   const today = todayStr();
-  let checked = 0, sent = 0, removed = 0, retired = 0;
+  let checked = 0, sent = 0, removed = 0, retired = 0, locked = 0;
 
   async function updateDueIndex(id, summary, notified) {
     try {
@@ -216,6 +229,14 @@ export default async function handler(req, res) {
       // Stale index entry pointing at a record that's gone or never had
       // a subscription — drop it so it isn't re-fetched every run for nothing.
       try { await redis.zrem(DUE_KEY, id); } catch (e) {}
+      return;
+    }
+
+    // Plus gate: devices without a valid trial/plan get no push, and are dropped from
+    // the due-index (they re-enter the next time the app registers with a valid token).
+    if (process.env.PLUS_PUSH_ENFORCE === "true" && !isPushEntitled(rec.ent, now)) {
+      try { await redis.zrem(DUE_KEY, id); } catch (e) {}
+      locked++;
       return;
     }
 
@@ -382,5 +403,5 @@ export default async function handler(req, res) {
     }
   }
 
-  return res.status(200).json({ checked, sent, removed, retired, reconciled, at: today });
+  return res.status(200).json({ checked, sent, removed, retired, locked, reconciled, at: today });
 }

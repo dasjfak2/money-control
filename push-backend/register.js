@@ -10,6 +10,42 @@ import crypto from "crypto";
 const redis = Redis.fromEnv();
 const KEY_PREFIX = "fexafy:device:";
 const RATE_PREFIX = "fexafy:ratelimit:register:";
+/* PLUS-GATE-BEGIN (register.js) -- FexaFY Plus entitlement stored with the device
+   The app sends the signed licence token it got from /api/entitlement. We verify the
+   signature (public key derived from PLUS_PRIVATE_JWK -- no extra env var needed) and
+   keep ONLY: account-hash, trialStart, plan, expiry. check.js uses it to decide whether
+   this device may receive background push. Nothing here is personal data. */
+let _plusPubKey;
+function plusPublicKey() {
+  if (_plusPubKey !== undefined) return _plusPubKey;
+  try { _plusPubKey = crypto.createPublicKey({ key: JSON.parse(process.env.PLUS_PRIVATE_JWK || "{}"), format: "jwk" }); }
+  catch (e) { _plusPubKey = null; }
+  return _plusPubKey;
+}
+function verifyPlusToken(tok) {
+  try {
+    const key = plusPublicKey();
+    if (!key || typeof tok !== "string" || tok.length > 2000) return null;
+    const parts = tok.split(".");
+    if (parts.length !== 2) return null;
+    const ok = crypto.verify("sha256", Buffer.from(parts[0]), { key, dsaEncoding: "ieee-p1363" }, Buffer.from(parts[1], "base64url"));
+    if (!ok) return null;
+    const p = JSON.parse(Buffer.from(parts[0], "base64url").toString("utf8"));
+    if (!p || typeof p.sub !== "string" || typeof p.trialStart !== "number") return null;
+    return { sub: p.sub, trialStart: p.trialStart, plan: p.plan === "plus" ? "plus" : "trial", expiry: Number(p.expiry) || 0 };
+  } catch (e) { return null; }
+}
+function mergeEnt(prev, next) {
+  if (!prev || prev.sub !== next.sub) return next;   // different account on this device -> replace
+  return {
+    sub: next.sub,
+    trialStart: Math.min(prev.trialStart, next.trialStart),
+    plan: (prev.plan === "plus" || next.plan === "plus") ? "plus" : "trial",
+    expiry: Math.max(Number(prev.expiry) || 0, Number(next.expiry) || 0)
+  };
+}
+/* PLUS-GATE-END */
+
 const HHMM_RE = /^([01]\d|2[0-3]):[0-5]\d$/; // "HH:MM", 24h — anything else falls back to a safe default below
 
 /* ---- IP-based rate limit (2026-10-03, resource-abuse fix) ----
@@ -163,7 +199,7 @@ export default async function handler(req, res) {
     try { body = JSON.parse(body); } catch { body = {}; }
   }
   body = body || {};
-  const { deviceId, subscription, summary } = body;
+  const { deviceId, subscription, summary, plusToken } = body;
 
   const id = (typeof deviceId === "string" && deviceId.length >= 8 && deviceId.length <= 128)
     ? deviceId
@@ -211,11 +247,15 @@ export default async function handler(req, res) {
 
   const existing = await redis.get(key);
   const notified = (existing && existing.notified) || {};
+  let ent = existing && existing.ent;                 // Plus entitlement (see PLUS-GATE above)
+  const verifiedEnt = verifyPlusToken(plusToken);
+  if (verifiedEnt) ent = mergeEnt(ent, verifiedEnt);
 
   await redis.set(key, {
     subscription,
     summary: safeSummary,
     notified,              // { bills: "YYYY-MM-DD", budget: "YYYY-MM-DD", dailyLogMorning: "YYYY-MM-DD", dailyLogNight: "YYYY-MM-DD" } — last day each was sent, so nothing notifies more than once per day per kind. The two dailyLog* keys are written by the scheduler once that side is updated to match; this endpoint just preserves whatever keys already exist, unchanged.
+    ...(ent ? { ent } : {}),
     failCount: 0,           // consecutive non-404/410 send failures, reset on every successful send or fresh registration — see check.js for how this retires a record that never actually works
     updatedAt: new Date().toISOString()
   });

@@ -1,0 +1,2 @@
+FexaFY — CHANGELOG 2026-10-26 (v113)
+"Continue without Google" is kept. Behind it, "Restore a local backup file" and "Start fresh & save a local file" are hidden (they would bypass the Google-based trial count); only "Backup with Google Drive" remains. Functions untouched; the options sit in a hidden container.

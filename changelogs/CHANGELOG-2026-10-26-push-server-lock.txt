@@ -1,0 +1,7 @@
+FexaFY — CHANGELOG 2026-10-26 (v114)
+Background push is now locked on the SERVER (the one Plus feature that can be truly enforced).
+- app: the signed Plus licence token is sent along with the push registration (1 line in syncTruePush) and re-sent right after each licence refresh.
+- register.js: verifies the token signature (public key derived from PLUS_PRIVATE_JWK -- no new env var) and stores only {account-hash, trialStart, plan, expiry} on the device record. Stale tokens never downgrade; a different account replaces.
+- check.js: if env PLUS_PUSH_ENFORCE is exactly "true", devices without an active 7-day trial or paid plan get no push and are dropped from the due-index (they re-enter when the app registers again with a valid token). Response JSON gains "locked". With the env unset/false nothing changes.
+- Tests: push-backend/test_push_gate.mjs (12 checks, real handlers on in-memory Redis), plus all earlier suites.
+ROLL-OUT ORDER: 1) upload v114 app + register.js + check.js  2) open the app (push toggle on) so each device sends its token  3) only then add PLUS_PUSH_ENFORCE=true in Vercel and redeploy.

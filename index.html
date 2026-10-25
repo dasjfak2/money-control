@@ -2876,10 +2876,12 @@ html[lang="bn"] .screen:not(.fx-theme) .card h3{letter-spacing:0;text-transform:
     <div id="authStepLocalBackup" class="authstep">
       <p>Before you continue, choose a backup method — you can't skip this step, so your data is never at risk of being lost.</p>
       <button class="authoption" onclick="chooseGoogleLogin()"><b><span class="navicon" data-icon="cloud" data-icon-size="14"></span> Backup with Google Drive</b><span>Sign in with a Gmail account just for private cloud backup</span></button>
+      <div id="localOptionsHidden" style="display:none" aria-hidden="true">
       <div class="authdivider">or</div>
       <button class="authoption" onclick="document.getElementById('localRestoreInput').click()"><b><span class="navicon" data-icon="upload" data-icon-size="14"></span> Restore a local backup file</b><span>Pick a .json backup file you saved earlier</span></button>
       <input type="file" id="localRestoreInput" accept="application/json" style="display:none" onchange="restoreLocalBackupFile(event)">
       <button class="authoption" onclick="startFreshLocal()"><b><span class="navicon" data-icon="file-text" data-icon-size="14"></span> Start fresh &amp; save a local file</b><span>Creates a new local backup file on this device now</span></button>
+      </div>
       <button class="linktext" onclick="showAuthStep('authStepChoice')"><span class="navicon" data-icon="chevron-left" data-icon-size="13"></span> Back</button>
     </div>
 
@@ -4137,7 +4139,7 @@ html[lang="bn"] .screen:not(.fx-theme) .card h3{letter-spacing:0;text-transform:
         services are documented there.
    ============================================================ */
 const SENTRY_DSN = "https://accd3f87b3f615f44f3274b4045fa63d@o4512055606640640.ingest.de.sentry.io/4512055628726352"; // paste your own Sentry DSN here to opt in; leave empty to keep crash reporting fully local/offline
-const APP_VERSION = "v111"; // keep this in sync with sw.js's APP_VERSION — used only to tag crash reports so you can tell which release an error came from
+const APP_VERSION = "v114"; // keep this in sync with sw.js's APP_VERSION — used only to tag crash reports so you can tell which release an error came from
 const CRASH_LOG_KEY = "mc_crashlog";
 function logCrashLocally(err, source){
   try{
@@ -4328,7 +4330,8 @@ async function syncTruePush(subscribe, opts){
       body: JSON.stringify({
         deviceId,
         subscription: (subscribe && sub) ? sub.toJSON() : null,
-        summary: buildPushSummary()
+        summary: buildPushSummary(),
+        plusToken: (typeof plusPushToken==="function") ? plusPushToken() : undefined // lets the server tell trial/Plus devices from the rest
       })
     });
     const out = await res.json().catch(()=>null);
@@ -13983,6 +13986,9 @@ plusWrap("parseAndFillSms",(o,a)=>{
   return o.apply(null,a);
 });
 
+/* The signed licence token travels with the push registration so the SERVER can enforce the push lock. */
+function plusPushToken(){ return PLUS_ENABLED ? (plusLoad().token||undefined) : undefined; }
+
 /* ---- server check (only when PLUS_API_BASE + key are configured) ---- */
 function plusB64u(s){ s=s.replace(/-/g,"+").replace(/_/g,"/"); while(s.length%4) s+="="; return Uint8Array.from(atob(s),c=>c.charCodeAt(0)); }
 async function plusVerifyToken(tok){
@@ -14012,6 +14018,7 @@ async function plusRefresh(){
     plusSave({trialStart:p.trialStart,plan:p.plan==="plus"?"plus":"trial",expiry:p.expiry||0,owner:p.owner===true,token:j.token,checked:Date.now()});
     plusApplyUI();
     if(p.owner===true) plusMountSwitcher(); // owner-only state switcher (verified by the signed token)
+    try{ maybeSyncTruePush(); }catch(e){}   // hand the fresh token to the push server right away (no-op if push is off)
   }catch(e){ /* offline / server down: keep the local record */ }
 }
 plusWrap("updateAccountUI",(o,a)=>{

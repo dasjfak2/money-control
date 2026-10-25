@@ -1,0 +1,27 @@
+FexaFY — CHANGELOG
+Date: 2026-10-24
+Fix: blank logo box on the sign-in screen
+App version: v107 -> v108 (index.html + sw.js, kept in sync)
+
+WHAT WAS WRONG
+The sign-in screen showed an empty white square where the FexaFY logo
+should be. Cause: three copies of the logo (language picker, sign-in
+screen, desktop sidebar) all defined their purple gradient with the same
+id ("fexaGrad"). Browsers use the first one, which sits inside the
+language-picker screen; once that screen is hidden, the gradient stops
+rendering everywhere, so the logo's white "F" ended up on a transparent
+square on a white card. This was already in the app before this session
+(it is not from any recent change).
+
+WHAT CHANGED
+Each copy now has its own gradient id (fexaGrad, fexaGradA, fexaGradN;
+the mobile menu already had fexaGradM). Two lines of index.html only.
+No logic, text or layout changed.
+
+TESTING
+Rendered the sign-in logo after hiding the language picker: purple
+gradient square with the white F now shows. Re-ran the nav-shortcut and
+mobile/desktop regression suites: all passed, zero JavaScript errors.
+
+FILES CHANGED
+index.html (2 lines + APP_VERSION v108), sw.js (APP_VERSION v108).

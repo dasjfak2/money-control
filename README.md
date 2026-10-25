@@ -6,7 +6,7 @@ Bangladesh income-tax estimator, and a US income-tax estimator — all
 running entirely on-device. No backend, no account, no data leaves the
 browser (except the optional push-notification backend described below).
 
-**Current version:** v106
+**Current version:** v111
 
 ## Running it
 

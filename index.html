@@ -2783,6 +2783,18 @@ html[lang="bn"] .screen:not(.fx-theme) .card h3{letter-spacing:0;text-transform:
   #dashboard .hero::after{animation:none}
   .fab,.iconbtn,#dashboard .quick button{transition:none}
 }
+
+/* ===== FexaFY Plus: locked calculators + popup (inert while PLUS_ENABLED=false) ===== */
+.plus-lock-card{display:none;text-align:center;padding:26px 18px}
+#calculators.plus-locked .plus-lock-card{display:block}
+#calculators.plus-locked [id^="calcPanel"]{display:none!important}
+.plus-lock-ic{display:inline-flex;margin-bottom:6px;opacity:.75}
+.plus-lock-card h3{margin:6px 0}
+.plus-lock-card .primary{margin-top:12px}
+.plus-badge{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:99px;background:rgba(217,164,65,.18);margin-left:6px}
+.plus-pop p{margin:8px 0}
+.plus-pop ul{margin:8px 0 12px 18px;padding:0}
+.plus-pop .row-btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
 </style>
 <title>Personal Finance</title>
 <meta name="application-name" content="Personal Finance">
@@ -2822,7 +2834,7 @@ html[lang="bn"] .screen:not(.fx-theme) .card h3{letter-spacing:0;text-transform:
 
 <div id="authGate" class="authgate hidden">
   <div class="authbox">
-    <span class="railmark"><svg class="logo-svg" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="fexaGrad" x1="0" y1="0" x2="100" y2="100"><stop offset="0%" stop-color="#2C1B3D"/><stop offset="60%" stop-color="#42294F"/><stop offset="100%" stop-color="#D9A441"/></linearGradient></defs><rect x="6" y="6" width="88" height="88" rx="24" fill="url(#fexaGrad)"/><path d="M30 28 L30 72" stroke="white" stroke-width="9" stroke-linecap="round"/><path d="M30 28 L56 28" stroke="white" stroke-width="9" stroke-linecap="round"/><path d="M30 50 L48 50" stroke="white" stroke-width="9" stroke-linecap="round"/><path d="M48 50 L68 30" stroke="white" stroke-width="7" stroke-linecap="round"/><path d="M60 30 L68 30 L68 38" stroke="white" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+    <span class="railmark"><svg class="logo-svg" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="fexaGradA" x1="0" y1="0" x2="100" y2="100"><stop offset="0%" stop-color="#2C1B3D"/><stop offset="60%" stop-color="#42294F"/><stop offset="100%" stop-color="#D9A441"/></linearGradient></defs><rect x="6" y="6" width="88" height="88" rx="24" fill="url(#fexaGradA)"/><path d="M30 28 L30 72" stroke="white" stroke-width="9" stroke-linecap="round"/><path d="M30 28 L56 28" stroke="white" stroke-width="9" stroke-linecap="round"/><path d="M30 50 L48 50" stroke="white" stroke-width="9" stroke-linecap="round"/><path d="M48 50 L68 30" stroke="white" stroke-width="7" stroke-linecap="round"/><path d="M60 30 L68 30 L68 38" stroke="white" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
     <h2>FexaFY</h2>
 
     <!-- STEP: choose login type -->
@@ -2973,7 +2985,7 @@ html[lang="bn"] .screen:not(.fx-theme) .card h3{letter-spacing:0;text-transform:
 
 <!-- Desktop Side Nav -->
 <nav class="nav">
-  <div class="railtop"><span class="railmark"><svg class="logo-svg" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="fexaGrad" x1="0" y1="0" x2="100" y2="100"><stop offset="0%" stop-color="#2C1B3D"/><stop offset="60%" stop-color="#42294F"/><stop offset="100%" stop-color="#D9A441"/></linearGradient></defs><rect x="6" y="6" width="88" height="88" rx="24" fill="url(#fexaGrad)"/><path d="M30 28 L30 72" stroke="white" stroke-width="9" stroke-linecap="round"/><path d="M30 28 L56 28" stroke="white" stroke-width="9" stroke-linecap="round"/><path d="M30 50 L48 50" stroke="white" stroke-width="9" stroke-linecap="round"/><path d="M48 50 L68 30" stroke="white" stroke-width="7" stroke-linecap="round"/><path d="M60 30 L68 30 L68 38" stroke="white" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="railbrand">FexaFY</span></div>
+  <div class="railtop"><span class="railmark"><svg class="logo-svg" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="fexaGradN" x1="0" y1="0" x2="100" y2="100"><stop offset="0%" stop-color="#2C1B3D"/><stop offset="60%" stop-color="#42294F"/><stop offset="100%" stop-color="#D9A441"/></linearGradient></defs><rect x="6" y="6" width="88" height="88" rx="24" fill="url(#fexaGradN)"/><path d="M30 28 L30 72" stroke="white" stroke-width="9" stroke-linecap="round"/><path d="M30 28 L56 28" stroke="white" stroke-width="9" stroke-linecap="round"/><path d="M30 50 L48 50" stroke="white" stroke-width="9" stroke-linecap="round"/><path d="M48 50 L68 30" stroke="white" stroke-width="7" stroke-linecap="round"/><path d="M60 30 L68 30 L68 38" stroke="white" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="railbrand">FexaFY</span></div>
   <button data-screen="dashboard" class="active"><span class="navicon" data-icon="home"></span><small data-i18n="home">Home</small></button>
   <button data-screen="transactions"><span class="navicon" data-icon="wallet"></span><small data-i18n="tx">Tx</small></button>
   <button data-screen="budget"><span class="navicon" data-icon="grid"></span><small data-i18n="budget">Budget</small></button>
@@ -2991,6 +3003,7 @@ html[lang="bn"] .screen:not(.fx-theme) .card h3{letter-spacing:0;text-transform:
       <button type="button" class="calc-nav-item" data-calc="deposit" onclick="openCalcFromNav('deposit')"><small data-i18n="calc_tab_deposit">Deposit Calculator</small></button>
       <button type="button" class="calc-nav-item hidden" data-calc="tax" onclick="openCalcFromNav('tax')"><small data-i18n="calc_menu_tax">Income Tax Calculator</small></button>
       <button type="button" class="calc-nav-item hidden" data-calc="zakat" onclick="openCalcFromNav('zakat')"><small data-i18n="calc_tab_zakat">Zakat Calculator</small></button>
+      <button type="button" class="calc-nav-item hidden" data-calc="taxUS" onclick="openCalcFromNav('taxUS')"><small data-i18n="calc_menu_taxus">US Income Tax Calculator</small></button>
     </div>
   </div>
   <button data-screen="sync"><span class="navicon" data-icon="cloud"></span><small data-i18n="sync">Sync</small></button>
@@ -3024,6 +3037,7 @@ html[lang="bn"] .screen:not(.fx-theme) .card h3{letter-spacing:0;text-transform:
       <button type="button" class="calc-nav-item" data-calc="deposit" onclick="openCalcFromNav('deposit')"><small data-i18n="calc_tab_deposit">Deposit Calculator</small></button>
       <button type="button" class="calc-nav-item hidden" data-calc="tax" onclick="openCalcFromNav('tax')"><small data-i18n="calc_menu_tax">Income Tax Calculator</small></button>
       <button type="button" class="calc-nav-item hidden" data-calc="zakat" onclick="openCalcFromNav('zakat')"><small data-i18n="calc_tab_zakat">Zakat Calculator</small></button>
+      <button type="button" class="calc-nav-item hidden" data-calc="taxUS" onclick="openCalcFromNav('taxUS')"><small data-i18n="calc_menu_taxus">US Income Tax Calculator</small></button>
     </div>
   </div>
   <button data-screen="sync"><span class="navicon" data-icon="cloud"></span><small data-i18n="sync">Sync</small></button>
@@ -3518,6 +3532,14 @@ html[lang="bn"] .screen:not(.fx-theme) .card h3{letter-spacing:0;text-transform:
       <b><span data-icon="landmark" data-icon-size="13"></span> <span data-i18n="calc_tab_taxus">Income Tax Estimator (USA)</span></b>
       <span data-i18n="calc_tab_taxus_sub">Rough federal + state estimate using 2026 IRS and state tax tables</span>
     </div>
+  </div>
+
+  <!-- FexaFY Plus: shown in place of the calculators only when locked (hidden otherwise) -->
+  <div class="card plus-lock-card" id="plusCalcLock">
+    <div class="plus-lock-ic" data-icon="lock" data-icon-size="26"></div>
+    <h3 data-i18n="plus_lock_title">This calculator is part of FexaFY Plus</h3>
+    <p class="muted" id="plusCalcLockMsg" data-i18n="plus_lock_msg_expired">Your free trial has ended.</p>
+    <button type="button" class="primary" onclick="plusShowPopup('calc')"><span data-i18n="plus_lock_btn">See how to unlock</span></button>
   </div>
 
   <!-- ============== LOAN CALCULATOR ============== -->
@@ -4115,7 +4137,7 @@ html[lang="bn"] .screen:not(.fx-theme) .card h3{letter-spacing:0;text-transform:
         services are documented there.
    ============================================================ */
 const SENTRY_DSN = "https://accd3f87b3f615f44f3274b4045fa63d@o4512055606640640.ingest.de.sentry.io/4512055628726352"; // paste your own Sentry DSN here to opt in; leave empty to keep crash reporting fully local/offline
-const APP_VERSION = "v106"; // keep this in sync with sw.js's APP_VERSION — used only to tag crash reports so you can tell which release an error came from
+const APP_VERSION = "v111"; // keep this in sync with sw.js's APP_VERSION — used only to tag crash reports so you can tell which release an error came from
 const CRASH_LOG_KEY = "mc_crashlog";
 function logCrashLocally(err, source){
   try{
@@ -5149,7 +5171,7 @@ const I18N={
     voice_consent_title:"Voice input",
     voice_consent_body:"Voice input sends what you say to your browser's speech service (usually Google, via Chrome) to turn it into text — unlike the rest of FexaFY, which never sends anything off this device. Nothing else about your finances is shared.",
     voice_consent_accept:"Got it, continue",voice_consent_cancel:"Not now",
-    calc_menu_tax:"Income Tax Calculator",analytics_title:"Analytics",analytics_sub:"A closer look at your money over time — everything here is worked out from what is already on this device.",analytics_period_month:"Month",analytics_period_6m:"6 Months",analytics_period_year:"Year",analytics_expense:"Expense",analytics_net:"Net",analytics_savings_rate:"Savings rate",analytics_expense_breakdown:"Where expense went",analytics_expense_breakdown_sub:"Spending, money set aside, and debt/bill payments — each counted once.",analytics_income_vs_expense:"Income vs expense",analytics_where_money_goes:"Spending by category",analytics_where_money_goes_sub:"Everyday spending only — excludes savings, investment and debt/bill payments (shown above).",analytics_need_want:"Need vs want",analytics_goals_title:"Savings & goals vs target",analytics_goals_sub:"Based on your current Budget Setup targets, applied across this period.",analytics_empty:"No transactions in this period yet.",analytics_spending:"Spending",analytics_set_aside:"Set aside",analytics_debt_card:"Debt & card payments",analytics_need:"Need",analytics_want:"Want",analytics_daily_spending:"Daily spending",analytics_no_targets:"No Budget Setup targets are set yet.",analytics_nothing_recorded:"Nothing recorded yet.",analytics_accounts_title:"Accounts",analytics_accounts_sub:"Today’s balance on the left; money in/out during this period on the right.",analytics_habits_title:"Spending habits",analytics_habits_sub:"Everyday spending only, same as the category breakdown above.",analytics_weekday_sub:"Total expense by day of week",analytics_top_expenses_sub:"Largest single expenses",analytics_bills_debt_title:"Bills & debt",analytics_bills_debt_sub:"Payments made during this period; debt balances are as of today, not period-specific.",analytics_debts_today:"Current debt balances",analytics_bills_paid_suffix:"bill(s) paid",analytics_no_bills_paid:"No bills marked paid in this period.",analytics_no_debts:"No debts on file.",analytics_export_pdf:"Download this view as PDF",analytics_networth_title:"Net worth & debt trend",analytics_networth_sub:"Only tracked from when this device started recording it — nothing before that is shown.",analytics_total_debt:"Total debt",analytics_networth_one_point:"Only one data point so far — more will appear as months pass.",analytics_networth_none_yet:"Net worth tracking starts today — check back next month to see a trend here.",analytics_goals_accum_title:"Goals accumulation",analytics_goals_accum_sub:"Your opening balance plus every matching transaction, up to each month shown.",calc_tab_tax:"Income Tax Estimator (BD)",calc_tab_tax_sub:"Rough estimate using NBR's FY2026-27 individual tax slabs",calc_tab_taxus:"Income Tax Estimator (USA)",calc_tab_taxus_sub:"Rough federal + state estimate using 2026 IRS and state tax tables",calc_taxus_disclaimer:"Rough estimate only — not tax advice or tax preparation. Uses 2026 IRS federal brackets, FICA, Child Tax Credit rules, and all 50 states + DC's own 2026 brackets, researched directly from each state and cross-checked where possible. Known simplifications: most states don't publish an easy standard-deduction figure, so this tool approximates using your federal deduction for those states (noted below where it applies) — only Pennsylvania (no deduction at all) and Virginia (its own real figure) are exact. Local/city tax is modelled only for New York City and Philadelphia — other real local taxes (Maryland counties, Ohio cities, Kentucky occupational tax, etc.) are not included. No itemized-deduction phase-outs, AMT, Net Investment Income Tax, or state-level credits. Please verify with the IRS, your state's Department of Revenue, or a tax professional before filing.",calc_taxus_filing_label:"Filing status",calc_taxus_filing_single:"Single",calc_taxus_filing_mfj:"Married filing jointly",calc_taxus_filing_mfs:"Married filing separately",calc_taxus_filing_hoh:"Head of household",calc_taxus_income_label:"Your income",calc_taxus_income_field:"Gross annual income (before any tax or deduction)",calc_taxus_employment_label:"Employment type",calc_taxus_employment_w2:"W-2 employee",calc_taxus_employment_se:"Self-employed (1099)",calc_taxus_children_label:"Qualifying children (for the Child Tax Credit)",calc_taxus_state_label:"State",calc_taxus_state_field:"Which state do you file in?",calc_taxus_local_label:"City/local tax",calc_taxus_nyc_sub:"New York City has its own separate tax on top of NY State tax.",calc_taxus_local_none:"Not an NYC resident",calc_taxus_nyc_resident:"NYC resident",calc_taxus_phl_sub:"Philadelphia has its own wage tax, separate from PA State tax, based on gross wages.",calc_taxus_local_none_phl:"Doesn't apply to me",calc_taxus_phl_applies:"Applies to me",calc_taxus_phl_resident:"Philadelphia resident",calc_taxus_phl_nonresident:"Non-resident (work there only)",calc_taxus_deduction_label:"Deductions",calc_taxus_deduction_standard_btn:"Standard deduction",calc_taxus_deduction_itemized_btn:"I itemize",calc_taxus_itemized_field:"Total itemized deductions",calc_taxus_enter_income:"Enter your gross annual income to see an estimate.",calc_taxus_select_state:"Select a state to see your estimate.",calc_taxus_gross_income:"Gross income",calc_taxus_federal_deduction_prefix:"Federal deduction — ",calc_taxus_deduction_standard:"standard",calc_taxus_deduction_itemized:"itemized",calc_taxus_federal_tax:"Federal income tax",calc_taxus_ctc:"Child Tax Credit",calc_taxus_federal_after_credit:"Federal tax after credit",calc_taxus_fica:"FICA (Social Security + Medicare)",calc_taxus_se_tax:"Self-employment tax",calc_taxus_se_deduction_note:"Half of this is deductible from your federal taxable income:",calc_taxus_state_tax_suffix:"state tax",calc_taxus_state_deduction_approx_note:"This state's exact deduction isn't modelled — using the federal standard/itemized deduction as an approximation.",calc_taxus_md_county_note:"Maryland also charges a county-level tax (about 2.25%–3.30%) on top of this — not included here. Check your county's rate.",calc_taxus_local_tax_suffix:"local tax",calc_taxus_total_tax:"Total estimated tax",calc_taxus_take_home:"Estimated take-home",calc_taxus_effective_rate_prefix:"Effective tax rate: ",
+    calc_menu_tax:"Income Tax Calculator",calc_menu_taxus:"US Income Tax Calculator",analytics_title:"Analytics",analytics_sub:"A closer look at your money over time — everything here is worked out from what is already on this device.",analytics_period_month:"Month",analytics_period_6m:"6 Months",analytics_period_year:"Year",analytics_expense:"Expense",analytics_net:"Net",analytics_savings_rate:"Savings rate",analytics_expense_breakdown:"Where expense went",analytics_expense_breakdown_sub:"Spending, money set aside, and debt/bill payments — each counted once.",analytics_income_vs_expense:"Income vs expense",analytics_where_money_goes:"Spending by category",analytics_where_money_goes_sub:"Everyday spending only — excludes savings, investment and debt/bill payments (shown above).",analytics_need_want:"Need vs want",analytics_goals_title:"Savings & goals vs target",analytics_goals_sub:"Based on your current Budget Setup targets, applied across this period.",analytics_empty:"No transactions in this period yet.",analytics_spending:"Spending",analytics_set_aside:"Set aside",analytics_debt_card:"Debt & card payments",analytics_need:"Need",analytics_want:"Want",analytics_daily_spending:"Daily spending",analytics_no_targets:"No Budget Setup targets are set yet.",analytics_nothing_recorded:"Nothing recorded yet.",analytics_accounts_title:"Accounts",analytics_accounts_sub:"Today’s balance on the left; money in/out during this period on the right.",analytics_habits_title:"Spending habits",analytics_habits_sub:"Everyday spending only, same as the category breakdown above.",analytics_weekday_sub:"Total expense by day of week",analytics_top_expenses_sub:"Largest single expenses",analytics_bills_debt_title:"Bills & debt",analytics_bills_debt_sub:"Payments made during this period; debt balances are as of today, not period-specific.",analytics_debts_today:"Current debt balances",analytics_bills_paid_suffix:"bill(s) paid",analytics_no_bills_paid:"No bills marked paid in this period.",analytics_no_debts:"No debts on file.",analytics_export_pdf:"Download this view as PDF",analytics_networth_title:"Net worth & debt trend",analytics_networth_sub:"Only tracked from when this device started recording it — nothing before that is shown.",analytics_total_debt:"Total debt",analytics_networth_one_point:"Only one data point so far — more will appear as months pass.",analytics_networth_none_yet:"Net worth tracking starts today — check back next month to see a trend here.",analytics_goals_accum_title:"Goals accumulation",analytics_goals_accum_sub:"Your opening balance plus every matching transaction, up to each month shown.",calc_tab_tax:"Income Tax Estimator (BD)",calc_tab_tax_sub:"Rough estimate using NBR's FY2026-27 individual tax slabs",calc_tab_taxus:"Income Tax Estimator (USA)",calc_tab_taxus_sub:"Rough federal + state estimate using 2026 IRS and state tax tables",calc_taxus_disclaimer:"Rough estimate only — not tax advice or tax preparation. Uses 2026 IRS federal brackets, FICA, Child Tax Credit rules, and all 50 states + DC's own 2026 brackets, researched directly from each state and cross-checked where possible. Known simplifications: most states don't publish an easy standard-deduction figure, so this tool approximates using your federal deduction for those states (noted below where it applies) — only Pennsylvania (no deduction at all) and Virginia (its own real figure) are exact. Local/city tax is modelled only for New York City and Philadelphia — other real local taxes (Maryland counties, Ohio cities, Kentucky occupational tax, etc.) are not included. No itemized-deduction phase-outs, AMT, Net Investment Income Tax, or state-level credits. Please verify with the IRS, your state's Department of Revenue, or a tax professional before filing.",calc_taxus_filing_label:"Filing status",calc_taxus_filing_single:"Single",calc_taxus_filing_mfj:"Married filing jointly",calc_taxus_filing_mfs:"Married filing separately",calc_taxus_filing_hoh:"Head of household",calc_taxus_income_label:"Your income",calc_taxus_income_field:"Gross annual income (before any tax or deduction)",calc_taxus_employment_label:"Employment type",calc_taxus_employment_w2:"W-2 employee",calc_taxus_employment_se:"Self-employed (1099)",calc_taxus_children_label:"Qualifying children (for the Child Tax Credit)",calc_taxus_state_label:"State",calc_taxus_state_field:"Which state do you file in?",calc_taxus_local_label:"City/local tax",calc_taxus_nyc_sub:"New York City has its own separate tax on top of NY State tax.",calc_taxus_local_none:"Not an NYC resident",calc_taxus_nyc_resident:"NYC resident",calc_taxus_phl_sub:"Philadelphia has its own wage tax, separate from PA State tax, based on gross wages.",calc_taxus_local_none_phl:"Doesn't apply to me",calc_taxus_phl_applies:"Applies to me",calc_taxus_phl_resident:"Philadelphia resident",calc_taxus_phl_nonresident:"Non-resident (work there only)",calc_taxus_deduction_label:"Deductions",calc_taxus_deduction_standard_btn:"Standard deduction",calc_taxus_deduction_itemized_btn:"I itemize",calc_taxus_itemized_field:"Total itemized deductions",calc_taxus_enter_income:"Enter your gross annual income to see an estimate.",calc_taxus_select_state:"Select a state to see your estimate.",calc_taxus_gross_income:"Gross income",calc_taxus_federal_deduction_prefix:"Federal deduction — ",calc_taxus_deduction_standard:"standard",calc_taxus_deduction_itemized:"itemized",calc_taxus_federal_tax:"Federal income tax",calc_taxus_ctc:"Child Tax Credit",calc_taxus_federal_after_credit:"Federal tax after credit",calc_taxus_fica:"FICA (Social Security + Medicare)",calc_taxus_se_tax:"Self-employment tax",calc_taxus_se_deduction_note:"Half of this is deductible from your federal taxable income:",calc_taxus_state_tax_suffix:"state tax",calc_taxus_state_deduction_approx_note:"This state's exact deduction isn't modelled — using the federal standard/itemized deduction as an approximation.",calc_taxus_md_county_note:"Maryland also charges a county-level tax (about 2.25%–3.30%) on top of this — not included here. Check your county's rate.",calc_taxus_local_tax_suffix:"local tax",calc_taxus_total_tax:"Total estimated tax",calc_taxus_take_home:"Estimated take-home",calc_taxus_effective_rate_prefix:"Effective tax rate: ",
     calc_tax_disclaimer:"Rough estimate only, using NBR's individual tax slabs for FY2026-27 (Assessment Year 2026-27) as reported in early-to-mid 2026 — not fetched from NBR directly, since that would need a server this app doesn't have. The investment rebate figure below (10% / ৳7.5 lakh cap) is the one number here Claude found genuine disagreement about across sources — an older \"15% / ৳10 lakh\" rule still appears in some places. Per-instrument caps (DPS, Sanchayapatra, mutual funds each have their own limit) are NOT modelled — check those yourself. Also excluded: salary income's one-third exemption, minimum tax, net wealth surcharge, and the filing-window incentive/penalty. Please verify against nbr.gov.bd or a tax consultant before filing — this is for rough planning, not a return.",
     calc_tax_invest_field_label:"Eligible investment (DPS, Sanchayapatra, listed shares, life insurance, etc.)",
     calc_tax_invest_note:"Combined total — check NBR's 6th Schedule for which instruments qualify and their individual limits; only the combined 3%/10%/৳7.5L formula is applied here.",
@@ -5320,7 +5342,7 @@ const I18N={
     voice_consent_title:"Voice input",
     voice_consent_body:"Voice input আপনার কথা browser-এর speech service-এ (সাধারণত Google, Chrome-এর মাধ্যমে) পাঠায় text বানানোর জন্য — এটা FexaFY-র বাকি অংশের মতো না, যেটা device ছেড়ে কখনো যায় না। আপনার টাকার হিসাবের আর কিছুই শেয়ার হয় না।",
     voice_consent_accept:"বুঝেছি, এগিয়ে যান",voice_consent_cancel:"এখন না",
-    calc_menu_tax:"আয়কর ক্যালকুলেটর",analytics_title:"বিশ্লেষণ",analytics_sub:"আপনার টাকার হিসাব সময় ধরে কাছ থেকে দেখুন — সবকিছু এই ডিভাইসে থাকা তথ্য থেকেই হিসাব করা হয়েছে।",analytics_period_month:"মাস",analytics_period_6m:"৬ মাস",analytics_period_year:"বছর",analytics_expense:"খরচ",analytics_net:"নিট",analytics_savings_rate:"সঞ্চয়ের হার",analytics_expense_breakdown:"খরচ কোথায় গেল",analytics_expense_breakdown_sub:"খরচ, জমানো টাকা, আর ঋণ/বিল পরিশোধ — প্রতিটা একবারই গোনা হয়েছে।",analytics_income_vs_expense:"আয় বনাম খরচ",analytics_where_money_goes:"ক্যাটাগরি অনুযায়ী খরচ",analytics_where_money_goes_sub:"শুধু নিত্যদিনের খরচ — সঞ্চয়, বিনিয়োগ আর ঋণ/বিল পরিশোধ বাদে (ওপরে দেখানো হয়েছে)।",analytics_need_want:"প্রয়োজন বনাম ইচ্ছা",analytics_goals_title:"সঞ্চয় ও লক্ষ্য বনাম টারগেট",analytics_goals_sub:"আপনার বর্তমান বাজেট সেটআপের টারগেট অনুযায়ী, এই সময়কালের জন্য হিসাব করা।",analytics_empty:"এই সময়ে এখনো কোনো লেনদেন নেই।",analytics_spending:"খরচ",analytics_set_aside:"জমানো হয়েছে",analytics_debt_card:"ঋণ ও কার্ড পরিশোধ",analytics_need:"প্রয়োজন",analytics_want:"ইচ্ছা",analytics_daily_spending:"দৈনিক খরচ",analytics_no_targets:"এখনো কোনো বাজেট সেটআপ টারগেট সেট করা হয়নি।",analytics_nothing_recorded:"এখনো কিছু রেকর্ড করা হয়নি।",analytics_accounts_title:"অ্যাকাউন্ট",analytics_accounts_sub:"বাঁয়ে আজকের বয়়াস; ডানে এই সময়কালে টাকা ঢুকলো/বেরহলো।",analytics_habits_title:"খরচের অভ্যাস",analytics_habits_sub:"উপরের ক্যাটাগরি বিভাজনের মতোই, শুধু নিত্যদিনের খরচ।",analytics_weekday_sub:"সপ্তাহের প্রতি দিন অনুযায়ী মোট খরচ",analytics_top_expenses_sub:"সবচেয়ে বড় একক খরচ",analytics_bills_debt_title:"বিল ও ঋণ",analytics_bills_debt_sub:"এই সময়কালে করা পরিশোধ; ঋণের বয়়াস আজকের, সময়কাল-নির্দিষ্ট নয়়।",analytics_debts_today:"বর্তমান ঋণের বয়়াস",analytics_bills_paid_suffix:"টা বিল পরিশোধ",analytics_no_bills_paid:"এই সময়ে কোনো বিল পরিশোধ করা হয়নি।",analytics_no_debts:"কোনো ঋণ নেই।",analytics_export_pdf:"এই বার্শা PDF আকারে ডাউনলোড করুন",analytics_networth_title:"নিট সম্পদ ও ঋণের প্রবণতা",analytics_networth_sub:"যে দিন থেকে এই ডিভাইস এটা রেকর্ড করা শুরু করেছে শুধু সেই সময় থেকে; তার আগের কিছু দেখানো হয়নি।",analytics_total_debt:"মোট ঋণ",analytics_networth_one_point:"এখন পর্যন্ত মাত্র একটা তথ্যপয়েন্ট আছে — সময় গড়ালে আরও আসবে।",analytics_networth_none_yet:"নিট সম্পদ ট্র্যাকিং আজ থেকে শুরু হলো — পরের মাসে এখানে প্রবণতা দেখা যাবে।",analytics_goals_accum_title:"লক্ষ্যের সঞ্চয়",analytics_goals_accum_sub:"আপনার শুরুর পরিমাণ প্লাস প্রতিটা মিলে যাওয়া লেনদেন, প্রতি মাস পর্যন্ত।",calc_tab_tax:"আয়কর হিসাব (বাংলাদেশ)",calc_tab_tax_sub:"NBR-এর FY2026-27 individual tax slab অনুযায়ী মোটামুটি হিসাব",calc_tab_taxus:"আয়কর হিসাব (আমেরিকা)",calc_tab_taxus_sub:"2026 IRS ও state-এর tax table অনুযায়ী মোটামুটি federal + state হিসাব",calc_taxus_disclaimer:"শুধুমাত্র আনুমানিক হিসাব — এটা tax advice বা tax preparation না। 2026 সালের IRS federal bracket, FICA, Child Tax Credit নিয়ম, আর ৫০টি state + DC-র নিজস্ব 2026 bracket ব্যবহার করা হয়েছে, প্রতিটা state থেকে সরাসরি research করে ও যতটা সম্ভব cross-check করে। জানা সীমাবদ্ধতা: বেশিরভাগ state-এর সহজে পাওয়া যায় এমন standard-deduction সংখ্যা নেই, তাই এই টুল সেসব state-এর জন্য আপনার federal deduction-কে approximation হিসেবে ব্যবহার করে (যেখানে প্রযোজ্য নিচে উল্লেখ আছে) — শুধু Pennsylvania (কোনো deduction নেই) আর Virginia (তাদের নিজস্ব real সংখ্যা) এক্ষেত্রে exact। Local/city tax শুধু New York City আর Philadelphia-র জন্য মডেল করা হয়েছে — অন্যান্য real local tax (Maryland-এর county, Ohio-র city, Kentucky-র occupational tax, ইত্যাদি) এখানে নেই। Itemized-deduction phase-out, AMT, Net Investment Income Tax, বা state-level credit কোনোটাই এখানে ধরা হয়নি। Filing-এর আগে দয়া করে IRS, আপনার state-এর Department of Revenue, অথবা একজন tax professional-এর সাথে যাচাই করে নিন।",calc_taxus_filing_label:"Filing status",calc_taxus_filing_single:"Single",calc_taxus_filing_mfj:"Married filing jointly",calc_taxus_filing_mfs:"Married filing separately",calc_taxus_filing_hoh:"Head of household",calc_taxus_income_label:"আপনার আয়",calc_taxus_income_field:"বার্ষিক gross income (যেকোনো tax বা deduction-এর আগে)",calc_taxus_employment_label:"Employment-এর ধরন",calc_taxus_employment_w2:"W-2 employee",calc_taxus_employment_se:"Self-employed (1099)",calc_taxus_children_label:"যোগ্য সন্তান সংখ্যা (Child Tax Credit-এর জন্য)",calc_taxus_state_label:"State",calc_taxus_state_field:"কোন state-এ file করেন?",calc_taxus_local_label:"City/local tax",calc_taxus_nyc_sub:"NY State tax-এর পাশাপাশি New York City-র নিজস্ব আলাদা tax আছে।",calc_taxus_local_none:"NYC-র বাসিন্দা না",calc_taxus_nyc_resident:"NYC-র বাসিন্দা",calc_taxus_phl_sub:"PA State tax থেকে আলাদা, Philadelphia-র নিজস্ব wage tax আছে, gross wage-এর ওপর ভিত্তি করে।",calc_taxus_local_none_phl:"আমার ক্ষেত্রে প্রযোজ্য না",calc_taxus_phl_applies:"আমার ক্ষেত্রে প্রযোজ্য",calc_taxus_phl_resident:"Philadelphia-র বাসিন্দা",calc_taxus_phl_nonresident:"Non-resident (শুধু ওখানে কাজ করি)",calc_taxus_deduction_label:"Deduction",calc_taxus_deduction_standard_btn:"Standard deduction",calc_taxus_deduction_itemized_btn:"আমি itemize করি",calc_taxus_itemized_field:"মোট itemized deduction",calc_taxus_enter_income:"হিসাব দেখতে আপনার বার্ষিক gross income লিখুন।",calc_taxus_select_state:"হিসাব দেখতে একটা state বেছে নিন।",calc_taxus_gross_income:"Gross income",calc_taxus_federal_deduction_prefix:"Federal deduction — ",calc_taxus_deduction_standard:"standard",calc_taxus_deduction_itemized:"itemized",calc_taxus_federal_tax:"Federal আয়কর",calc_taxus_ctc:"Child Tax Credit",calc_taxus_federal_after_credit:"Credit-এর পর federal tax",calc_taxus_fica:"FICA (Social Security + Medicare)",calc_taxus_se_tax:"Self-employment tax",calc_taxus_se_deduction_note:"এর অর্ধেক আপনার federal taxable income থেকে deductible:",calc_taxus_state_tax_suffix:"state tax",calc_taxus_state_deduction_approx_note:"এই state-এর সঠিক deduction মডেল করা হয়নি — federal standard/itemized deduction-কে approximation হিসেবে ব্যবহার করা হয়েছে।",calc_taxus_md_county_note:"Maryland-এ এর ওপরে county-level tax (প্রায় ২.২৫%–৩.৩০%) আছে — এখানে ধরা হয়নি। আপনার county-র rate যাচাই করুন।",calc_taxus_local_tax_suffix:"local tax",calc_taxus_total_tax:"মোট আনুমানিক কর",calc_taxus_take_home:"আনুমানিক take-home",calc_taxus_effective_rate_prefix:"Effective tax rate: ",
+    calc_menu_tax:"আয়কর ক্যালকুলেটর",calc_menu_taxus:"আয়কর ক্যালকুলেটর (আমেরিকা)",analytics_title:"বিশ্লেষণ",analytics_sub:"আপনার টাকার হিসাব সময় ধরে কাছ থেকে দেখুন — সবকিছু এই ডিভাইসে থাকা তথ্য থেকেই হিসাব করা হয়েছে।",analytics_period_month:"মাস",analytics_period_6m:"৬ মাস",analytics_period_year:"বছর",analytics_expense:"খরচ",analytics_net:"নিট",analytics_savings_rate:"সঞ্চয়ের হার",analytics_expense_breakdown:"খরচ কোথায় গেল",analytics_expense_breakdown_sub:"খরচ, জমানো টাকা, আর ঋণ/বিল পরিশোধ — প্রতিটা একবারই গোনা হয়েছে।",analytics_income_vs_expense:"আয় বনাম খরচ",analytics_where_money_goes:"ক্যাটাগরি অনুযায়ী খরচ",analytics_where_money_goes_sub:"শুধু নিত্যদিনের খরচ — সঞ্চয়, বিনিয়োগ আর ঋণ/বিল পরিশোধ বাদে (ওপরে দেখানো হয়েছে)।",analytics_need_want:"প্রয়োজন বনাম ইচ্ছা",analytics_goals_title:"সঞ্চয় ও লক্ষ্য বনাম টারগেট",analytics_goals_sub:"আপনার বর্তমান বাজেট সেটআপের টারগেট অনুযায়ী, এই সময়কালের জন্য হিসাব করা।",analytics_empty:"এই সময়ে এখনো কোনো লেনদেন নেই।",analytics_spending:"খরচ",analytics_set_aside:"জমানো হয়েছে",analytics_debt_card:"ঋণ ও কার্ড পরিশোধ",analytics_need:"প্রয়োজন",analytics_want:"ইচ্ছা",analytics_daily_spending:"দৈনিক খরচ",analytics_no_targets:"এখনো কোনো বাজেট সেটআপ টারগেট সেট করা হয়নি।",analytics_nothing_recorded:"এখনো কিছু রেকর্ড করা হয়নি।",analytics_accounts_title:"অ্যাকাউন্ট",analytics_accounts_sub:"বাঁয়ে আজকের বয়়াস; ডানে এই সময়কালে টাকা ঢুকলো/বেরহলো।",analytics_habits_title:"খরচের অভ্যাস",analytics_habits_sub:"উপরের ক্যাটাগরি বিভাজনের মতোই, শুধু নিত্যদিনের খরচ।",analytics_weekday_sub:"সপ্তাহের প্রতি দিন অনুযায়ী মোট খরচ",analytics_top_expenses_sub:"সবচেয়ে বড় একক খরচ",analytics_bills_debt_title:"বিল ও ঋণ",analytics_bills_debt_sub:"এই সময়কালে করা পরিশোধ; ঋণের বয়়াস আজকের, সময়কাল-নির্দিষ্ট নয়়।",analytics_debts_today:"বর্তমান ঋণের বয়়াস",analytics_bills_paid_suffix:"টা বিল পরিশোধ",analytics_no_bills_paid:"এই সময়ে কোনো বিল পরিশোধ করা হয়নি।",analytics_no_debts:"কোনো ঋণ নেই।",analytics_export_pdf:"এই বার্শা PDF আকারে ডাউনলোড করুন",analytics_networth_title:"নিট সম্পদ ও ঋণের প্রবণতা",analytics_networth_sub:"যে দিন থেকে এই ডিভাইস এটা রেকর্ড করা শুরু করেছে শুধু সেই সময় থেকে; তার আগের কিছু দেখানো হয়নি।",analytics_total_debt:"মোট ঋণ",analytics_networth_one_point:"এখন পর্যন্ত মাত্র একটা তথ্যপয়েন্ট আছে — সময় গড়ালে আরও আসবে।",analytics_networth_none_yet:"নিট সম্পদ ট্র্যাকিং আজ থেকে শুরু হলো — পরের মাসে এখানে প্রবণতা দেখা যাবে।",analytics_goals_accum_title:"লক্ষ্যের সঞ্চয়",analytics_goals_accum_sub:"আপনার শুরুর পরিমাণ প্লাস প্রতিটা মিলে যাওয়া লেনদেন, প্রতি মাস পর্যন্ত।",calc_tab_tax:"আয়কর হিসাব (বাংলাদেশ)",calc_tab_tax_sub:"NBR-এর FY2026-27 individual tax slab অনুযায়ী মোটামুটি হিসাব",calc_tab_taxus:"আয়কর হিসাব (আমেরিকা)",calc_tab_taxus_sub:"2026 IRS ও state-এর tax table অনুযায়ী মোটামুটি federal + state হিসাব",calc_taxus_disclaimer:"শুধুমাত্র আনুমানিক হিসাব — এটা tax advice বা tax preparation না। 2026 সালের IRS federal bracket, FICA, Child Tax Credit নিয়ম, আর ৫০টি state + DC-র নিজস্ব 2026 bracket ব্যবহার করা হয়েছে, প্রতিটা state থেকে সরাসরি research করে ও যতটা সম্ভব cross-check করে। জানা সীমাবদ্ধতা: বেশিরভাগ state-এর সহজে পাওয়া যায় এমন standard-deduction সংখ্যা নেই, তাই এই টুল সেসব state-এর জন্য আপনার federal deduction-কে approximation হিসেবে ব্যবহার করে (যেখানে প্রযোজ্য নিচে উল্লেখ আছে) — শুধু Pennsylvania (কোনো deduction নেই) আর Virginia (তাদের নিজস্ব real সংখ্যা) এক্ষেত্রে exact। Local/city tax শুধু New York City আর Philadelphia-র জন্য মডেল করা হয়েছে — অন্যান্য real local tax (Maryland-এর county, Ohio-র city, Kentucky-র occupational tax, ইত্যাদি) এখানে নেই। Itemized-deduction phase-out, AMT, Net Investment Income Tax, বা state-level credit কোনোটাই এখানে ধরা হয়নি। Filing-এর আগে দয়া করে IRS, আপনার state-এর Department of Revenue, অথবা একজন tax professional-এর সাথে যাচাই করে নিন।",calc_taxus_filing_label:"Filing status",calc_taxus_filing_single:"Single",calc_taxus_filing_mfj:"Married filing jointly",calc_taxus_filing_mfs:"Married filing separately",calc_taxus_filing_hoh:"Head of household",calc_taxus_income_label:"আপনার আয়",calc_taxus_income_field:"বার্ষিক gross income (যেকোনো tax বা deduction-এর আগে)",calc_taxus_employment_label:"Employment-এর ধরন",calc_taxus_employment_w2:"W-2 employee",calc_taxus_employment_se:"Self-employed (1099)",calc_taxus_children_label:"যোগ্য সন্তান সংখ্যা (Child Tax Credit-এর জন্য)",calc_taxus_state_label:"State",calc_taxus_state_field:"কোন state-এ file করেন?",calc_taxus_local_label:"City/local tax",calc_taxus_nyc_sub:"NY State tax-এর পাশাপাশি New York City-র নিজস্ব আলাদা tax আছে।",calc_taxus_local_none:"NYC-র বাসিন্দা না",calc_taxus_nyc_resident:"NYC-র বাসিন্দা",calc_taxus_phl_sub:"PA State tax থেকে আলাদা, Philadelphia-র নিজস্ব wage tax আছে, gross wage-এর ওপর ভিত্তি করে।",calc_taxus_local_none_phl:"আমার ক্ষেত্রে প্রযোজ্য না",calc_taxus_phl_applies:"আমার ক্ষেত্রে প্রযোজ্য",calc_taxus_phl_resident:"Philadelphia-র বাসিন্দা",calc_taxus_phl_nonresident:"Non-resident (শুধু ওখানে কাজ করি)",calc_taxus_deduction_label:"Deduction",calc_taxus_deduction_standard_btn:"Standard deduction",calc_taxus_deduction_itemized_btn:"আমি itemize করি",calc_taxus_itemized_field:"মোট itemized deduction",calc_taxus_enter_income:"হিসাব দেখতে আপনার বার্ষিক gross income লিখুন।",calc_taxus_select_state:"হিসাব দেখতে একটা state বেছে নিন।",calc_taxus_gross_income:"Gross income",calc_taxus_federal_deduction_prefix:"Federal deduction — ",calc_taxus_deduction_standard:"standard",calc_taxus_deduction_itemized:"itemized",calc_taxus_federal_tax:"Federal আয়কর",calc_taxus_ctc:"Child Tax Credit",calc_taxus_federal_after_credit:"Credit-এর পর federal tax",calc_taxus_fica:"FICA (Social Security + Medicare)",calc_taxus_se_tax:"Self-employment tax",calc_taxus_se_deduction_note:"এর অর্ধেক আপনার federal taxable income থেকে deductible:",calc_taxus_state_tax_suffix:"state tax",calc_taxus_state_deduction_approx_note:"এই state-এর সঠিক deduction মডেল করা হয়নি — federal standard/itemized deduction-কে approximation হিসেবে ব্যবহার করা হয়েছে।",calc_taxus_md_county_note:"Maryland-এ এর ওপরে county-level tax (প্রায় ২.২৫%–৩.৩০%) আছে — এখানে ধরা হয়নি। আপনার county-র rate যাচাই করুন।",calc_taxus_local_tax_suffix:"local tax",calc_taxus_total_tax:"মোট আনুমানিক কর",calc_taxus_take_home:"আনুমানিক take-home",calc_taxus_effective_rate_prefix:"Effective tax rate: ",
     calc_tax_disclaimer:"এটি শুধু একটা মোটামুটি হিসাব, NBR-এর FY2026-27 (কর বছর ২০২৬-২৭) individual tax slab অনুযায়ী, ২০২৬-এর মাঝামাঝি সময়ের তথ্য অনুযায়ী — সরাসরি NBR থেকে আনা হচ্ছে না, কারণ এই app-এর কোনো server নেই। নিচের investment rebate সংখ্যাটা (১০% / ৳৭.৫ লাখ সীমা) — এই একটা সংখ্যা নিয়েই বিভিন্ন source-এ সত্যিকারের মতভেদ পেয়েছি; পুরনো \"১৫% / ৳১০ লাখ\" নিয়মও কিছু জায়গায় এখনো দেখা যায়। প্রতিটা instrument-এর আলাদা সীমা (DPS, সঞ্চয়পত্র, mutual fund) এখানে ধরা হয়নি — সেটা নিজে যাচাই করে নিন। এছাড়াও বাদ: salary-র এক-তৃতীয়াংশ exemption, minimum tax, net wealth surcharge, আর filing-এর সময়ভিত্তিক rebate/penalty। Return জমা দেওয়ার আগে দয়া করে nbr.gov.bd বা একজন tax consultant-এর সাথে যাচাই করে নিন — এটা মোটামুটি পরিকল্পনার জন্য, return-এর জন্য না।",
     calc_tax_invest_field_label:"Eligible investment (DPS, সঞ্চয়পত্র, listed shares, life insurance ইত্যাদি)",
     calc_tax_invest_note:"সম্মিলিত মোট — কোন instrument eligible ও তাদের আলাদা সীমা জানতে NBR-এর 6th Schedule দেখুন; এখানে শুধু সম্মিলিত ৩%/১০%/৳৭.৫L formula প্রয়োগ হচ্ছে।",
@@ -9807,7 +9829,7 @@ function accountBalance(id){
   const a=db.accounts.find(x=>x.id===id);
   if(!a) return 0;
   let bal=+a.opening||0;
-  db.tx.forEach(x=>{
+  (window.__plusFullTx||db.tx).forEach(x=>{ // __plusFullTx is only set while a trial-limited export runs, so balances stay correct
     // A transfer moves money between two of your own accounts — it's
     // not income or an expense (see the note above openTx()'s Transfer
     // branch), so it affects both accounts' balances directly instead
@@ -11779,9 +11801,10 @@ function openCalcFromNav(mode){
   closeMobileNav();  // no-op if the menu is pinned open (or on desktop)
 }
 function refreshCalcNavItems(){
-  const zakat=shouldShowZakatCalculator(), tax=shouldShowTaxEstimator();
+  const zakat=shouldShowZakatCalculator(), tax=shouldShowTaxEstimator(), taxUS=shouldShowUSTaxEstimator();
   document.querySelectorAll('.calc-nav-item[data-calc="zakat"]').forEach(b=>b.classList.toggle("hidden",!zakat));
   document.querySelectorAll('.calc-nav-item[data-calc="tax"]').forEach(b=>b.classList.toggle("hidden",!tax));
+  document.querySelectorAll('.calc-nav-item[data-calc="taxUS"]').forEach(b=>b.classList.toggle("hidden",!taxUS));
 }
 
 /* ============================================================
@@ -13776,6 +13799,241 @@ document.addEventListener("visibilitychange",()=>{
     spawnRipple(el);
   });
 })();
+</script>
+<script>
+/* ============================================================
+   FexaFY PLUS (Phase 1 foundation) -- trial, locked-state UI, popup.
+   DORMANT: while PLUS_ENABLED is false, plusStatus() returns "off",
+   every guard below passes straight through to the original function
+   and nothing on screen changes. This block only WRAPS existing
+   functions (it edits none of their code), so turning it off restores
+   the exact previous behaviour.
+   Client-side locks are a soft barrier by design (anyone can edit
+   their own page). The only truly enforceable Plus feature is one the
+   server delivers (background push) -- see push-backend/entitlement.js.
+   Privacy: no transactions/budgets are ever sent anywhere by this
+   block. The server (when PLUS_API_BASE is set) sees only a Google
+   account id hash, trial start, plan and expiry.
+   ============================================================ */
+const PLUS_ENABLED=true;         // master switch -- false = app behaves exactly as before
+const PLUS_DEBUG_OVERRIDE=false; // preview/testing only: shows a state-switcher chip
+const PLUS_API_BASE="https://fexa-fy-firebase.vercel.app";          // e.g. "https://fexa-fy-firebase.vercel.app" (also add it to the CSP connect-src)
+const PLUS_PUBKEY_JWK={"kty":"EC","x":"jIbvPWS1vAqYd7aHFceGlputW9P_5k9_YX1CKc3mN9I","y":"uef64M3bCbw4YYyPL8OGuSetBFYEQSlW7rpE3ZyDDiU","crv":"P-256"};      // licence-token verify key (public, from scripts/gen-license-key.mjs)
+const PLUS_TRIAL_DAYS=7;
+const PLUS_TRIAL_MS=PLUS_TRIAL_DAYS*86400000;
+const PLUS_TRIAL_FEATURES=["calc","export","ocr","sms","push"]; // ai + sync are Plus-only
+let plusDebugStatus=null;
+let plusLastPopupAt=0;
+
+Object.assign(I18N.en,{
+  plus_lock_title:"This calculator is part of FexaFY Plus",
+  plus_lock_msg_expired:"Your free trial has ended. Upgrade to Plus to use the calculators again.",
+  plus_lock_msg_anon:"Sign in with Google to start your free 7-day trial.",
+  plus_lock_btn:"See how to unlock",
+  plus_pop_title:"FexaFY Plus",
+  plus_pop_anon:"Sign in with Google to start your free 7-day trial. During the trial you can use the calculators, export the last 7 days of data, scan receipts, read SMS and get background reminders.",
+  plus_pop_expired:"Your free 7-day trial has ended. Plus unlocks the calculators, full exports, receipt scan, SMS reading and background reminders. Paid plans are not open yet — we will let you know when they are.",
+  plus_pop_plusonly:"This feature is available on FexaFY Plus only.",
+  plus_pop_privacy:"Your transactions stay on your device and in your own Google Drive — never on our server.",
+  plus_pop_signin:"Sign in with Google",
+  plus_pop_close:"Close",
+  plus_feat_calc:"Calculators", plus_feat_export:"Excel / PDF export", plus_feat_ocr:"Receipt scan",
+  plus_feat_sms:"SMS reading", plus_feat_push:"Background reminders", plus_feat_ai:"AI insights", plus_feat_sync:"Multi-device sync",
+  plus_trial_export_note:"Free trial: this export includes only the last 7 days of data."
+});
+Object.assign(I18N.bn,{
+  plus_lock_title:"এই ক্যালকুলেটরটি FexaFY Plus এর অংশ",
+  plus_lock_msg_expired:"আপনার ফ্রি ট্রায়াল শেষ হয়েছে। আবার ক্যালকুলেটর ব্যবহার করতে Plus নিন।",
+  plus_lock_msg_anon:"৭ দিনের ফ্রি ট্রায়াল শুরু করতে Google দিয়ে সাইন ইন করুন।",
+  plus_lock_btn:"কীভাবে আনলক করবেন দেখুন",
+  plus_pop_title:"FexaFY Plus",
+  plus_pop_anon:"৭ দিনের ফ্রি ট্রায়াল শুরু করতে Google দিয়ে সাইন ইন করুন। ট্রায়ালে ক্যালকুলেটর, গত ৭ দিনের ডেটা export, রসিদ স্ক্যান, SMS পড়া ও ব্যাকগ্রাউন্ড রিমাইন্ডার ব্যবহার করা যাবে।",
+  plus_pop_expired:"আপনার ৭ দিনের ফ্রি ট্রায়াল শেষ হয়েছে। Plus এ ক্যালকুলেটর, পূর্ণ export, রসিদ স্ক্যান, SMS পড়া ও ব্যাকগ্রাউন্ড রিমাইন্ডার আনলক হয়। পেইড প্ল্যান এখনো চালু হয়নি — চালু হলে জানানো হবে।",
+  plus_pop_plusonly:"এই ফিচারটি শুধু FexaFY Plus এ পাওয়া যায়।",
+  plus_pop_privacy:"আপনার লেনদেন শুধু আপনার ডিভাইস ও নিজের Google Drive এ থাকে — আমাদের সার্ভারে কখনোই নয়।",
+  plus_pop_signin:"Google দিয়ে সাইন ইন",
+  plus_pop_close:"বন্ধ করুন",
+  plus_feat_calc:"ক্যালকুলেটর", plus_feat_export:"Excel / PDF export", plus_feat_ocr:"রসিদ স্ক্যান",
+  plus_feat_sms:"SMS পড়া", plus_feat_push:"ব্যাকগ্রাউন্ড রিমাইন্ডার", plus_feat_ai:"AI ইনসাইট", plus_feat_sync:"মাল্টি-ডিভাইস সিঙ্ক",
+  plus_trial_export_note:"ফ্রি ট্রায়াল: এই export এ শুধু গত ৭ দিনের ডেটা আছে।"
+});
+
+/* ---- local record (per Google account, this browser only) ---- */
+function plusKey(){ return "fx_plus_v1:"+(((currentUser&&currentUser.email)||"")+"").toLowerCase(); }
+function plusLoad(){ try{ return JSON.parse(localStorage.getItem(plusKey())||"null")||{}; }catch(e){ return {}; } }
+function plusSave(o){ try{ localStorage.setItem(plusKey(),JSON.stringify(o)); }catch(e){} }
+
+function plusIsOwner(){ return !!(currentUser && plusLoad().owner===true); }
+
+/* off | anon | trial | expired | plus */
+function plusStatus(){
+  if(!PLUS_ENABLED) return "off";
+  if(plusDebugStatus && (PLUS_DEBUG_OVERRIDE || plusIsOwner())) return plusDebugStatus;
+  if(loginType!=="google" || !currentUser || !currentUser.email) return "anon";
+  const now=Date.now();
+  let r=plusLoad();
+  if(!r.trialStart && !r.plan){        // first time this Google account is seen: the trial starts now
+    r={trialStart:now}; plusSave(r);
+  }
+  if(r.plan==="plus" && r.expiry>now && (!PLUS_API_BASE || now-(r.checked||0)<8*86400000)) return "plus";
+  if(r.trialStart && now<r.trialStart+PLUS_TRIAL_MS) return "trial";
+  return "expired";
+}
+function plusCan(feature){
+  const s=plusStatus();
+  if(s==="off"||s==="plus") return true;
+  if(s==="trial") return PLUS_TRIAL_FEATURES.indexOf(feature)>=0;
+  return false;
+}
+
+/* ---- popup ---- */
+function plusShowPopup(feature){
+  const m=document.getElementById("modal");
+  if(m && !m.classList.contains("hidden") && document.querySelector("#modalBody .plus-pop")) return; // already showing
+  const s=plusStatus();
+  if(s==="off"||s==="plus") return;
+  const featName=t("plus_feat_"+(feature||"calc"));
+  const msg = s==="anon" ? t("plus_pop_anon") : (s==="trial" ? t("plus_pop_plusonly") : t("plus_pop_expired"));
+  const signinBtn = s==="anon" ? `<button type="button" class="primary" onclick="plusSignInFromPopup()">${t("plus_pop_signin")}</button>` : "";
+  modal(`<div class="plus-pop"><h3>${ic('lock',18)} ${t("plus_pop_title")}<span class="plus-badge">${featName}</span></h3>
+    <p>${msg}</p><p class="muted" style="font-size:12px">${t("plus_pop_privacy")}</p>
+    <div class="row-btns">${signinBtn}<button type="button" onclick="closeModal()">${t("plus_pop_close")}</button></div></div>`);
+}
+function plusSignInFromPopup(){
+  closeModal();
+  if(typeof connectGoogleBackupFromLocal==="function") connectGoogleBackupFromLocal();
+}
+
+/* ---- calculators: menu stays clickable, content is replaced by a lock card ---- */
+function plusApplyUI(){
+  const scr=document.getElementById("calculators");
+  if(!scr) return;
+  const locked=!plusCan("calc");
+  scr.classList.toggle("plus-locked",locked);
+  const msg=document.getElementById("plusCalcLockMsg");
+  if(msg){
+    const key=plusStatus()==="anon"?"plus_lock_msg_anon":"plus_lock_msg_expired";
+    msg.setAttribute("data-i18n",key); msg.textContent=t(key);
+  }
+}
+function plusCalcScreenActive(){ const s=document.getElementById("calculators"); return !!(s && s.classList.contains("active")); }
+
+/* ---- trial export limit: only the last 7 days of tx / bills / future-expenses ---- */
+function plusTrialCutoff(){
+  const d=new Date(); d.setDate(d.getDate()-(PLUS_TRIAL_DAYS-1));
+  const p=n=>String(n).padStart(2,"0");
+  return d.getFullYear()+"-"+p(d.getMonth()+1)+"-"+p(d.getDate());
+}
+function plusRunTrialLimited(orig,args){
+  const cut=plusTrialCutoff();
+  const full={tx:db.tx,bills:db.bills,future:db.future};
+  const keep=(list,f)=>(list||[]).filter(x=>x && x[f] && String(x[f]).slice(0,10)>=cut);
+  let result;
+  try{
+    window.__plusFullTx=full.tx;            // lets accountBalance() keep using ALL transactions
+    db.tx=keep(full.tx,"date"); db.bills=keep(full.bills,"due"); db.future=keep(full.future,"date");
+    result=orig.apply(null,args);
+  } finally {
+    db.tx=full.tx; db.bills=full.bills; db.future=full.future;
+    window.__plusFullTx=null;
+  }
+  setTimeout(()=>{ try{ showToast(t("plus_trial_export_note")); }catch(e){} },1600);
+  return result;
+}
+
+/* ---- wrap existing functions (originals are untouched) ---- */
+function plusWrap(name,guard){
+  const orig=window[name];
+  if(typeof orig!=="function") return;
+  window[name]=function(){ return guard(orig,arguments); };
+}
+function plusExportGuard(orig,args){
+  const s=plusStatus();
+  if(s==="off"||s==="plus"||window.__plusFullTx) return orig.apply(null,args);
+  if(s==="trial") return plusRunTrialLimited(orig,args);
+  plusShowPopup("export");
+}
+["exportExcel","exportSectionExcel","exportAnalyticsPdf","generateMonthlyReport","generateYearlyReport"].forEach(n=>plusWrap(n,plusExportGuard));
+
+plusWrap("calcSetMode",(o,a)=>{
+  const r=o.apply(null,a);
+  plusApplyUI();
+  if(!plusCan("calc") && plusCalcScreenActive()) plusShowPopup("calc");
+  return r;
+});
+plusWrap("goToScreen",(o,a)=>{
+  const r=o.apply(null,a);
+  if(a[0]==="calculators"){
+    plusApplyUI();
+    if(!plusCan("calc")) plusShowPopup("calc");
+  }
+  return r;
+});
+plusWrap("toggleTruePush",(o,a)=>{
+  if(a[0] && !plusCan("push")){ plusShowPopup("push"); try{ renderTruePushBlock(); }catch(e){} return; }
+  return o.apply(null,a);
+});
+plusWrap("maybeSyncTruePush",(o,a)=>{ if(!plusCan("push")) return; return o.apply(null,a); });
+plusWrap("runReceiptOCR",(o,a)=>{ if(!plusCan("ocr")){ plusShowPopup("ocr"); return; } return o.apply(null,a); });
+plusWrap("parseAndFillSms",(o,a)=>{
+  if(!plusCan("sms") && String(a[0]||"").trim()){
+    if(Date.now()-plusLastPopupAt>3000){ plusLastPopupAt=Date.now(); plusShowPopup("sms"); }
+    return;
+  }
+  return o.apply(null,a);
+});
+
+/* ---- server check (only when PLUS_API_BASE + key are configured) ---- */
+function plusB64u(s){ s=s.replace(/-/g,"+").replace(/_/g,"/"); while(s.length%4) s+="="; return Uint8Array.from(atob(s),c=>c.charCodeAt(0)); }
+async function plusVerifyToken(tok){
+  try{
+    if(!PLUS_PUBKEY_JWK || !window.crypto || !crypto.subtle) return null;
+    const parts=String(tok).split("."); if(parts.length!==2) return null;
+    const key=await crypto.subtle.importKey("jwk",PLUS_PUBKEY_JWK,{name:"ECDSA",namedCurve:"P-256"},false,["verify"]);
+    const ok=await crypto.subtle.verify({name:"ECDSA",hash:"SHA-256"},key,plusB64u(parts[1]),new TextEncoder().encode(parts[0]));
+    if(!ok) return null;
+    const p=JSON.parse(new TextDecoder().decode(plusB64u(parts[0])));
+    if(!p || !(p.exp>Date.now())) return null;
+    return p;
+  }catch(e){ return null; }
+}
+async function plusRefresh(){
+  if(!PLUS_ENABLED) return;
+  plusStatus();           // make sure the local trial record exists
+  plusApplyUI();
+  if(plusIsOwner()) plusMountSwitcher();
+  if(!PLUS_API_BASE || !accessToken || !currentUser || loginType!=="google") return;
+  try{
+    const r=await fetch(PLUS_API_BASE+"/api/entitlement",{method:"POST",headers:{Authorization:"Bearer "+accessToken}});
+    if(!r.ok) return;
+    const j=await r.json();
+    const p=j && j.token ? await plusVerifyToken(j.token) : null;
+    if(!p) return;
+    plusSave({trialStart:p.trialStart,plan:p.plan==="plus"?"plus":"trial",expiry:p.expiry||0,owner:p.owner===true,token:j.token,checked:Date.now()});
+    plusApplyUI();
+    if(p.owner===true) plusMountSwitcher(); // owner-only state switcher (verified by the signed token)
+  }catch(e){ /* offline / server down: keep the local record */ }
+}
+plusWrap("updateAccountUI",(o,a)=>{
+  const r=o.apply(null,a);
+  try{ plusRefresh(); }catch(e){}
+  return r;
+});
+
+/* ---- state switcher: shown for the OWNER (signed token says owner) or in the preview build ---- */
+function plusMountSwitcher(){
+  if(document.getElementById("plusDebugSel") || !document.body) return;
+  const box=document.createElement("select");
+  box.id="plusDebugSel";
+  box.style.cssText="position:fixed;left:8px;top:8px;z-index:99999;font-size:12px;padding:3px;opacity:.9";
+  [["","real state"],["anon","anon (no Google)"],["trial","trial"],["expired","expired"],["plus","plus"]].forEach(([v,l])=>{
+    const o=document.createElement("option"); o.value=v; o.textContent="Plus: "+l; box.appendChild(o);
+  });
+  box.value=plusDebugStatus||"";
+  box.onchange=()=>{ plusDebugStatus=box.value||null; plusApplyUI(); try{ renderTruePushBlock(); }catch(e){} };
+  document.body.appendChild(box);
+}
+if(PLUS_ENABLED && PLUS_DEBUG_OVERRIDE) document.addEventListener("DOMContentLoaded",plusMountSwitcher);
 </script>
 </body>
 </html>

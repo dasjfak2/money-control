@@ -4139,7 +4139,7 @@ html[lang="bn"] .screen:not(.fx-theme) .card h3{letter-spacing:0;text-transform:
         services are documented there.
    ============================================================ */
 const SENTRY_DSN = "https://accd3f87b3f615f44f3274b4045fa63d@o4512055606640640.ingest.de.sentry.io/4512055628726352"; // paste your own Sentry DSN here to opt in; leave empty to keep crash reporting fully local/offline
-const APP_VERSION = "v114"; // keep this in sync with sw.js's APP_VERSION — used only to tag crash reports so you can tell which release an error came from
+const APP_VERSION = "v117"; // keep this in sync with sw.js's APP_VERSION — used only to tag crash reports so you can tell which release an error came from
 const CRASH_LOG_KEY = "mc_crashlog";
 function logCrashLocally(err, source){
   try{
@@ -13801,6 +13801,979 @@ document.addEventListener("visibilitychange",()=>{
     if (!el || !el.matches || !el.matches(RIPPLE_HOST_SELECTOR)) return;
     spawnRipple(el);
   });
+})();
+</script>
+<!-- FexaFY extra calculators (v115): additive add-on. Registers new calculators without touching the existing ones. -->
+<script>
+/* ---- EXTRA-CALC REGISTRY ---- */
+(function(){
+"use strict";
+if(window.__fxExtraCalc) return;
+const REG={}; // mode -> {tile,panel,show()}
+window.__fxExtraCalc={
+  register(mode,def){ REG[mode]=def; },
+  modes(){ return Object.keys(REG); },
+  visible(mode){ try{ const d=REG[mode]; if(!d) return false; if(d.always) return true; if(showAll()) return true; const cc=(typeof db!=="undefined"&&db&&db.profile)?db.profile.countryCode:""; return !!(d.countries&&d.countries.indexOf(cc)>=0); }catch(e){ return false; } }
+};
+function showAll(){ try{ return localStorage.getItem("fx_calcShowAll")==="1"; }catch(e){ return false; } }
+window.fxCalcToggleAll=function(){ try{ localStorage.setItem("fx_calcShowAll",showAll()?"0":"1"); }catch(e){} if(typeof refreshCalcNavItems==="function") refreshCalcNavItems(); updateToggle(); };
+function updateToggle(){
+  const b=document.getElementById("fxCalcAllToggle"); if(!b) return;
+  const hasGated=Object.keys(REG).some(m=>!REG[m].always);
+  b.classList.toggle("hidden",!hasGated);
+  b.textContent=(typeof t==="function")?t(showAll()?"calc_all_hide":"calc_all_show"):"";
+}
+function setup(){
+  const row=document.getElementById("calcModeRow");
+  if(!row) return;
+  if(!document.getElementById("fxCalcAllToggle")){
+    const tg=document.createElement("button"); tg.type="button"; tg.id="fxCalcAllToggle"; tg.className="fx-pill hidden"; tg.style.margin="8px 0 0"; tg.setAttribute("onclick","fxCalcToggleAll()");
+    row.parentNode.insertBefore(tg,row.nextSibling);
+  }
+  Object.keys(REG).forEach(mode=>{
+    const d=REG[mode];
+    if(!document.getElementById(d.tileId)){
+      const tile=document.createElement("div");
+      tile.className="fx-strat-btn hidden"; tile.id=d.tileId;
+      tile.setAttribute("onclick","calcSetMode('"+mode+"')");
+      tile.innerHTML=d.tileHTML;
+      row.appendChild(tile);
+    }
+    if(!document.getElementById(d.panelId)){
+      const p=document.createElement("div");
+      p.id=d.panelId; p.style.display="none"; p.innerHTML=d.panelHTML;
+      const ref=document.getElementById("calcPanelTaxUS");
+      if(ref && ref.parentNode) ref.parentNode.insertBefore(p,ref.nextSibling);
+      else document.getElementById("calculators").appendChild(p);
+    }
+    document.querySelectorAll(".calc-nav-sub").forEach(sub=>{
+      if(sub.querySelector('[data-calc="'+mode+'"]')) return;
+      const b=document.createElement("button");
+      b.type="button"; b.className="calc-nav-item hidden"; b.setAttribute("data-calc",mode);
+      b.setAttribute("onclick","openCalcFromNav('"+mode+"')");
+      b.innerHTML='<small data-i18n="'+d.navKey+'"></small>';
+      sub.appendChild(b);
+    });
+  });
+}
+function applyVisibility(){
+  updateToggle();
+  Object.keys(REG).forEach(mode=>{
+    const d=REG[mode], show=window.__fxExtraCalc.visible(mode);
+    const tile=document.getElementById(d.tileId); if(tile) tile.classList.toggle("hidden",!show);
+    document.querySelectorAll('.calc-nav-item[data-calc="'+mode+'"]').forEach(b=>b.classList.toggle("hidden",!show));
+  });
+}
+const origSet=window.calcSetMode, origRefresh=window.refreshCalcNavItems;
+window.calcSetMode=function(mode){
+  const isExtra=Object.prototype.hasOwnProperty.call(REG,mode);
+  if(isExtra && !window.__fxExtraCalc.visible(mode)){ mode="loan"; return window.calcSetMode(mode); }
+  const r=origSet.call(null,isExtra?"loan":mode); // hides every built-in panel / sets nav state
+  Object.keys(REG).forEach(m=>{
+    const d=REG[m], on=(m===mode);
+    const p=document.getElementById(d.panelId); if(p) p.style.display=on?"":"none";
+    const tile=document.getElementById(d.tileId); if(tile) tile.classList.toggle("active",on);
+  });
+  if(isExtra){
+    try{
+      calcState.mode=mode;
+      const lb=document.getElementById("calcModeBtnLoan"); if(lb) lb.classList.remove("active");
+      const lp=document.getElementById("calcPanelLoan"); if(lp) lp.style.display="none";
+      if(REG[mode].onOpen) REG[mode].onOpen();
+      if(typeof updateCalcNavState==="function") updateCalcNavState(false);
+    }catch(e){ console.error(e); }
+  }
+  return r;
+};
+window.refreshCalcNavItems=function(){
+  const r=origRefresh.apply(null,arguments);
+  try{
+    applyVisibility();
+    const m=(typeof calcState!=="undefined")&&calcState.mode;
+    if(m && REG[m] && !window.__fxExtraCalc.visible(m)) window.calcSetMode("loan");
+  }catch(e){ console.error(e); }
+  return r;
+};
+const _a0=window.applyI18n; window.applyI18n=function(){ const r=_a0.apply(null,arguments); try{ updateToggle(); }catch(e){} return r; };
+window.__fxExtraCalc.setup=function(){ setup(); applyVisibility(); if(typeof applyI18n==="function") applyI18n(); if(typeof renderIcons==="function"){ try{renderIcons();}catch(e){} } };
+})();
+</script>
+<script>
+/* ---- GULF END-OF-SERVICE GRATUITY (v115) ---- */
+(function(){
+"use strict";
+/*ENGINE-BEGIN*/
+const EOSB_OMAN_CUTOFF="2023-08-01"; // service before this date follows the old Omani rule (MOL clarification, Oct 2024)
+const EOSB_CCY={AE:"AED",SA:"SAR",QA:"QAR",OM:"OMR"};
+function eosbParse(s){ const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(s||""); if(!m) return null; const d=new Date(Date.UTC(+m[1],+m[2]-1,+m[3])); return isNaN(d)?null:d; }
+function eosbAddYears(d,n){ const r=new Date(d.getTime()); r.setUTCFullYear(r.getUTCFullYear()+n); if(r.getUTCMonth()!==d.getUTCMonth()) r.setUTCDate(0); return r; }
+/* Whole calendar years + leftover days/365 */
+function eosbYears(a,b){
+  if(!a||!b||b<=a) return 0;
+  let n=0; while(eosbAddYears(a,n+1)<=b) n++;
+  const rem=(b-eosbAddYears(a,n))/86400000;
+  return n+Math.min(rem/365,0.999999);
+}
+function eosbRound(x,dp){ const f=Math.pow(10,dp); return Math.round((x+Number.EPSILON)*f)/f; }
+function gulfEosb(o){
+  const cc=o.country, wage=+o.wage||0;
+  const a=eosbParse(o.start), e0=eosbParse(o.end);
+  const out={country:cc,currency:EOSB_CCY[cc]||"",years:0,eligible:false,full:0,payable:0,factor:1,capped:false,parts:[],error:null};
+  if(!EOSB_CCY[cc]){ out.error="country"; return out; }
+  if(!a||!e0){ out.error="dates"; return out; }
+  const b=new Date(e0.getTime()+86400000); // last day worked counts
+  if(b<=a){ out.error="order"; return out; }
+  if(!(wage>0)){ out.error="wage"; return out; }
+  const y=eosbYears(a,b); out.years=y;
+  const dp=cc==="OM"?3:2;
+  if(cc==="AE"){
+    if(y<1){ out.parts.push({k:"min1"}); return out; }
+    const daily=wage/30, d1=Math.min(y,5)*21, d2=Math.max(0,y-5)*30;
+    out.full=daily*(d1+d2); out.eligible=true;
+    out.parts.push({k:"ae_first",yrs:Math.min(y,5),days:d1},{k:"ae_after",yrs:Math.max(0,y-5),days:d2});
+    const cap=wage*24;
+    if(out.full>cap){ out.full=cap; out.capped=true; }
+    out.payable=out.full;
+  } else if(cc==="QA"){
+    if(y<1){ out.parts.push({k:"min1"}); return out; }
+    out.full=wage/30*21*y; out.eligible=true; out.payable=out.full;
+    out.parts.push({k:"qa_days",yrs:y,days:21*y});
+  } else if(cc==="SA"){
+    const m1=Math.min(y,5)*0.5, m2=Math.max(0,y-5);
+    out.full=wage*(m1+m2); out.eligible=true;
+    out.parts.push({k:"sa_first",yrs:Math.min(y,5),months:m1},{k:"sa_after",yrs:Math.max(0,y-5),months:m2});
+    let f=1;
+    if(o.reason==="resigned"){ f= y<2?0 : y<5?1/3 : y<10?2/3 : 1; out.eligible=f>0; }
+    out.factor=f; out.payable=out.full*f;
+  } else if(cc==="OM"){
+    const cut=eosbParse(EOSB_OMAN_CUTOFF);
+    let yOld=0,yNew=0;
+    if(b<=cut){ yOld=y; }
+    else if(a>=cut){ yNew=y; }
+    else { yOld=eosbYears(a,cut); yNew=Math.max(0,y-yOld); }
+    const mOld=Math.min(yOld,3)*0.5+Math.max(0,yOld-3)*1, mNew=yNew;
+    out.full=wage*(mOld+mNew); out.eligible=out.full>0; out.payable=out.full;
+    out.parts.push({k:"om_old",yrs:yOld,months:mOld},{k:"om_new",yrs:yNew,months:mNew});
+  }
+  out.full=eosbRound(out.full,dp); out.payable=eosbRound(out.payable,dp);
+  return out;
+}
+/*ENGINE-END*/
+window.gulfEosb=gulfEosb;
+
+/* ---- strings ---- */
+Object.assign(I18N.en,{ calc_all_show:"Show calculators for other countries", calc_all_hide:"Show only my country's calculators" });
+Object.assign(I18N.bn,{ calc_all_show:"অন্যান্য দেশের calculator দেখান", calc_all_hide:"শুধু আমার দেশের calculator দেখান" });
+Object.assign(I18N.en,{
+ eosb_tab:"End-of-Service Gratuity (Gulf)", eosb_tab_sub:"UAE, Saudi Arabia, Qatar & Oman — estimate your gratuity when your job ends", eosb_menu:"End-of-Service Gratuity",
+ eosb_disclaimer:"Rough estimate based on each country's private-sector labour law (UAE Federal Decree-Law 33/2021, Saudi Labour Law Arts. 84–85, Qatar Labour Law Art. 54, Oman Labour Law as clarified by the Ministry of Labour in 2024). Your contract, unpaid leave, special termination cases and company policy can change the real figure — confirm with your HR / the ministry before relying on it. Free-zone, government and domestic-worker rules can differ.",
+ eosb_country:"Country", eosb_c_AE:"United Arab Emirates", eosb_c_SA:"Saudi Arabia", eosb_c_QA:"Qatar", eosb_c_OM:"Oman",
+ eosb_wage_basic:"Last monthly BASIC salary (without allowances)", eosb_wage_total:"Last monthly total wage (basic + allowances such as housing/transport)",
+ eosb_start:"Joining date", eosb_end:"Last working day", eosb_reason:"How does your job end?", eosb_r_employer:"Employer ends it / contract expires / retirement", eosb_r_resigned:"I resign",
+ eosb_enter:"Enter your salary and joining date to see an estimate.", eosb_err_order:"The last working day must be after the joining date.",
+ eosb_service:"Service period", eosb_years_short:"yrs", eosb_full:"Full gratuity", eosb_factor:"Share due on resignation", eosb_payable:"Estimated gratuity",
+ eosb_min1:"UAE and Qatar pay gratuity only after at least 1 year of service — nothing is due yet.", eosb_none_resign:"Saudi law pays nothing if you resign before 2 years of service.",
+ eosb_ae_first:"First 5 years — 21 days' basic wage per year", eosb_ae_after:"After 5 years — 30 days' basic wage per year",
+ eosb_qa_days:"21 days' basic wage per year of service", eosb_sa_first:"First 5 years — half a month's wage per year", eosb_sa_after:"After 5 years — one month's wage per year",
+ eosb_om_old:"Service before 1 Aug 2023 — half a month per year for the first 3 years, then one month per year", eosb_om_new:"Service from 1 Aug 2023 — one full basic wage per year",
+ eosb_days:"days", eosb_months:"months' wage",
+ eosb_cap_note:"UAE law caps gratuity at 2 years' total wage — the cap was applied.",
+ eosb_note_AE:"Uses basic salary only, 30-day month, and your real service period (part years pro-rated).",
+ eosb_note_SA:"Uses your last total wage. A year-5 resignation is treated as 2/3 (5 to under 10 years).",
+ eosb_note_QA:"Uses basic salary; this is the legal minimum (21 days per year) — many employers pay more.",
+ eosb_note_OM:"Uses last basic salary for expatriates under the Labour Law. Oman plans a mandatory savings scheme for expatriates from 2027, which would replace gratuity for new service."
+});
+Object.assign(I18N.bn,{
+ eosb_tab:"End-of-Service Gratuity (উপসাগরীয়)", eosb_tab_sub:"UAE, সৌদি আরব, কাতার ও ওমান — চাকরি শেষে আপনার gratuity-র আনুমানিক হিসাব", eosb_menu:"End-of-Service Gratuity",
+ eosb_disclaimer:"আনুমানিক হিসাব — প্রতিটি দেশের বেসরকারি খাতের শ্রম আইনের ভিত্তিতে (UAE Federal Decree-Law 33/2021, সৌদি Labour Law ধারা ৮৪–৮৫, কাতার Labour Law ধারা ৫৪, ২০২৪ সালে শ্রম মন্ত্রণালয়ের ব্যাখ্যা অনুযায়ী ওমান আইন)। আপনার চুক্তি, বিনা বেতনের ছুটি, বিশেষ বরখাস্তের ক্ষেত্র ও কোম্পানির নীতিতে আসল অঙ্ক বদলাতে পারে — ভরসা করার আগে HR / মন্ত্রণালয়ের সাথে যাচাই করুন। Free-zone, সরকারি ও গৃহকর্মীদের নিয়ম আলাদা হতে পারে।",
+ eosb_country:"দেশ", eosb_c_AE:"সংযুক্ত আরব আমিরাত", eosb_c_SA:"সৌদি আরব", eosb_c_QA:"কাতার", eosb_c_OM:"ওমান",
+ eosb_wage_basic:"সর্বশেষ মাসিক BASIC বেতন (ভাতা ছাড়া)", eosb_wage_total:"সর্বশেষ মাসিক মোট বেতন (basic + বাসা/যাতায়াত ইত্যাদি ভাতা)",
+ eosb_start:"যোগদানের তারিখ", eosb_end:"শেষ কর্মদিবস", eosb_reason:"চাকরি কীভাবে শেষ হচ্ছে?", eosb_r_employer:"মালিক শেষ করছে / চুক্তির মেয়াদ শেষ / অবসর", eosb_r_resigned:"আমি পদত্যাগ করছি",
+ eosb_enter:"হিসাব দেখতে বেতন ও যোগদানের তারিখ লিখুন।", eosb_err_order:"শেষ কর্মদিবস যোগদানের তারিখের পরে হতে হবে।",
+ eosb_service:"চাকরির সময়কাল", eosb_years_short:"বছর", eosb_full:"পূর্ণ gratuity", eosb_factor:"পদত্যাগে প্রাপ্য অংশ", eosb_payable:"আনুমানিক gratuity",
+ eosb_min1:"UAE ও কাতারে অন্তত ১ বছর চাকরির পরই gratuity পাওয়া যায় — এখনো কিছু প্রাপ্য নয়।", eosb_none_resign:"সৌদি আইনে ২ বছরের আগে পদত্যাগ করলে কিছুই প্রাপ্য নয়।",
+ eosb_ae_first:"প্রথম ৫ বছর — বছরে ২১ দিনের basic বেতন", eosb_ae_after:"৫ বছরের পর — বছরে ৩০ দিনের basic বেতন",
+ eosb_qa_days:"প্রতি বছরে ২১ দিনের basic বেতন", eosb_sa_first:"প্রথম ৫ বছর — বছরে আধা মাসের বেতন", eosb_sa_after:"৫ বছরের পর — বছরে ১ মাসের বেতন",
+ eosb_om_old:"১ আগস্ট ২০২৩-এর আগের সময় — প্রথম ৩ বছর বছরে আধা মাস, তারপর বছরে ১ মাস", eosb_om_new:"১ আগস্ট ২০২৩ থেকে — বছরে পূর্ণ ১ মাসের basic বেতন",
+ eosb_days:"দিন", eosb_months:"মাসের বেতন",
+ eosb_cap_note:"UAE আইনে gratuity সর্বোচ্চ ২ বছরের মোট বেতনের মধ্যে সীমাবদ্ধ — সেই সীমা প্রয়োগ হয়েছে।",
+ eosb_note_AE:"শুধু basic বেতন, ৩০ দিনের মাস, ও আপনার প্রকৃত চাকরির সময় (অসম্পূর্ণ বছর অনুপাতে) ধরা হয়েছে।",
+ eosb_note_SA:"সর্বশেষ মোট বেতন ধরা হয়েছে। পদত্যাগে ঠিক ৫ বছরকে ২/৩ ধরা হয়েছে (৫ থেকে ১০ বছরের নিচে)।",
+ eosb_note_QA:"Basic বেতন ধরা হয়েছে; এটা আইনি সর্বনিম্ন (বছরে ২১ দিন) — অনেক কোম্পানি বেশি দেয়।",
+ eosb_note_OM:"আইন অনুযায়ী প্রবাসীদের জন্য সর্বশেষ basic বেতন ধরা হয়েছে। ওমান ২০২৭ থেকে প্রবাসীদের জন্য বাধ্যতামূলক savings scheme চালুর পরিকল্পনা করেছে, যা নতুন সময়ের জন্য gratuity-র জায়গা নেবে।"
+});
+
+/* ---- UI ---- */
+const CC2={"+971":"AE","+966":"SA","+974":"QA","+968":"OM"};
+function esc(s){ return (typeof escapeHtml==="function")?escapeHtml(String(s)):String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+function money(code,n){
+  const dp=code==="OMR"?3:2;
+  let loc="en-US"; try{ loc=currentLocale(); }catch(e){}
+  return code+" "+Number(n||0).toLocaleString(loc,{minimumFractionDigits:dp,maximumFractionDigits:dp});
+}
+function num(x){ let loc="en-US"; try{ loc=currentLocale(); }catch(e){} return Number(x).toLocaleString(loc,{maximumFractionDigits:2}); }
+function todayStr(){ const d=new Date(), p=n=>String(n).padStart(2,"0"); return d.getFullYear()+"-"+p(d.getMonth()+1)+"-"+p(d.getDate()); }
+const panelHTML=`
+ <div class="calc-note zakat-disclaimer"><span data-icon="shield"></span><span data-i18n="eosb_disclaimer"></span></div>
+ <div class="card form">
+  <h3><span class="fx-ico"><span data-icon="globe"></span></span><span data-i18n="eosb_country">Country</span></h3>
+  <select id="eosbCountry" onchange="eosbUpdate()">
+   <option value="AE" data-i18n="eosb_c_AE"></option><option value="SA" data-i18n="eosb_c_SA"></option><option value="QA" data-i18n="eosb_c_QA"></option><option value="OM" data-i18n="eosb_c_OM"></option>
+  </select>
+  <label style="margin-top:10px"><span id="eosbWageLbl"></span><input id="eosbWage" type="number" inputmode="decimal" min="0" value="" oninput="eosbUpdate()"></label>
+  <label style="margin-top:10px"><span data-i18n="eosb_start">Joining date</span><input id="eosbStart" type="date" onchange="eosbUpdate()" oninput="eosbUpdate()"></label>
+  <label style="margin-top:10px"><span data-i18n="eosb_end">Last working day</span><input id="eosbEnd" type="date" onchange="eosbUpdate()" oninput="eosbUpdate()"></label>
+  <div id="eosbReasonRow" class="hidden" style="margin-top:10px"><div class="muted" style="margin-bottom:6px" data-i18n="eosb_reason">How does your job end?</div>
+   <div class="fx-pill-row"><button type="button" class="fx-pill active" id="eosbRsEmp" onclick="eosbSetReason('employer')" data-i18n="eosb_r_employer"></button><button type="button" class="fx-pill" id="eosbRsRes" onclick="eosbSetReason('resigned')" data-i18n="eosb_r_resigned"></button></div></div>
+ </div>
+ <div class="card"><h3><span class="fx-ico"><span data-icon="activity"></span></span><span data-i18n="calc_results_label">Results</span></h3><div id="eosbResults"></div></div>`;
+let reason="employer";
+window.eosbSetReason=function(r){ reason=r; const a=document.getElementById("eosbRsEmp"), b=document.getElementById("eosbRsRes"); if(a)a.classList.toggle("active",r==="employer"); if(b)b.classList.toggle("active",r==="resigned"); eosbUpdate(); };
+window.eosbUpdate=function(){
+  const sel=document.getElementById("eosbCountry"); if(!sel) return;
+  const cc=sel.value;
+  const lbl=document.getElementById("eosbWageLbl"); if(lbl) lbl.textContent=t(cc==="SA"?"eosb_wage_total":"eosb_wage_basic");
+  const rr=document.getElementById("eosbReasonRow"); if(rr) rr.classList.toggle("hidden",cc!=="SA");
+  const res=document.getElementById("eosbResults"); if(!res) return;
+  const o={country:cc,wage:document.getElementById("eosbWage").value,start:document.getElementById("eosbStart").value,end:document.getElementById("eosbEnd").value,reason:cc==="SA"?reason:"employer"};
+  if(!(+o.wage>0)||!o.start||!o.end){ res.innerHTML=`<div class="muted">${esc(t("eosb_enter"))}</div>`; return; }
+  const r=gulfEosb(o);
+  if(r.error==="order"){ res.innerHTML=`<div class="muted">${esc(t("eosb_err_order"))}</div>`; return; }
+  if(r.error){ res.innerHTML=`<div class="muted">${esc(t("eosb_enter"))}</div>`; return; }
+  const c=r.currency;
+  let h=`<div class="row"><span class="muted">${esc(t("eosb_service"))}</span><b>${num(r.years)} ${esc(t("eosb_years_short"))}</b></div>`;
+  r.parts.forEach(p=>{
+    if(p.k==="min1") return;
+    if(p.yrs<=0) return;
+    const amt=p.days!==undefined?`${num(p.days)} ${esc(t("eosb_days"))}`:`${num(p.months)} ${esc(t("eosb_months"))}`;
+    h+=`<div class="row"><span class="muted">${esc(t("eosb_"+p.k))} (${num(p.yrs)} ${esc(t("eosb_years_short"))})</span><b>${amt}</b></div>`;
+  });
+  if(r.parts.some(p=>p.k==="min1")){ h+=`<div class="muted" style="margin:8px 0">${esc(t("eosb_min1"))}</div>`; }
+  else{
+    h+=`<div class="row" style="margin-top:6px;padding-top:6px;border-top:1px dashed var(--line)"><span class="muted">${esc(t("eosb_full"))}</span><b>${money(c,r.full)}</b></div>`;
+    if(cc==="SA" && o.reason==="resigned"){
+      h+=`<div class="row"><span class="muted">${esc(t("eosb_factor"))}</span><b>${r.factor===1?"100%":r.factor===0?"0%":(r.factor>0.5?"2/3":"1/3")}</b></div>`;
+      if(r.factor===0) h+=`<div class="muted" style="margin:6px 0">${esc(t("eosb_none_resign"))}</div>`;
+    }
+    if(r.capped) h+=`<div class="muted" style="font-size:12px;margin:4px 0">${esc(t("eosb_cap_note"))}</div>`;
+    h+=`<div class="row" style="margin-top:8px"><span><b>${esc(t("eosb_payable"))}</b></span><b style="font-size:1.25em">${money(c,r.payable)}</b></div>`;
+  }
+  h+=`<div class="muted" style="font-size:12px;margin-top:10px">${esc(t("eosb_note_"+cc))}</div>`;
+  res.innerHTML=h;
+};
+function onOpen(){
+  const sel=document.getElementById("eosbCountry"), end=document.getElementById("eosbEnd");
+  if(sel && !sel.dataset.init){
+    sel.dataset.init="1";
+    try{ const cc=CC2[db.profile.countryCode]; if(cc) sel.value=cc; }catch(e){}
+  }
+  if(end && !end.value) end.value=todayStr();
+  window.eosbUpdate();
+}
+window.__fxExtraCalc.register("eosb",{
+  tileId:"calcModeBtnEosb", panelId:"calcPanelEosb", navKey:"eosb_menu", onOpen,
+  tileHTML:'<b><span data-icon="wallet" data-icon-size="13"></span> <span data-i18n="eosb_tab">End-of-Service Gratuity (Gulf)</span></b><span data-i18n="eosb_tab_sub"></span>',
+  panelHTML,
+  always:true
+});
+const _oldApply=window.applyI18n;
+window.applyI18n=function(){ const r=_oldApply.apply(null,arguments); try{ if(document.getElementById("eosbCountry")) window.eosbUpdate(); }catch(e){} return r; };
+window.__fxExtraCalc.setup();
+})();
+</script>
+<script>
+/* ---- UK TAKE-HOME (PAYE + NI), tax year 2026-27 (v115) ---- */
+(function(){
+"use strict";
+/*ENGINE-BEGIN*/
+const UK={
+  pa:12570, taperStart:100000, taperEnd:125140,
+  // bands expressed on TAXABLE income (income minus personal allowance); [upTo, rate]
+  ewni:[[37700,0.20],[125140,0.40],[Infinity,0.45]],
+  scot:[[3967,0.19],[16956,0.20],[31092,0.21],[62430,0.42],[112570,0.45],[Infinity,0.48]],
+  niPT:12570, niUEL:50270, niMain:0.08, niUpper:0.02,
+  loans:{plan1:26900,plan2:29385,plan4:33795,plan5:25000}, loanRate:0.09, pgThreshold:21000, pgRate:0.06
+};
+function ukBands(taxable,bands){
+  let prev=0,tax=0; const parts=[];
+  for(const [top,rate] of bands){
+    if(taxable<=prev) break;
+    const amt=Math.min(taxable,top)-prev; tax+=amt*rate; parts.push({amt,rate,tax:amt*rate}); prev=top;
+  }
+  return {tax,parts};
+}
+function ukTakeHome(o){
+  const gross=Math.max(0,+o.gross||0), pensionPct=Math.min(100,Math.max(0,+o.pensionPct||0));
+  const pension=gross*pensionPct/100;                // net-pay arrangement: relief on tax, not on NI
+  const ani=Math.max(0,gross-pension);               // adjusted net income (simplified)
+  let pa=UK.pa; if(ani>UK.taperStart) pa=Math.max(0,UK.pa-Math.floor((Math.min(ani,UK.taperEnd)-UK.taperStart)/2));
+  const taxable=Math.max(0,ani-pa);
+  const b=ukBands(taxable,o.region==="scot"?UK.scot:UK.ewni);
+  const ni=Math.max(0,Math.min(gross,UK.niUEL)-UK.niPT)*UK.niMain+Math.max(0,gross-UK.niUEL)*UK.niUpper;
+  let loan=0; if(o.loan && UK.loans[o.loan]) loan+=Math.max(0,gross-UK.loans[o.loan])*UK.loanRate;
+  if(o.postgrad) loan+=Math.max(0,gross-UK.pgThreshold)*UK.pgRate;
+  const net=gross-b.tax-ni-loan-pension;
+  const r2=x=>Math.round((x+Number.EPSILON)*100)/100;
+  return {gross:r2(gross),pension:r2(pension),personalAllowance:pa,taxable:r2(taxable),tax:r2(b.tax),ni:r2(ni),loan:r2(loan),net:r2(net),monthly:r2(net/12),parts:b.parts,effective:gross>0?(gross-net-pension)/gross:0};
+}
+/*ENGINE-END*/
+window.ukTakeHome=ukTakeHome;
+
+Object.assign(I18N.en,{
+ uk_tab:"UK Take-Home Pay (2026-27)", uk_tab_sub:"Income tax, National Insurance & student loan on a UK salary", uk_menu:"UK Take-Home Calculator",
+ uk_disclaimer:"Rough estimate using the 2026-27 tax-year figures published by GOV.UK and the Scottish Government (Personal Allowance £12,570, Class 1 employee NI 8%/2%, Scottish six bands, student-loan thresholds). Assumes one employment, tax code 1257L, a pension taken under a net-pay arrangement (reduces tax but not NI), no other income, benefits, Marriage Allowance or Gift Aid. Check HMRC or your payslip for exact figures.",
+ uk_salary:"Gross annual salary (£)", uk_region:"Where do you pay tax?", uk_r_ewni:"England / Wales / N. Ireland", uk_r_scot:"Scotland",
+ uk_pension:"Your pension contribution (% of salary)", uk_loan:"Student loan", uk_loan_none:"None", uk_loan_p1:"Plan 1", uk_loan_p2:"Plan 2", uk_loan_p4:"Plan 4", uk_loan_p5:"Plan 5", uk_pg:"Postgraduate loan as well",
+ uk_enter:"Enter your gross annual salary to see an estimate.", uk_gross:"Gross salary", uk_pa:"Personal Allowance used", uk_tax:"Income tax", uk_ni:"National Insurance", uk_sl:"Student loan repayments", uk_pen:"Pension contribution", uk_net:"Take-home pay (per year)", uk_month:"Take-home per month", uk_eff:"Share of pay taken: "
+});
+Object.assign(I18N.bn,{
+ uk_tab:"UK Take-Home Pay (২০২৬-২৭)", uk_tab_sub:"UK বেতনে income tax, National Insurance ও student loan-এর হিসাব", uk_menu:"UK Take-Home Calculator",
+ uk_disclaimer:"আনুমানিক হিসাব — GOV.UK ও Scottish Government-এর প্রকাশিত ২০২৬-২৭ কর-বছরের সংখ্যা ব্যবহার করে (Personal Allowance £12,570, Class 1 employee NI 8%/2%, স্কটল্যান্ডের ছয়টি band, student-loan threshold)। ধরা হয়েছে: একটি চাকরি, tax code 1257L, net-pay পদ্ধতির pension (tax কমায়, NI নয়), অন্য আয়/benefit/Marriage Allowance/Gift Aid নেই। সঠিক অঙ্কের জন্য HMRC বা আপনার payslip দেখুন।",
+ uk_salary:"বার্ষিক gross বেতন (£)", uk_region:"কোথায় tax দেন?", uk_r_ewni:"ইংল্যান্ড / ওয়েলস / উত্তর আয়ারল্যান্ড", uk_r_scot:"স্কটল্যান্ড",
+ uk_pension:"আপনার pension অবদান (বেতনের %)", uk_loan:"Student loan", uk_loan_none:"নেই", uk_loan_p1:"Plan 1", uk_loan_p2:"Plan 2", uk_loan_p4:"Plan 4", uk_loan_p5:"Plan 5", uk_pg:"সাথে Postgraduate loan-ও আছে",
+ uk_enter:"হিসাব দেখতে বার্ষিক gross বেতন লিখুন।", uk_gross:"Gross বেতন", uk_pa:"ব্যবহৃত Personal Allowance", uk_tax:"Income tax", uk_ni:"National Insurance", uk_sl:"Student loan কিস্তি", uk_pen:"Pension অবদান", uk_net:"Take-home (বছরে)", uk_month:"মাসে take-home", uk_eff:"বেতনের যে অংশ কাটা গেল: "
+});
+
+function esc(s){ return (typeof escapeHtml==="function")?escapeHtml(String(s)):String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+function gbp(n){ let loc="en-US"; try{ loc=currentLocale(); }catch(e){} return (n<0?"-":"")+"£"+Math.abs(Number(n||0)).toLocaleString(loc,{minimumFractionDigits:2,maximumFractionDigits:2}); }
+const panelHTML=`
+ <div class="calc-note zakat-disclaimer"><span data-icon="shield"></span><span data-i18n="uk_disclaimer"></span></div>
+ <div class="card form">
+  <h3><span class="fx-ico"><span data-icon="landmark"></span></span><span data-i18n="uk_tab">UK</span></h3>
+  <label><span data-i18n="uk_salary"></span><input id="ukSalary" type="number" inputmode="decimal" min="0" value="" oninput="ukUpdate()"></label>
+  <label style="margin-top:10px"><span data-i18n="uk_region"></span><select id="ukRegion" onchange="ukUpdate()"><option value="ewni" data-i18n="uk_r_ewni"></option><option value="scot" data-i18n="uk_r_scot"></option></select></label>
+  <label style="margin-top:10px"><span data-i18n="uk_pension"></span><input id="ukPension" type="number" inputmode="decimal" min="0" max="100" value="0" oninput="ukUpdate()"></label>
+  <label style="margin-top:10px"><span data-i18n="uk_loan"></span><select id="ukLoan" onchange="ukUpdate()"><option value="" data-i18n="uk_loan_none"></option><option value="plan1" data-i18n="uk_loan_p1"></option><option value="plan2" data-i18n="uk_loan_p2"></option><option value="plan4" data-i18n="uk_loan_p4"></option><option value="plan5" data-i18n="uk_loan_p5"></option></select></label>
+  <label style="margin-top:10px;display:flex;gap:8px;align-items:center"><input id="ukPg" type="checkbox" onchange="ukUpdate()" style="width:auto"><span data-i18n="uk_pg"></span></label>
+ </div>
+ <div class="card"><h3><span class="fx-ico"><span data-icon="activity"></span></span><span data-i18n="calc_results_label">Results</span></h3><div id="ukResults"></div></div>`;
+window.ukUpdate=function(){
+  const res=document.getElementById("ukResults"); if(!res) return;
+  const g=+document.getElementById("ukSalary").value;
+  if(!(g>0)){ res.innerHTML=`<div class="muted">${esc(t("uk_enter"))}</div>`; return; }
+  const r=ukTakeHome({gross:g,region:document.getElementById("ukRegion").value,pensionPct:document.getElementById("ukPension").value,loan:document.getElementById("ukLoan").value,postgrad:document.getElementById("ukPg").checked});
+  const row=(k,v,neg)=>`<div class="row"><span class="muted">${esc(t(k))}</span><b>${neg?"− ":""}${gbp(v)}</b></div>`;
+  let h=row("uk_gross",r.gross)+row("uk_pa",r.personalAllowance)+row("uk_tax",r.tax,1)+row("uk_ni",r.ni,1);
+  if(r.loan>0) h+=row("uk_sl",r.loan,1);
+  if(r.pension>0) h+=row("uk_pen",r.pension,1);
+  h+=`<div class="row" style="margin-top:8px;padding-top:6px;border-top:1px dashed var(--line)"><span><b>${esc(t("uk_net"))}</b></span><b style="font-size:1.2em">${gbp(r.net)}</b></div>`;
+  h+=`<div class="row"><span class="muted">${esc(t("uk_month"))}</span><b>${gbp(r.monthly)}</b></div>`;
+  h+=`<div class="muted" style="font-size:12px;margin-top:8px">${esc(t("uk_eff"))}${(r.effective*100).toFixed(1)}%</div>`;
+  res.innerHTML=h;
+};
+window.__fxExtraCalc.register("uk",{
+  tileId:"calcModeBtnUk", panelId:"calcPanelUk", navKey:"uk_menu", countries:["+44"],
+  onOpen(){ window.ukUpdate(); },
+  tileHTML:'<b><span data-icon="landmark" data-icon-size="13"></span> <span data-i18n="uk_tab"></span></b><span data-i18n="uk_tab_sub"></span>',
+  panelHTML
+});
+const _a=window.applyI18n; window.applyI18n=function(){ const r=_a.apply(null,arguments); try{ if(document.getElementById("ukResults")) window.ukUpdate(); }catch(e){} return r; };
+window.__fxExtraCalc.setup();
+})();
+</script>
+<script>
+/* ---- AUSTRALIA TAKE-HOME (resident), income year 2026-27 (v115) ---- */
+(function(){
+"use strict";
+/*ENGINE-BEGIN*/
+const AU={
+  brackets:[[18200,0],[45000,0.15],[135000,0.30],[190000,0.37],[Infinity,0.45]],
+  medRate:0.02, medLow:28011, medUp:35013,   // 2025-26 low-income thresholds (2026-27 not yet announced)
+  help:[[69528,0],[129717,0.15],[186050,0.17]], helpTopRate:0.10,
+  superRate:0.12
+};
+function auTax(ti){
+  let prev=0,tax=0;
+  for(const [top,rate] of AU.brackets){ if(ti<=prev) break; tax+=(Math.min(ti,top)-prev)*rate; prev=top; }
+  return tax;
+}
+function auLito(ti){
+  if(ti<=37500) return 700;
+  if(ti<=45000) return 700-(ti-37500)*0.05;
+  if(ti<=66667) return Math.max(0,325-(ti-45000)*0.015);
+  return 0;
+}
+function auMedicare(ti){
+  if(ti<=AU.medLow) return 0;
+  if(ti<AU.medUp) return Math.min((ti-AU.medLow)*0.10,ti*AU.medRate);
+  return ti*AU.medRate;
+}
+function auHelp(inc){
+  if(inc>=186051) return inc*AU.helpTopRate;
+  if(inc>129717) return 9028+(inc-129717)*0.17;
+  if(inc>69528) return (inc-69528)*0.15;
+  return 0;
+}
+function auTakeHome(o){
+  const ti=Math.max(0,+o.gross||0);
+  const taxBase=auTax(ti), lito=Math.min(taxBase,auLito(ti));
+  const tax=taxBase-lito, med=auMedicare(ti), help=o.help?auHelp(ti):0;
+  const net=ti-tax-med-help, r2=x=>Math.round((x+Number.EPSILON)*100)/100;
+  return {gross:r2(ti),taxBase:r2(taxBase),lito:r2(lito),tax:r2(tax),medicare:r2(med),help:r2(help),net:r2(net),monthly:r2(net/12),fortnightly:r2(net/26),superAmt:r2(ti*AU.superRate),effective:ti>0?(ti-net)/ti:0};
+}
+/*ENGINE-END*/
+window.auTakeHome=auTakeHome;
+Object.assign(I18N.en,{
+ au_tab:"Australia Take-Home Pay (2026-27)", au_tab_sub:"Income tax, Medicare levy & HELP loan for Australian residents", au_menu:"Australia Take-Home Calculator",
+ au_disclaimer:"Rough estimate for Australian tax residents for the 2026-27 income year, using ATO rates (15% / 30% / 37% / 45%), the 2% Medicare levy, the Low Income Tax Offset and the marginal HELP repayment table. Medicare low-income thresholds use the latest published (2025-26) figures because 2026-27 ones were not out yet. Not for non-residents or working holiday makers, and it ignores deductions, other offsets, the Medicare levy surcharge and family thresholds. Check the ATO or a registered tax agent.",
+ au_salary:"Annual taxable salary, before tax, excluding super (A$)", au_help:"I have a HELP / HECS study loan", au_enter:"Enter your annual salary to see an estimate.",
+ au_gross:"Taxable income", au_tax:"Income tax", au_lito:"Low Income Tax Offset (already deducted from tax)", au_med:"Medicare levy", au_helpr:"HELP repayment", au_net:"Take-home pay (per year)", au_month:"Per month", au_fort:"Per fortnight", au_super:"Employer super on top (12%)", au_eff:"Share of pay taken: "
+});
+Object.assign(I18N.bn,{
+ au_tab:"অস্ট্রেলিয়া Take-Home Pay (২০২৬-২৭)", au_tab_sub:"অস্ট্রেলিয়ার residents-দের income tax, Medicare levy ও HELP loan", au_menu:"Australia Take-Home Calculator",
+ au_disclaimer:"আনুমানিক হিসাব — অস্ট্রেলিয়ান tax resident-দের জন্য ২০২৬-২৭ income year, ATO-র rate (১৫% / ৩০% / ৩৭% / ৪৫%), ২% Medicare levy, Low Income Tax Offset ও marginal HELP repayment table ধরে। Medicare low-income threshold-এর ২০২৬-২৭ সংখ্যা এখনো প্রকাশিত নয় বলে সর্বশেষ প্রকাশিত (২০২৫-২৬) সংখ্যা ব্যবহার করা হয়েছে। Non-resident বা working holiday maker-দের জন্য নয়; deduction, অন্য offset, Medicare levy surcharge ও family threshold ধরা হয়নি। ATO বা registered tax agent-এর সাথে যাচাই করুন।",
+ au_salary:"বার্ষিক taxable বেতন, tax-এর আগে, super বাদে (A$)", au_help:"আমার HELP / HECS study loan আছে", au_enter:"হিসাব দেখতে বার্ষিক বেতন লিখুন।",
+ au_gross:"Taxable income", au_tax:"Income tax", au_lito:"Low Income Tax Offset (tax থেকে আগেই বাদ)", au_med:"Medicare levy", au_helpr:"HELP কিস্তি", au_net:"Take-home (বছরে)", au_month:"মাসে", au_fort:"ফোর্টনাইটে (১৪ দিন)", au_super:"এর ওপরে employer super (১২%)", au_eff:"বেতনের যে অংশ কাটা গেল: "
+});
+function esc(s){ return (typeof escapeHtml==="function")?escapeHtml(String(s)):String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+function aud(n){ let loc="en-US"; try{ loc=currentLocale(); }catch(e){} return (n<0?"-":"")+"A$"+Math.abs(Number(n||0)).toLocaleString(loc,{minimumFractionDigits:2,maximumFractionDigits:2}); }
+const panelHTML=`
+ <div class="calc-note zakat-disclaimer"><span data-icon="shield"></span><span data-i18n="au_disclaimer"></span></div>
+ <div class="card form">
+  <h3><span class="fx-ico"><span data-icon="landmark"></span></span><span data-i18n="au_tab"></span></h3>
+  <label><span data-i18n="au_salary"></span><input id="auSalary" type="number" inputmode="decimal" min="0" value="" oninput="auUpdate()"></label>
+  <label style="margin-top:10px;display:flex;gap:8px;align-items:center"><input id="auHelp" type="checkbox" onchange="auUpdate()" style="width:auto"><span data-i18n="au_help"></span></label>
+ </div>
+ <div class="card"><h3><span class="fx-ico"><span data-icon="activity"></span></span><span data-i18n="calc_results_label">Results</span></h3><div id="auResults"></div></div>`;
+window.auUpdate=function(){
+  const res=document.getElementById("auResults"); if(!res) return;
+  const g=+document.getElementById("auSalary").value;
+  if(!(g>0)){ res.innerHTML=`<div class="muted">${esc(t("au_enter"))}</div>`; return; }
+  const r=auTakeHome({gross:g,help:document.getElementById("auHelp").checked});
+  const row=(k,v,neg)=>`<div class="row"><span class="muted">${esc(t(k))}</span><b>${neg?"− ":""}${aud(v)}</b></div>`;
+  let h=row("au_gross",r.gross)+row("au_tax",r.tax,1);
+  if(r.lito>0) h+=`<div class="muted" style="font-size:12px;margin:-2px 0 4px">${esc(t("au_lito"))}: ${aud(r.lito)}</div>`;
+  h+=row("au_med",r.medicare,1);
+  if(r.help>0) h+=row("au_helpr",r.help,1);
+  h+=`<div class="row" style="margin-top:8px;padding-top:6px;border-top:1px dashed var(--line)"><span><b>${esc(t("au_net"))}</b></span><b style="font-size:1.2em">${aud(r.net)}</b></div>`;
+  h+=row("au_month",r.monthly)+row("au_fort",r.fortnightly);
+  h+=`<div class="muted" style="font-size:12px;margin-top:8px">${esc(t("au_super"))}: ${aud(r.superAmt)}<br>${esc(t("au_eff"))}${(r.effective*100).toFixed(1)}%</div>`;
+  res.innerHTML=h;
+};
+window.__fxExtraCalc.register("au",{
+  tileId:"calcModeBtnAu", panelId:"calcPanelAu", navKey:"au_menu", countries:["+61"],
+  onOpen(){ window.auUpdate(); },
+  tileHTML:'<b><span data-icon="landmark" data-icon-size="13"></span> <span data-i18n="au_tab"></span></b><span data-i18n="au_tab_sub"></span>',
+  panelHTML
+});
+const _a=window.applyI18n; window.applyI18n=function(){ const r=_a.apply(null,arguments); try{ if(document.getElementById("auResults")) window.auUpdate(); }catch(e){} return r; };
+window.__fxExtraCalc.setup();
+})();
+</script>
+<script>
+/* ---- CANADA TAKE-HOME (federal + province/territory, CPP/CPP2/EI), 2026 (v115) ---- */
+(function(){
+"use strict";
+/*ENGINE-BEGIN*/
+const CA={
+  fed:[[58523,0.14],[117045,0.205],[181440,0.26],[258482,0.29],[Infinity,0.33]],
+  fedLow:0.14, bpaMax:16452, bpaMin:14829, bpaPhaseStart:181440, bpaPhaseEnd:258482, cea:1501,
+  cppYMPE:74600, cppExempt:3500, cppBaseRate:0.0495, cppEnhRate:0.01, cpp2Ceiling:85000, cpp2Rate:0.04,
+  eiMax:68900, eiRate:0.0163
+};
+// [name, basic personal amount, bracket table [[upTo,rate],...]]
+const CA_PROV={
+  AB:{bpa:22769,b:[[61200,0.08],[154259,0.10],[185111,0.12],[246813,0.13],[370220,0.14],[Infinity,0.15]]},
+  BC:{bpa:13216,b:[[50363,0.0506],[100728,0.077],[115648,0.105],[140430,0.1229],[190405,0.147],[265545,0.168],[Infinity,0.205]]},
+  MB:{bpa:15780,b:[[47000,0.108],[100000,0.1275],[Infinity,0.174]]},
+  NB:{bpa:13664,b:[[52333,0.094],[104666,0.14],[193861,0.16],[Infinity,0.195]]},
+  NL:{bpa:11188,b:[[44678,0.087],[89354,0.145],[159528,0.158],[223340,0.178],[285319,0.198],[570638,0.208],[1141275,0.213],[Infinity,0.218]]},
+  NS:{bpa:11932,b:[[30995,0.0879],[61991,0.1495],[97417,0.1667],[157124,0.175],[Infinity,0.21]]},
+  NT:{bpa:18198,b:[[53003,0.059],[106009,0.086],[172346,0.122],[Infinity,0.1405]]},
+  NU:{bpa:19659,b:[[55801,0.04],[111602,0.07],[181439,0.09],[Infinity,0.115]]},
+  ON:{bpa:12989,b:[[53891,0.0505],[107785,0.0915],[150000,0.1116],[220000,0.1216],[Infinity,0.1316]]},
+  PE:{bpa:15000,b:[[33928,0.095],[65820,0.1347],[106890,0.166],[142520,0.1762],[200000,0.19],[Infinity,0.20]]},
+  SK:{bpa:20381,b:[[54532,0.105],[155805,0.125],[Infinity,0.145]]},
+  YT:{bpa:16452,bpaMin:14829,b:[[58523,0.064],[117045,0.09],[181440,0.109],[500000,0.128],[Infinity,0.15]]}
+};
+function caBands(x,b){ let prev=0,t=0; for(const [top,r] of b){ if(x<=prev) break; t+=(Math.min(x,top)-prev)*r; prev=top; } return t; }
+function caBpa(max,min,ni){
+  if(ni<=CA.bpaPhaseStart) return max;
+  if(ni>=CA.bpaPhaseEnd) return min;
+  return max-(max-min)*(ni-CA.bpaPhaseStart)/(CA.bpaPhaseEnd-CA.bpaPhaseStart);
+}
+function caOHP(ti){
+  if(ti<=20000) return 0;
+  if(ti<=36000) return Math.min(300,0.06*(ti-20000));
+  if(ti<=48000) return Math.min(450,300+0.06*(ti-36000));
+  if(ti<=72000) return Math.min(600,450+0.25*(ti-48000));
+  if(ti<=200000) return Math.min(750,600+0.25*(ti-72000));
+  return Math.min(900,750+0.25*(ti-200000));
+}
+function caTakeHome(o){
+  const P=CA_PROV[o.prov]; if(!P) return {error:"prov"};
+  const gross=Math.max(0,+o.gross||0), rrsp=Math.min(gross,Math.max(0,+o.rrsp||0));
+  const pe=Math.min(gross,CA.cppYMPE), cppBase=Math.max(0,pe-CA.cppExempt)*CA.cppBaseRate, cppEnh=Math.max(0,pe-CA.cppExempt)*CA.cppEnhRate;
+  const cpp2=Math.max(0,Math.min(gross,CA.cpp2Ceiling)-CA.cppYMPE)*CA.cpp2Rate;
+  const ei=Math.min(gross,CA.eiMax)*CA.eiRate;
+  const taxable=Math.max(0,gross-rrsp-cppEnh-cpp2);
+  // federal
+  const fedBeforeCredits=caBands(taxable,CA.fed);
+  const fedCredits=(caBpa(CA.bpaMax,CA.bpaMin,taxable)+Math.min(CA.cea,gross)+cppBase+ei)*CA.fedLow;
+  const fed=Math.max(0,fedBeforeCredits-fedCredits);
+  // provincial
+  const low=P.b[0][1];
+  const pbpa=P.bpaMin?caBpa(P.bpa,P.bpaMin,taxable):P.bpa;
+  const provBefore=caBands(taxable,P.b);
+  let prov=Math.max(0,provBefore-(pbpa+cppBase+ei)*low), extra=0;
+  if(o.prov==="ON"){
+    const red=Math.min(prov,Math.max(0,600-prov)); prov-=red;
+    const sur=0.20*Math.max(0,prov-5818)+0.36*Math.max(0,prov-7446);
+    prov+=sur; extra=caOHP(taxable); prov+=extra;
+  }
+  if(o.prov==="BC"){ const red=Math.max(0,575-0.0356*Math.max(0,taxable-25570)); prov=Math.max(0,prov-red); }
+  const cppTotal=cppBase+cppEnh, net=gross-fed-prov-cppTotal-cpp2-ei-rrsp;
+  const r2=x=>Math.round((x+Number.EPSILON)*100)/100;
+  return {gross:r2(gross),rrsp:r2(rrsp),taxable:r2(taxable),fed:r2(fed),prov:r2(prov),cpp:r2(cppTotal+cpp2),ei:r2(ei),net:r2(net),monthly:r2(net/12),
+    effective:gross>0?(gross-net-rrsp)/gross:0, cppBase:r2(cppBase)};
+}
+/*ENGINE-END*/
+window.caTakeHome=caTakeHome;
+Object.assign(I18N.en,{
+ ca_tab:"Canada Take-Home Pay (2026)", ca_tab_sub:"Federal + provincial tax, CPP and EI on a Canadian salary", ca_menu:"Canada Take-Home Calculator",
+ ca_disclaimer:"Rough estimate for a Canadian employee in 2026 using CRA federal and provincial/territorial brackets (federal lowest rate 14%), basic personal amounts, CPP/CPP2 and EI. Includes Ontario surtax and health premium and the BC tax reduction. Quebec is not covered (it has its own tax system, QPP and QPIP). Ignores other credits, deductions (other than RRSP), and benefits. Check the CRA or a tax professional for your exact figure.",
+ ca_salary:"Gross annual employment income (C$)", ca_prov:"Province / territory", ca_rrsp:"RRSP contribution this year (C$, optional)", ca_enter:"Enter your gross annual income to see an estimate.",
+ ca_gross:"Gross income", ca_rrspl:"RRSP contribution", ca_fed:"Federal income tax", ca_provl:"Provincial / territorial tax", ca_cpp:"CPP contributions", ca_ei:"EI premiums", ca_net:"Take-home pay (per year)", ca_month:"Per month", ca_eff:"Share of pay taken (tax, CPP, EI): ",
+ ca_p_AB:"Alberta", ca_p_BC:"British Columbia", ca_p_MB:"Manitoba", ca_p_NB:"New Brunswick", ca_p_NL:"Newfoundland and Labrador", ca_p_NS:"Nova Scotia", ca_p_NT:"Northwest Territories", ca_p_NU:"Nunavut", ca_p_ON:"Ontario", ca_p_PE:"Prince Edward Island", ca_p_SK:"Saskatchewan", ca_p_YT:"Yukon"
+});
+Object.assign(I18N.bn,{
+ ca_tab:"কানাডা Take-Home Pay (২০২৬)", ca_tab_sub:"কানাডার বেতনে federal + provincial tax, CPP ও EI", ca_menu:"Canada Take-Home Calculator",
+ ca_disclaimer:"আনুমানিক হিসাব — ২০২৬ সালে কানাডার একজন employee-র জন্য CRA-র federal ও provincial/territorial bracket (federal সর্বনিম্ন হার ১৪%), basic personal amount, CPP/CPP2 ও EI ধরে। Ontario-র surtax ও health premium এবং BC-র tax reduction ধরা আছে। Quebec এখানে নেই (তাদের নিজস্ব tax ব্যবস্থা, QPP ও QPIP)। অন্য credit, RRSP ছাড়া অন্য deduction ও benefit ধরা হয়নি। সঠিক অঙ্কের জন্য CRA বা tax professional দেখুন।",
+ ca_salary:"বার্ষিক gross employment income (C$)", ca_prov:"Province / territory", ca_rrsp:"এ বছর RRSP-তে জমা (C$, ঐচ্ছিক)", ca_enter:"হিসাব দেখতে বার্ষিক gross income লিখুন।",
+ ca_gross:"Gross income", ca_rrspl:"RRSP জমা", ca_fed:"Federal income tax", ca_provl:"Provincial / territorial tax", ca_cpp:"CPP অবদান", ca_ei:"EI premium", ca_net:"Take-home (বছরে)", ca_month:"মাসে", ca_eff:"বেতনের যে অংশ কাটা গেল (tax, CPP, EI): ",
+ ca_p_AB:"Alberta", ca_p_BC:"British Columbia", ca_p_MB:"Manitoba", ca_p_NB:"New Brunswick", ca_p_NL:"Newfoundland and Labrador", ca_p_NS:"Nova Scotia", ca_p_NT:"Northwest Territories", ca_p_NU:"Nunavut", ca_p_ON:"Ontario", ca_p_PE:"Prince Edward Island", ca_p_SK:"Saskatchewan", ca_p_YT:"Yukon"
+});
+function esc(s){ return (typeof escapeHtml==="function")?escapeHtml(String(s)):String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+function cad(n){ let loc="en-US"; try{ loc=currentLocale(); }catch(e){} return (n<0?"-":"")+"C$"+Math.abs(Number(n||0)).toLocaleString(loc,{minimumFractionDigits:2,maximumFractionDigits:2}); }
+const opts=Object.keys(CA_PROV).map(k=>`<option value="${k}" data-i18n="ca_p_${k}"></option>`).join("");
+const panelHTML=`
+ <div class="calc-note zakat-disclaimer"><span data-icon="shield"></span><span data-i18n="ca_disclaimer"></span></div>
+ <div class="card form">
+  <h3><span class="fx-ico"><span data-icon="landmark"></span></span><span data-i18n="ca_tab"></span></h3>
+  <label><span data-i18n="ca_salary"></span><input id="caSalary" type="number" inputmode="decimal" min="0" value="" oninput="caUpdate()"></label>
+  <label style="margin-top:10px"><span data-i18n="ca_prov"></span><select id="caProv" onchange="caUpdate()">${opts}</select></label>
+  <label style="margin-top:10px"><span data-i18n="ca_rrsp"></span><input id="caRrsp" type="number" inputmode="decimal" min="0" value="0" oninput="caUpdate()"></label>
+ </div>
+ <div class="card"><h3><span class="fx-ico"><span data-icon="activity"></span></span><span data-i18n="calc_results_label">Results</span></h3><div id="caResults"></div></div>`;
+window.caUpdate=function(){
+  const res=document.getElementById("caResults"); if(!res) return;
+  const g=+document.getElementById("caSalary").value;
+  if(!(g>0)){ res.innerHTML=`<div class="muted">${esc(t("ca_enter"))}</div>`; return; }
+  const r=caTakeHome({gross:g,prov:document.getElementById("caProv").value,rrsp:document.getElementById("caRrsp").value});
+  const row=(k,v,neg)=>`<div class="row"><span class="muted">${esc(t(k))}</span><b>${neg?"− ":""}${cad(v)}</b></div>`;
+  let h=row("ca_gross",r.gross)+row("ca_fed",r.fed,1)+row("ca_provl",r.prov,1)+row("ca_cpp",r.cpp,1)+row("ca_ei",r.ei,1);
+  if(r.rrsp>0) h+=row("ca_rrspl",r.rrsp,1);
+  h+=`<div class="row" style="margin-top:8px;padding-top:6px;border-top:1px dashed var(--line)"><span><b>${esc(t("ca_net"))}</b></span><b style="font-size:1.2em">${cad(r.net)}</b></div>`;
+  h+=row("ca_month",r.monthly);
+  h+=`<div class="muted" style="font-size:12px;margin-top:8px">${esc(t("ca_eff"))}${(r.effective*100).toFixed(1)}%</div>`;
+  res.innerHTML=h;
+};
+window.__fxExtraCalc.register("ca",{
+  tileId:"calcModeBtnCa", panelId:"calcPanelCa", navKey:"ca_menu", countries:["+1"],
+  onOpen(){ window.caUpdate(); },
+  tileHTML:'<b><span data-icon="landmark" data-icon-size="13"></span> <span data-i18n="ca_tab"></span></b><span data-i18n="ca_tab_sub"></span>',
+  panelHTML
+});
+const _a=window.applyI18n; window.applyI18n=function(){ const r=_a.apply(null,arguments); try{ if(document.getElementById("caResults")) window.caUpdate(); }catch(e){} return r; };
+window.__fxExtraCalc.setup();
+})();
+</script>
+<script>
+/* ---- SINGAPORE TAKE-HOME (resident, CPF), YA 2026/2027 rates (v115) ---- */
+(function(){
+"use strict";
+/*ENGINE-BEGIN*/
+const SG={
+  bands:[[20000,0],[30000,0.02],[40000,0.035],[80000,0.07],[120000,0.115],[160000,0.15],[200000,0.18],[240000,0.19],[280000,0.195],[320000,0.20],[500000,0.22],[1000000,0.23],[Infinity,0.24]],
+  cpfEmployee:0.20, owCeilingMonthly:8000, annualCeiling:102000, earnedIncomeRelief:1000
+};
+function sgTax(ci){ let prev=0,t=0; for(const [top,r] of SG.bands){ if(ci<=prev) break; t+=(Math.min(ci,top)-prev)*r; prev=top; } return t; }
+function sgTakeHome(o){
+  const gross=Math.max(0,+o.gross||0), monthly=gross/12;
+  const cpf=o.cpf===false?0:Math.min(Math.min(monthly,SG.owCeilingMonthly)*12,SG.annualCeiling)*SG.cpfEmployee;
+  const cpfRounded=Math.floor(cpf+1e-9);   // CPF Board rounds employee share down to the dollar
+  const relief=Math.min(gross,SG.earnedIncomeRelief);
+  const ci=Math.max(0,gross-cpfRounded-relief);
+  const tax=sgTax(ci), r2=x=>Math.round((x+Number.EPSILON)*100)/100;
+  const cash=gross-cpfRounded-tax;
+  return {gross:r2(gross),cpf:cpfRounded,chargeable:r2(ci),tax:r2(tax),cash:r2(cash),monthly:r2(cash/12),effective:gross>0?tax/gross:0};
+}
+/*ENGINE-END*/
+window.sgTakeHome=sgTakeHome;
+Object.assign(I18N.en,{
+ sg_tab:"Singapore Take-Home Pay", sg_tab_sub:"Income tax and CPF for Singapore residents", sg_menu:"Singapore Take-Home Calculator",
+ sg_disclaimer:"Rough estimate for a resident aged 55 or below on 12 equal monthly salaries, using IRAS resident tax rates, the 20% employee CPF rate (Citizens and 3rd-year-onward PRs) with the S$8,000 monthly wage ceiling, mandatory-CPF tax relief and the S$1,000 Earned Income Relief. Other reliefs, the annual personal-income-tax rebate, bonuses/additional wages and foreigners' special rules are not included. Check IRAS or CPF Board.",
+ sg_salary:"Gross annual salary (S$)", sg_cpf:"I contribute to CPF (Citizen / PR)", sg_enter:"Enter your annual salary to see an estimate.",
+ sg_gross:"Gross salary", sg_cpfl:"Your CPF contribution (goes to your own CPF account)", sg_tax:"Income tax", sg_net:"Cash take-home (per year)", sg_month:"Per month", sg_ci:"Chargeable income", sg_eff:"Income tax as share of gross: "
+});
+Object.assign(I18N.bn,{
+ sg_tab:"সিঙ্গাপুর Take-Home Pay", sg_tab_sub:"সিঙ্গাপুরের resident-দের income tax ও CPF", sg_menu:"Singapore Take-Home Calculator",
+ sg_disclaimer:"আনুমানিক হিসাব — ৫৫ বছর বা কম বয়সী resident, ১২টি সমান মাসিক বেতন ধরে; IRAS-এর resident tax rate, ২০% employee CPF (Citizen ও ৩য় বছর থেকে PR), মাসিক S$8,000 wage ceiling, বাধ্যতামূলক CPF-এর tax relief ও S$1,000 Earned Income Relief ধরা হয়েছে। অন্য relief, বার্ষিক personal-income-tax rebate, bonus/additional wage ও বিদেশিদের বিশেষ নিয়ম ধরা হয়নি। IRAS বা CPF Board দেখুন।",
+ sg_salary:"বার্ষিক gross বেতন (S$)", sg_cpf:"আমি CPF-এ জমা দিই (Citizen / PR)", sg_enter:"হিসাব দেখতে বার্ষিক বেতন লিখুন।",
+ sg_gross:"Gross বেতন", sg_cpfl:"আপনার CPF অবদান (আপনার নিজের CPF account-এ যায়)", sg_tax:"Income tax", sg_net:"হাতে পাওয়া take-home (বছরে)", sg_month:"মাসে", sg_ci:"Chargeable income", sg_eff:"Gross-এর যত অংশ income tax: "
+});
+function esc(s){ return (typeof escapeHtml==="function")?escapeHtml(String(s)):String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+function sgd(n){ let loc="en-US"; try{ loc=currentLocale(); }catch(e){} return (n<0?"-":"")+"S$"+Math.abs(Number(n||0)).toLocaleString(loc,{minimumFractionDigits:2,maximumFractionDigits:2}); }
+const panelHTML=`
+ <div class="calc-note zakat-disclaimer"><span data-icon="shield"></span><span data-i18n="sg_disclaimer"></span></div>
+ <div class="card form">
+  <h3><span class="fx-ico"><span data-icon="landmark"></span></span><span data-i18n="sg_tab"></span></h3>
+  <label><span data-i18n="sg_salary"></span><input id="sgSalary" type="number" inputmode="decimal" min="0" value="" oninput="sgUpdate()"></label>
+  <label style="margin-top:10px;display:flex;gap:8px;align-items:center"><input id="sgCpf" type="checkbox" checked onchange="sgUpdate()" style="width:auto"><span data-i18n="sg_cpf"></span></label>
+ </div>
+ <div class="card"><h3><span class="fx-ico"><span data-icon="activity"></span></span><span data-i18n="calc_results_label">Results</span></h3><div id="sgResults"></div></div>`;
+window.sgUpdate=function(){
+  const res=document.getElementById("sgResults"); if(!res) return;
+  const g=+document.getElementById("sgSalary").value;
+  if(!(g>0)){ res.innerHTML=`<div class="muted">${esc(t("sg_enter"))}</div>`; return; }
+  const r=sgTakeHome({gross:g,cpf:document.getElementById("sgCpf").checked});
+  const row=(k,v,neg)=>`<div class="row"><span class="muted">${esc(t(k))}</span><b>${neg?"− ":""}${sgd(v)}</b></div>`;
+  let h=row("sg_gross",r.gross);
+  if(r.cpf>0) h+=row("sg_cpfl",r.cpf,1);
+  h+=row("sg_ci",r.chargeable)+row("sg_tax",r.tax,1);
+  h+=`<div class="row" style="margin-top:8px;padding-top:6px;border-top:1px dashed var(--line)"><span><b>${esc(t("sg_net"))}</b></span><b style="font-size:1.2em">${sgd(r.cash)}</b></div>`;
+  h+=row("sg_month",r.monthly);
+  h+=`<div class="muted" style="font-size:12px;margin-top:8px">${esc(t("sg_eff"))}${(r.effective*100).toFixed(1)}%</div>`;
+  res.innerHTML=h;
+};
+window.__fxExtraCalc.register("sg",{
+  tileId:"calcModeBtnSg", panelId:"calcPanelSg", navKey:"sg_menu", countries:["+65"],
+  onOpen(){ window.sgUpdate(); },
+  tileHTML:'<b><span data-icon="landmark" data-icon-size="13"></span> <span data-i18n="sg_tab"></span></b><span data-i18n="sg_tab_sub"></span>',
+  panelHTML
+});
+const _a=window.applyI18n; window.applyI18n=function(){ const r=_a.apply(null,arguments); try{ if(document.getElementById("sgResults")) window.sgUpdate(); }catch(e){} return r; };
+window.__fxExtraCalc.setup();
+})();
+</script>
+<script>
+/* ---- MALAYSIA TAKE-HOME (resident, EPF/SOCSO/EIS), YA 2026 rates (v115) ---- */
+(function(){
+"use strict";
+/*ENGINE-BEGIN*/
+const MY={
+  bands:[[5000,0],[20000,0.01],[35000,0.03],[50000,0.06],[70000,0.11],[100000,0.19],[400000,0.25],[600000,0.26],[2000000,0.28],[Infinity,0.30]],
+  selfRelief:9000, epfRate:0.11, epfReliefCap:4000, socsoRate:0.005, eisRate:0.002, socsoCeiling:6000, socsoReliefCap:350, rebate:400, rebateLimit:35000
+};
+function myTax(ci){ let prev=0,t=0; for(const [top,r] of MY.bands){ if(ci<=prev) break; t+=(Math.min(ci,top)-prev)*r; prev=top; } return t; }
+function myTakeHome(o){
+  const gross=Math.max(0,+o.gross||0), monthly=gross/12, on=o.contrib!==false;
+  const epf=on?gross*MY.epfRate:0;
+  const socso=on?Math.min(monthly,MY.socsoCeiling)*MY.socsoRate*12:0;
+  const eis=on?Math.min(monthly,MY.socsoCeiling)*MY.eisRate*12:0;
+  const reliefs=MY.selfRelief+Math.min(epf,MY.epfReliefCap)+Math.min(socso+eis,MY.socsoReliefCap);
+  const ci=Math.max(0,gross-reliefs);
+  let tax=myTax(ci); if(ci<=MY.rebateLimit) tax=Math.max(0,tax-MY.rebate);
+  const r2=x=>Math.round((x+Number.EPSILON)*100)/100;
+  const cash=gross-epf-socso-eis-tax;
+  return {gross:r2(gross),epf:r2(epf),socso:r2(socso),eis:r2(eis),reliefs:r2(reliefs),chargeable:r2(ci),tax:r2(tax),cash:r2(cash),monthly:r2(cash/12),effective:gross>0?tax/gross:0};
+}
+/*ENGINE-END*/
+window.myTakeHome=myTakeHome;
+Object.assign(I18N.en,{
+ my_tab:"Malaysia Take-Home Pay", my_tab_sub:"Income tax, EPF, SOCSO & EIS for Malaysian residents", my_menu:"Malaysia Take-Home Calculator",
+ my_disclaimer:"Rough estimate for a single resident (no spouse/children) on 12 equal monthly salaries, using LHDN resident rates for YA 2026, RM9,000 self relief, EPF relief (up to RM4,000), SOCSO/EIS relief (up to RM350), the RM400 rebate for chargeable income up to RM35,000, and employee EPF 11%, SOCSO 0.5% and EIS 0.2% (wage ceiling RM6,000 for SOCSO/EIS). Other reliefs, monthly PCB timing, bonuses, and Budget 2027 proposals (not yet law) are not included. Foreign workers differ. Check LHDN or your payslip.",
+ my_salary:"Gross annual salary (RM)", my_contrib:"I contribute to EPF / SOCSO / EIS", my_enter:"Enter your annual salary to see an estimate.",
+ my_gross:"Gross salary", my_epf:"EPF (your 11%, saved for you)", my_socso:"SOCSO", my_eis:"EIS", my_rel:"Total tax reliefs", my_ci:"Chargeable income", my_tax:"Income tax", my_net:"Cash take-home (per year)", my_month:"Per month", my_eff:"Income tax as share of gross: "
+});
+Object.assign(I18N.bn,{
+ my_tab:"মালয়েশিয়া Take-Home Pay", my_tab_sub:"মালয়েশিয়ার resident-দের income tax, EPF, SOCSO ও EIS", my_menu:"Malaysia Take-Home Calculator",
+ my_disclaimer:"আনুমানিক হিসাব — একজন single resident (স্ত্রী/সন্তান ছাড়া), ১২টি সমান মাসিক বেতন ধরে; LHDN-এর YA 2026 resident rate, RM9,000 self relief, EPF relief (সর্বোচ্চ RM4,000), SOCSO/EIS relief (সর্বোচ্চ RM350), chargeable income RM35,000 পর্যন্ত RM400 rebate, এবং employee EPF ১১%, SOCSO ০.৫%, EIS ০.২% (SOCSO/EIS-এর wage ceiling RM6,000)। অন্য relief, মাসিক PCB-র সময়, bonus এবং Budget 2027-এর প্রস্তাব (এখনো আইন নয়) ধরা হয়নি। বিদেশি কর্মীদের ক্ষেত্রে আলাদা। LHDN বা payslip দেখুন।",
+ my_salary:"বার্ষিক gross বেতন (RM)", my_contrib:"আমি EPF / SOCSO / EIS-এ জমা দিই", my_enter:"হিসাব দেখতে বার্ষিক বেতন লিখুন।",
+ my_gross:"Gross বেতন", my_epf:"EPF (আপনার ১১%, আপনার জন্যই জমা)", my_socso:"SOCSO", my_eis:"EIS", my_rel:"মোট tax relief", my_ci:"Chargeable income", my_tax:"Income tax", my_net:"হাতে পাওয়া take-home (বছরে)", my_month:"মাসে", my_eff:"Gross-এর যত অংশ income tax: "
+});
+function esc(s){ return (typeof escapeHtml==="function")?escapeHtml(String(s)):String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+function rm(n){ let loc="en-US"; try{ loc=currentLocale(); }catch(e){} return (n<0?"-":"")+"RM"+Math.abs(Number(n||0)).toLocaleString(loc,{minimumFractionDigits:2,maximumFractionDigits:2}); }
+const panelHTML=`
+ <div class="calc-note zakat-disclaimer"><span data-icon="shield"></span><span data-i18n="my_disclaimer"></span></div>
+ <div class="card form">
+  <h3><span class="fx-ico"><span data-icon="landmark"></span></span><span data-i18n="my_tab"></span></h3>
+  <label><span data-i18n="my_salary"></span><input id="mySalary" type="number" inputmode="decimal" min="0" value="" oninput="myUpdate()"></label>
+  <label style="margin-top:10px;display:flex;gap:8px;align-items:center"><input id="myContrib" type="checkbox" checked onchange="myUpdate()" style="width:auto"><span data-i18n="my_contrib"></span></label>
+ </div>
+ <div class="card"><h3><span class="fx-ico"><span data-icon="activity"></span></span><span data-i18n="calc_results_label">Results</span></h3><div id="myResults"></div></div>`;
+window.myUpdate=function(){
+  const res=document.getElementById("myResults"); if(!res) return;
+  const g=+document.getElementById("mySalary").value;
+  if(!(g>0)){ res.innerHTML=`<div class="muted">${esc(t("my_enter"))}</div>`; return; }
+  const r=myTakeHome({gross:g,contrib:document.getElementById("myContrib").checked});
+  const row=(k,v,neg)=>`<div class="row"><span class="muted">${esc(t(k))}</span><b>${neg?"− ":""}${rm(v)}</b></div>`;
+  let h=row("my_gross",r.gross);
+  if(r.epf>0) h+=row("my_epf",r.epf,1)+row("my_socso",r.socso,1)+row("my_eis",r.eis,1);
+  h+=row("my_rel",r.reliefs)+row("my_ci",r.chargeable)+row("my_tax",r.tax,1);
+  h+=`<div class="row" style="margin-top:8px;padding-top:6px;border-top:1px dashed var(--line)"><span><b>${esc(t("my_net"))}</b></span><b style="font-size:1.2em">${rm(r.cash)}</b></div>`;
+  h+=row("my_month",r.monthly);
+  h+=`<div class="muted" style="font-size:12px;margin-top:8px">${esc(t("my_eff"))}${(r.effective*100).toFixed(1)}%</div>`;
+  res.innerHTML=h;
+};
+window.__fxExtraCalc.register("my",{
+  tileId:"calcModeBtnMy", panelId:"calcPanelMy", navKey:"my_menu", countries:["+60"],
+  onOpen(){ window.myUpdate(); },
+  tileHTML:'<b><span data-icon="landmark" data-icon-size="13"></span> <span data-i18n="my_tab"></span></b><span data-i18n="my_tab_sub"></span>',
+  panelHTML
+});
+const _a=window.applyI18n; window.applyI18n=function(){ const r=_a.apply(null,arguments); try{ if(document.getElementById("myResults")) window.myUpdate(); }catch(e){} return r; };
+window.__fxExtraCalc.setup();
+})();
+</script>
+<script>
+/* ---- OPTIONAL "USE MY FEXAFY INCOME" AUTO-FILL FOR TAX CALCULATORS (v116) ---- */
+(function(){
+"use strict";
+/*ENGINE-BEGIN*/
+/* txs: [{date:"YYYY-MM-DD",type,category,amount}], cats: array of category names, mode: "last12"|"ytd",
+   today: "YYYY-MM-DD", taxStart: [month(1-12), day]. Pure function, no DOM. */
+function afDate(s){ const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(s||""); return m?Date.UTC(+m[1],+m[2]-1,+m[3]):NaN; }
+function afStr(ms){ const d=new Date(ms); return d.getUTCFullYear()+"-"+String(d.getUTCMonth()+1).padStart(2,"0")+"-"+String(d.getUTCDate()).padStart(2,"0"); }
+function afRange(mode,today,taxStart){
+  const t=afDate(today); if(isNaN(t)) return null;
+  const td=new Date(t);
+  if(mode==="last12"){
+    const f=Date.UTC(td.getUTCFullYear()-1,td.getUTCMonth(),td.getUTCDate()+1);
+    return {from:f,to:t,days:Math.round((t-f)/86400000)+1,factor:1};
+  }
+  let y=td.getUTCFullYear(); let s=Date.UTC(y,taxStart[0]-1,taxStart[1]); if(s>t) s=Date.UTC(y-1,taxStart[0]-1,taxStart[1]);
+  const days=Math.round((t-s)/86400000)+1;
+  return {from:s,to:t,days,factor:365/days};
+}
+function afIncome(txs,cats,mode,today,taxStart){
+  const r=afRange(mode,today,taxStart); if(!r) return {error:"date"};
+  if(mode==="ytd" && r.days<30) return {error:"short",days:r.days,from:afStr(r.from)};
+  let total=0,count=0;
+  const set=new Set(cats);
+  for(const x of (txs||[])){
+    if(!x||x.type!=="Income"||!set.has(x.category)) continue;
+    const d=afDate(x.date); if(isNaN(d)||d<r.from||d>r.to) continue;
+    const a=+x.amount; if(!(a>0)) continue;
+    total+=a; count++;
+  }
+  return {total:total,count:count,annual:Math.round(total*r.factor),from:afStr(r.from),to:afStr(r.to),days:r.days,scaled:r.factor!==1};
+}
+/*ENGINE-END*/
+window.fxAutofillIncome=afIncome;
+
+Object.assign(I18N.en,{
+ af_title:"Use my FexaFY income", af_sub:"Fill the salary box from the income you recorded in this app. Off by default; your records never leave this device.",
+ af_period:"Which period?", af_p_last12:"Last 12 months", af_p_ytd:"This tax year so far (scaled to a full year)",
+ af_cats:"Count these income categories", af_need_region:"First choose your region / state above — tax rules differ by place, so a wrong place gives a wrong result.",
+ af_confirm:"Yes, my region is: ", af_ccy:"Your app currency is {a} but this calculator works in {b}. Amounts are not converted, so a wrong number could be filled.", af_use_anyway:"Use my recorded amounts anyway",
+ af_none:"No matching income entries found for that period and categories.", af_short:"Not enough days in this tax year yet (need 30). Pick 'Last 12 months' or enter manually.",
+ af_filled:"Filled: {n} income entries = {amt} per year", af_scaled:" (the entries since {from}, scaled up to 12 months)", af_note:"Everything you recorded in the chosen categories counts as taxable income here — salary, bonus, overtime, incentives and allowances. Bonuses are spread evenly across the year, so rules that treat bonuses differently (e.g. Singapore CPF) can change the exact result. You can still edit the number.",
+ af_c_Salary:"Salary", af_c_Business:"Business", af_c_Freelance:"Freelance", af_c_Investment_Return:"Investment Return", af_c_Gift:"Gift", af_c_Other_Income:"Other Income"
+});
+Object.assign(I18N.bn,{
+ af_title:"আমার FexaFY-র income ব্যবহার করুন", af_sub:"এই app-এ যে income record করেছেন, তা থেকে বেতনের ঘর নিজে ভরবে। ডিফল্টে বন্ধ থাকে; আপনার record এই ডিভাইসের বাইরে যায় না।",
+ af_period:"কোন সময়কাল?", af_p_last12:"গত ১২ মাস", af_p_ytd:"এই tax বছরের এখন পর্যন্ত (পুরো বছরে হিসাব করে)",
+ af_cats:"এই income category গুলো ধরুন", af_need_region:"আগে ওপরে আপনার region / state বেছে নিন — জায়গা অনুযায়ী tax নিয়ম আলাদা, ভুল জায়গা হলে ফলাফল ভুল হবে।",
+ af_confirm:"হ্যাঁ, আমার region: ", af_ccy:"আপনার app-এর currency {a}, কিন্তু এই calculator {b}-এ চলে। অঙ্ক রূপান্তর করা হয় না, তাই ভুল সংখ্যা বসে যেতে পারে।", af_use_anyway:"তবুও আমার record করা অঙ্ক ব্যবহার করুন",
+ af_none:"ওই সময়কাল ও category-তে কোনো income entry পাওয়া যায়নি।", af_short:"এই tax বছরে এখনো যথেষ্ট দিন হয়নি (অন্তত ৩০ দিন লাগে)। 'গত ১২ মাস' বেছে নিন বা নিজে লিখুন।",
+ af_filled:"ভরা হয়েছে: {n}টি income entry = বছরে {amt}", af_scaled:" ({from} থেকে এ পর্যন্তের entry, ১২ মাসে হিসাব করে)", af_note:"আপনার বেছে নেওয়া category-তে যা কিছু record আছে — বেতন, bonus, overtime, incentive ও ভাতা — সবই এখানে করযোগ্য আয় ধরা হয়। Bonus সারা বছরে সমানভাবে ভাগ করা হয়, তাই যেসব দেশে bonus-এর নিয়ম আলাদা (যেমন সিঙ্গাপুরের CPF) সেখানে সঠিক অঙ্ক একটু বদলাতে পারে। সংখ্যাটা আপনি নিজেও বদলাতে পারবেন।",
+ af_c_Salary:"বেতন", af_c_Business:"ব্যবসা", af_c_Freelance:"ফ্রিল্যান্স", af_c_Investment_Return:"বিনিয়োগ থেকে আয়", af_c_Gift:"উপহার", af_c_Other_Income:"অন্যান্য আয়"
+});
+
+const CATS=["Salary","Business","Freelance","Investment Return","Gift","Other Income"];
+const CFG={
+  uk:{panel:"calcPanelUk",input:"ukSalary",update:"ukUpdate",ccy:"GBP",start:[4,6],region:{id:"ukRegion",confirm:true}},
+  au:{panel:"calcPanelAu",input:"auSalary",update:"auUpdate",ccy:"AUD",start:[7,1]},
+  ca:{panel:"calcPanelCa",input:"caSalary",update:"caUpdate",ccy:"CAD",start:[1,1],region:{id:"caProv",confirm:true}},
+  sg:{panel:"calcPanelSg",input:"sgSalary",update:"sgUpdate",ccy:"SGD",start:[1,1]},
+  my:{panel:"calcPanelMy",input:"mySalary",update:"myUpdate",ccy:"MYR",start:[1,1]},
+  taxUS:{panel:"calcPanelTaxUS",input:"calcTaxUSIncome",update:"calcTaxUSUpdate",ccy:"USD",start:[1,1],region:{id:"calcTaxUSState",confirm:false}}
+};
+const ST={}; Object.keys(CFG).forEach(m=>ST[m]={on:false,period:"last12",cats:new Set(["Salary","Other Income"]),confirmed:false,forceCcy:false,prev:null,filled:false});
+function esc(s){ return (typeof escapeHtml==="function")?escapeHtml(String(s)):String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+function todayStr(){ const d=new Date(), p=n=>String(n).padStart(2,"0"); return d.getFullYear()+"-"+p(d.getMonth()+1)+"-"+p(d.getDate()); }
+function fmt(n){ let loc="en-US"; try{ loc=currentLocale(); }catch(e){} return Number(n).toLocaleString(loc,{maximumFractionDigits:0}); }
+function appCcy(){ try{ return (db.settings&&db.settings.currency)||"USD"; }catch(e){ return "USD"; } }
+function regionOk(m){
+  const c=CFG[m]; if(!c.region) return true;
+  const el=document.getElementById(c.region.id); if(!el) return false;
+  if(!c.region.confirm) return !!el.value;
+  return ST[m].confirmed;
+}
+function setInput(m,val){
+  const c=CFG[m], el=document.getElementById(c.input); if(!el) return;
+  el.value=val; el.dispatchEvent(new Event("input",{bubbles:true}));
+}
+function restore(m){
+  const s=ST[m], c=CFG[m], el=document.getElementById(c.input);
+  if(s.filled && el){ el.value=(s.prev==null?"":s.prev); el.dispatchEvent(new Event("input",{bubbles:true})); }
+  s.filled=false; s.prev=null;
+}
+function fill(m,val){
+  const s=ST[m], el=document.getElementById(CFG[m].input);
+  if(!s.filled && el){ s.prev=el.value; }
+  s.filled=true; setInput(m,val);
+}
+function render(m){
+  const c=CFG[m], s=ST[m], host=document.getElementById("afCard_"+m); if(!host) return;
+  let h=`<h3><span class="fx-ico"><span data-icon="wallet"></span></span><span>${esc(t("af_title"))}</span></h3>
+   <label style="display:flex;gap:8px;align-items:flex-start;margin:0"><input type="checkbox" id="afOn_${m}" ${s.on?"checked":""} style="width:auto;margin-top:3px" onchange="fxAfToggle('${m}',this.checked)"><span class="muted">${esc(t("af_sub"))}</span></label>`;
+  let status="";
+  if(s.on){
+    h+=`<div class="muted" style="margin:10px 0 6px">${esc(t("af_period"))}</div>
+     <div class="fx-pill-row"><button type="button" class="fx-pill ${s.period==="last12"?"active":""}" onclick="fxAfPeriod('${m}','last12')">${esc(t("af_p_last12"))}</button><button type="button" class="fx-pill ${s.period==="ytd"?"active":""}" onclick="fxAfPeriod('${m}','ytd')">${esc(t("af_p_ytd"))}</button></div>
+     <div class="muted" style="margin:10px 0 6px">${esc(t("af_cats"))}</div><div style="display:flex;flex-wrap:wrap;gap:6px 14px">`+
+     CATS.map(k=>`<label style="display:flex;gap:6px;align-items:center;margin:0"><input type="checkbox" style="width:auto" ${s.cats.has(k)?"checked":""} onchange="fxAfCat('${m}','${k}',this.checked)"><span>${esc(t("af_c_"+k.replace(/ /g,"_")))}</span></label>`).join("")+`</div>`;
+    // gates
+    if(!regionOk(m)){
+      status=`<div class="muted" style="margin-top:10px">${esc(t("af_need_region"))}</div>`;
+      if(c.region && c.region.confirm){
+        const el=document.getElementById(c.region.id); const nm=el&&el.options[el.selectedIndex]?el.options[el.selectedIndex].text:"";
+        status+=`<button type="button" class="fx-pill" style="margin-top:8px" onclick="fxAfConfirm('${m}')">${esc(t("af_confirm"))}${esc(nm)}</button>`;
+      }
+      if(s.filled) restore(m);
+    } else if(appCcy()!==c.ccy && !s.forceCcy){
+      status=`<div class="muted" style="margin-top:10px">${esc(t("af_ccy").replace("{a}",appCcy()).replace("{b}",c.ccy))}</div><button type="button" class="fx-pill" style="margin-top:8px" onclick="fxAfForce('${m}')">${esc(t("af_use_anyway"))}</button>`;
+      if(s.filled) restore(m);
+    } else {
+      let txs=[]; try{ txs=db.tx||[]; }catch(e){}
+      const r=afIncome(txs,[...s.cats],s.period,todayStr(),c.start);
+      if(r.error==="short"){ status=`<div class="muted" style="margin-top:10px">${esc(t("af_short"))}</div>`; if(s.filled) restore(m); }
+      else if(r.error||r.count===0){ status=`<div class="muted" style="margin-top:10px">${esc(t("af_none"))}</div>`; if(s.filled) restore(m); }
+      else{
+        fill(m,r.annual);
+        status=`<div style="margin-top:10px"><b>${esc(t("af_filled").replace("{n}",r.count).replace("{amt}",c.ccy+" "+fmt(r.annual)))}</b>${r.scaled?esc(t("af_scaled").replace("{from}",r.from)):""}</div><div class="muted" style="font-size:12px;margin-top:6px">${esc(t("af_note"))}</div>`;
+      }
+    }
+  }
+  host.innerHTML=h+status;
+  if(typeof applyIcons==="function"){ try{ applyIcons(); }catch(e){} }
+}
+window.fxAfToggle=function(m,on){ const s=ST[m]; s.on=!!on; if(!on){ restore(m); s.forceCcy=false; } render(m); };
+window.fxAfPeriod=function(m,p){ ST[m].period=p; render(m); };
+window.fxAfCat=function(m,k,on){ const s=ST[m]; if(on) s.cats.add(k); else s.cats.delete(k); render(m); };
+window.fxAfConfirm=function(m){ ST[m].confirmed=true; render(m); };
+window.fxAfForce=function(m){ ST[m].forceCcy=true; render(m); };
+function mount(m){
+  const c=CFG[m], panel=document.getElementById(c.panel); if(!panel||document.getElementById("afCard_"+m)) return;
+  const card=document.createElement("div"); card.className="card"; card.id="afCard_"+m;
+  const note=panel.querySelector(".calc-note"); const firstCard=panel.querySelector(".card");
+  if(firstCard) panel.insertBefore(card,firstCard); else if(note) note.after(card); else panel.appendChild(card);
+  if(c.region){ const el=document.getElementById(c.region.id); if(el) el.addEventListener("change",()=>{ ST[m].confirmed=true; if(ST[m].on) setTimeout(()=>render(m),0); }); }
+  render(m);
+}
+function mountAll(){ Object.keys(CFG).forEach(mount); }
+const _set=window.calcSetMode;
+window.calcSetMode=function(mode){
+  const r=_set.apply(null,arguments);
+  try{ if(CFG[mode]){ mount(mode); if(ST[mode].on) render(mode); } }catch(e){ console.error(e); }
+  return r;
+};
+const _ai=window.applyI18n;
+window.applyI18n=function(){ const r=_ai.apply(null,arguments); try{ Object.keys(CFG).forEach(m=>{ if(document.getElementById("afCard_"+m)) render(m); }); }catch(e){} return r; };
+mountAll();
+})();
+</script>
+<script>
+/* ---- v117: locked profile (edit needs PIN / Face-Touch ID), tap-triggered Google renew, version label ---- */
+(function(){
+"use strict";
+Object.assign(I18N.en,{
+ pf_edit:"Edit", pf_cancel:"Cancel", pf_locked_note:"Locked for your safety. Tap Edit — you will confirm with your PIN or fingerprint/face first.",
+ pf_editing_note:"Editing — tap Save profile when done.", pf_verify_fail:"Not verified — your profile stays locked.", pf_verify_bio:"Confirm with fingerprint / face to edit your profile…",
+ ver_label:"App version"
+});
+Object.assign(I18N.bn,{
+ pf_edit:"Edit", pf_cancel:"বাতিল", pf_locked_note:"নিরাপত্তার জন্য লক করা আছে। Edit চাপুন — আগে PIN বা fingerprint/face দিয়ে নিশ্চিত করতে হবে।",
+ pf_editing_note:"Edit চলছে — শেষে Save profile চাপুন।", pf_verify_fail:"যাচাই হয়নি — আপনার profile লক থাকল।", pf_verify_bio:"Profile edit করতে fingerprint / face দিয়ে নিশ্চিত করুন…",
+ ver_label:"App version"
+});
+let editing=false, busy=false;
+const FIELD_IDS=["pfName","pfCountryCode","pfPhone","pfEmail"];
+function card(){ return document.getElementById("cardProfile"); }
+function ensureUI(){
+  const c=card(); if(!c) return false;
+  if(!document.getElementById("pfEditRow")){
+    const h=c.querySelector("h3"); const save=c.querySelector("button.primary.full");
+    if(!h||!save) return false;
+    const row=document.createElement("div"); row.id="pfEditRow";
+    row.style.cssText="display:flex;align-items:center;justify-content:space-between;gap:10px;margin:2px 0 10px";
+    row.innerHTML='<span class="muted-small" id="pfLockNote" style="flex:1"></span><button type="button" id="pfEditBtn" class="iconbtn" style="width:auto;border-radius:10px;padding:0 16px;min-height:38px" onclick="fxProfileEdit()"></button>';
+    h.after(row);
+    save.id=save.id||"pfSaveBtn";
+    const cancel=document.createElement("button"); cancel.type="button"; cancel.id="pfCancelBtn"; cancel.className="linktext"; cancel.setAttribute("onclick","fxProfileCancel()");
+    save.after(cancel);
+  }
+  return true;
+}
+function apply(){
+  if(!ensureUI()) return;
+  FIELD_IDS.forEach(id=>{ const e=document.getElementById(id); if(e) e.disabled=!editing; });
+  const save=document.getElementById("pfSaveBtn"), cancel=document.getElementById("pfCancelBtn"), edit=document.getElementById("pfEditBtn"), note=document.getElementById("pfLockNote");
+  if(save) save.style.display=editing?"":"none";
+  if(cancel){ cancel.style.display=editing?"":"none"; cancel.textContent=t("pf_cancel"); }
+  if(edit){ edit.style.display=editing?"none":""; edit.textContent=t("pf_edit"); }
+  if(note) note.textContent=t(editing?"pf_editing_note":"pf_locked_note");
+}
+async function verify(){
+  if(typeof isLockEnabled!=="function" || !isLockEnabled()) return true;      // no App Lock set up: nothing to check against
+  if(localStorage.getItem(BIOMETRIC_CRED_KEY)){
+    try{ showToast(t("pf_verify_bio")); }catch(e){}
+    if(await unlockWithBiometric()) return true;                                // cancelled/failed -> fall back to the PIN
+  }
+  return await verifyCurrentPinForChange();                                      // existing PIN check (3 tries, shared lockout)
+}
+window.fxProfileEdit=async function(){
+  if(busy||editing) return;
+  busy=true;
+  try{
+    const ok=await verify();
+    if(!ok){ try{ showToast(t("pf_verify_fail")); }catch(e){} return; }
+    try{ populateProfileForm(); }catch(e){}
+    editing=true; apply();
+    const n=document.getElementById("pfName"); if(n) try{ n.focus(); }catch(e){}
+  } finally { busy=false; }
+};
+window.fxProfileCancel=function(){
+  editing=false;
+  try{ populateProfileForm(); }catch(e){}
+  apply();
+};
+const _save=window.saveProfileEdit;
+window.saveProfileEdit=function(){
+  if(!editing) return;
+  const before=db.profile;
+  const r=_save.apply(null,arguments);
+  if(db.profile!==before){ editing=false; apply(); }   // saved successfully -> lock again
+  return r;
+};
+const _go=window.goToScreen;
+window.goToScreen=function(s){
+  const r=_go.apply(null,arguments);
+  try{ if(editing && s!=="sync"){ editing=false; try{ populateProfileForm(); }catch(e){} apply(); } }catch(e){}
+  return r;
+};
+const _ai=window.applyI18n;
+window.applyI18n=function(){ const r=_ai.apply(null,arguments); try{ apply(); renderVer(); }catch(e){} return r; };
+
+/* ---- version label so it is obvious which build a device is running ---- */
+function renderVer(){
+  const sec=document.getElementById("sync"); if(!sec) return;
+  let el=document.getElementById("fxVerLbl");
+  if(!el){ el=document.createElement("div"); el.id="fxVerLbl"; el.className="muted-small"; el.style.cssText="text-align:center;margin:14px 0 6px;opacity:.7"; sec.appendChild(el); }
+  let v=""; try{ v=APP_VERSION; }catch(e){}
+  el.textContent=t("ver_label")+" "+v;
+}
+
+/* ---- Google renew on the first tap (phones block the silent background renew; a real tap is allowed) ---- */
+let lastTry=0;
+document.addEventListener("click",function(){
+  try{
+    if(typeof loginType==="undefined"||loginType!=="google"||!currentUser||!tokenClient) return;
+    if(accessToken && Date.now()<tokenExpiry) return;
+    if(typeof navigator!=="undefined" && navigator.onLine===false) return;
+    if(Date.now()-lastTry<180000) return;
+    lastTry=Date.now();
+    ensureFreshToken(false).then(function(ok){
+      if(!ok) return;
+      try{ if(typeof plusRefresh==="function") plusRefresh(); }catch(e){}
+      try{ if(syncFailStreak>0 || localStorage.getItem("mc_pending_sync")==="1") pullThenPush(false); }catch(e){}
+    }).catch(function(){});
+  }catch(e){}
+},false);
+
+apply(); renderVer();
 })();
 </script>
 <script>

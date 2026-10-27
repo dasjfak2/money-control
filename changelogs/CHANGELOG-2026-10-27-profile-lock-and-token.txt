@@ -1,0 +1,17 @@
+FexaFY v117 — 2026-10-27 — Locked profile, tap-triggered Google renew, version label
+
+1) MY PROFILE IS NOW LOCKED (Account & Backup)
+   - Fields are read-only by default; a small "Edit" button sits at the top of the card.
+   - Tap Edit -> if App Lock is on: Face/Touch ID if registered, otherwise your current PIN (3 tries, shares the normal PIN lockout).
+     If App Lock is not set up there is nothing to verify against, so Edit opens directly.
+   - After a successful Save, on Cancel, or when you leave the page, it locks again. Save is also blocked in code while locked.
+
+2) "SYNC FAILED — Google would not renew the sign-in silently" / Plus not appearing on phones
+   - Phones block Google's silent background token renew. Now the FIRST TAP after opening the app (if the Google token is missing) asks Google
+     for the token inside that tap, which phones allow. At most once every 3 minutes. On success: Plus is re-checked and a pending sync runs.
+   - The existing Reconnect button is unchanged and still works.
+
+3) VERSION LABEL at the bottom of Account & Backup ("App version v117") so you can see which build a device is running.
+
+Code: separate script block; wraps saveProfileEdit/goToScreen/applyI18n only. Tests: lock/edit/PIN/biometric-fallback/cancel/save, token-hook with a fake Google client,
+all earlier suites (Plus on/off, owner, server client, mobile, nav, auth, calculators, auto-fill).

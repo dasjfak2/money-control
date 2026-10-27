@@ -1,0 +1,18 @@
+FexaFY v116 — 2026-10-27 — Optional "Use my FexaFY income" auto-fill for tax calculators
+
+WHAT
+- UK, Australia, Canada, Singapore, Malaysia and US income-tax calculators get a card at the top: "Use my FexaFY income".
+- OFF by default and never remembered (it is off every time the app is opened). Nothing is sent anywhere; it only reads the income already on the device.
+- When ON it fills the salary/income box from recorded Income entries and the calculator recalculates.
+
+RULES (to avoid wrong results)
+- It will NOT fill anything until the user has chosen their region: UK region, Canadian province (with a "Yes, my region is: ..." confirm button) or US state.
+- All income in the chosen categories counts as taxable income (salary, bonus, overtime, incentives, allowances). Default categories: Salary + Other Income.
+  Business, Freelance, Investment Return and Gift are left out by default (different tax treatment) but can be ticked.
+- Period: last 12 months, or this tax year so far scaled to a full year (UK 6 Apr, Australia 1 Jul, others 1 Jan; needs >= 30 days).
+- If the app currency differs from the calculator's currency, nothing is filled (no conversion) until the user presses "Use my recorded amounts anyway".
+- Turning it OFF restores whatever number the user had typed before. The user can still edit the number by hand.
+- Not added to Bangladesh tax (component-based form with its own exemption rules) or Gulf gratuity (different kind of calculation).
+
+SAFETY: separate script block, only sets the input value and fires the normal input event; no existing calculator code changed.
+Tests: pure-function income tests, browser tests for all 6 calculators (desktop + iPhone, EN/BN), earlier suites unchanged (Plus on/off, owner, server client, mobile, nav).

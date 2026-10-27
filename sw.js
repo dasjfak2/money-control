@@ -9,7 +9,7 @@
 // installed device — follows automatically. index.html listens for the
 // new service worker and shows a "new version ready, tap to refresh"
 // banner to the user automatically; nothing else to wire up.
-const APP_VERSION = "v114";
+const APP_VERSION = "v117";
 const CACHE = "money-control-" + APP_VERSION;
 // index.html is now the entire app (icons + manifest are inlined inside it),
 // so this is the whole precache list — one page to fetch and store offline.

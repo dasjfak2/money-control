@@ -1,0 +1,7 @@
+FexaFY v127 — cleanup (no feature or design change)
+Removed (all proven unreachable by reference tracing; nothing else touched):
+- Dead functions: saveGoals, resetClientId, calcSetTaxUSLocal, toggleCalcNav, setCalcNavOpen (+ the dropdown-head part of updateCalcNavState).
+- The old mobile slide-out menu (drawer): its HTML, CSS, JS (open/close/pin), backdrop and hamburger button. It has been unreachable since v124 (bottom tab bar). Side effect: the drawer's off-screen shadow no longer leaves a faint grey strip on the left edge of phone/tablet screens.
+- 16 unused translation keys (64 entries) and 4 duplicate key copies; 8 unused CSS rules (+ one unused animation); 2 unused variables.
+Release build: index.html in the upload zip has comments removed (910K -> 761K characters, -16%). Nothing is renamed or minified. Proven: every inline script has an identical AST to the commented source, CSS and HTML skeleton identical (tools/build-release.mjs does the build AND the proof). The readable commented source is kept in source/index.html (not in the zip).
+Verification: all test suites pass on both source and release; 72 screenshots (phone/tablet/desktop, light/dark, EN/BN/AR, every screen) are pixel-identical between release and source, and identical to v126 except the removed shadow strip.

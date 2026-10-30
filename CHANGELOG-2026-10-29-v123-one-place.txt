@@ -1,0 +1,6 @@
+FexaFY v123 — targets & export in one place
+- Budget is now the single place for all targets AND opening balances (Investment, Savings, Emergency). One Save button stores everything.
+- Goals page: duplicate opening-balance inputs and second Save button removed; "Edit targets & opening balances (Budget)" button added. Page guide updated (EN/BN).
+- Export: the 5 separate "Export X to Excel" buttons removed; Account & Backup > Data tab > Export has a single "export just one section" picker. (Analytics PDF stays on Analytics.)
+- Plus gating of exports unchanged (same functions).
+Tests: all earlier suites pass (extra 476, autofill 168, profile 32, plus 93/9/5/7, v119 58, v120 28, v121 19) + new v123 test (17 checks incl. each section export downloading a file).

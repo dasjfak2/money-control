@@ -10,6 +10,7 @@ import crypto from "crypto";
 const redis = Redis.fromEnv();
 const KEY_PREFIX = "fexafy:device:";
 const RATE_PREFIX = "fexafy:ratelimit:register:";
+const DEVICE_TTL_SEC = 90 * 86400; // junk/abandoned records expire on their own; every re-register (app open) refreshes this
 /* PLUS-GATE-BEGIN (register.js) -- FexaFY Plus entitlement stored with the device
    The app sends the signed licence token it got from /api/entitlement. We verify the
    signature (public key derived from PLUS_PRIVATE_JWK -- no extra env var needed) and
@@ -258,7 +259,7 @@ export default async function handler(req, res) {
     ...(ent ? { ent } : {}),
     failCount: 0,           // consecutive non-404/410 send failures, reset on every successful send or fresh registration — see check.js for how this retires a record that never actually works
     updatedAt: new Date().toISOString()
-  });
+  }, { ex: DEVICE_TTL_SEC });
 
   try {
     const next = computeNextCheckAt(Date.now(), safeSummary, notified);

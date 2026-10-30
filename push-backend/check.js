@@ -330,7 +330,7 @@ export default async function handler(req, res) {
       // A send that actually worked proves this subscription is
       // real — clear any accumulated failCount so a one-off bad
       // patch earlier doesn't still count against it.
-      await redis.set(key, { ...rec, notified: newNotified, failCount: 0 });
+      await redis.set(key, { ...rec, notified: newNotified, failCount: 0 }, { keepTtl: true });
       await updateDueIndex(id, rec.summary, newNotified);
     } catch (err) {
       // 404/410 means the browser subscription is gone (uninstalled, etc.) — clean it up immediately, same as before.
@@ -351,7 +351,7 @@ export default async function handler(req, res) {
         try { await redis.zrem(DUE_KEY, id); } catch (e) {}
         retired++;
       } else {
-        await redis.set(key, { ...rec, failCount });
+        await redis.set(key, { ...rec, failCount }, { keepTtl: true });
         // Score deliberately left untouched — a still-failing device
         // stays due and gets retried every run, same cadence as before
         // this change, until it succeeds or hits FAIL_THRESHOLD above.

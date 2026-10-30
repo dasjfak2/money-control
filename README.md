@@ -6,7 +6,7 @@ Bangladesh income-tax estimator, and a US income-tax estimator — all
 running entirely on-device. No backend, no account, no data leaves the
 browser (except the optional push-notification backend described below).
 
-**Current version:** v117
+**Current version:** v127
 
 ## Running it
 
@@ -26,11 +26,15 @@ This app is a single HTML file. To use it:
 
 ## Files
 
-- `index.html` — the entire app (UI, styles, and logic all inlined).
+- `index.html` — the entire app (UI, styles, and logic all inlined). This is the **release build**: identical to the commented source except that comments are removed (proved by `tools/build-release.mjs`). Keep the commented source (`source/index.html`) wherever you edit.
 - `sw.js` — the service worker: handles offline caching and is
   push-notification-ready. `APP_VERSION` in this file is kept in sync with
   the one inside `index.html`; bump both together when shipping a new
   version so installed devices pick up the update.
+- `lib/` — Excel, PDF and receipt-scan libraries. They load only when a user
+  opens those tools (keeps first load fast) and are cached for offline use by
+  `sw.js`. Keep this folder next to `index.html`. The receipt scanner also
+  needs the existing `tesseract/` folder (worker/core/language files).
 - `push-backend/` — an optional, separate Node backend for sending real
   background push notifications (e.g. a monthly review reminder) even
   when the app is fully closed. Not required for the app to work; only

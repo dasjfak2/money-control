@@ -1,0 +1,3 @@
+FexaFY v126 — translations
+17 text keys added in v119-v125 (Settings/Data tabs, sound sections, "Show more", opening balances, Edit-in-Budget button, per-section export, Home "nothing saved" note) translated into hi, ur, ar, es, fr, pt, ru, zh (previously English fallback).
+Tests: all suites pass + new v126 (every key present and rendered in all 8 languages, no key names leaking, RTL for Arabic, English unchanged).

@@ -1,0 +1,7 @@
+FexaFY v124 — 5-tab navigation
+- Phone: bottom bar with 5 tabs: Home, Tx, Plan, Analytics, More (Bangla: হোম, লেনদেন, পরিকল্পনা, বিশ্লেষণ/Analytics label as before, আরও). Hamburger drawer hidden on phones. Desktop side menu has the same 5 items.
+- Plan = Budget, Bills, Goals, Debt, Future, Net Worth, switched with a chip strip at the top of each of those pages.
+- Limits (Category Budgets) now lives inside Budget (below the monthly numbers). Old links/search/tour to "Limits" open Budget and scroll there. Page guide for Budget includes the limits steps.
+- More = Calculators (Loan, Deposit, Tax/Zakat/regional ones by country rules) + Account & Backup.
+- FAB, toast and update banner moved above the bar. No data/storage changes.
+Tests: all suites pass (extra 476, autofill 168, profile 32, Plus 93/9/5/7, v119-v123) + new v124 (tab clicks, highlight, sub-tabs, Limits save, More/calculators, search+tour targets, EN/BN labels, FAB clearance, desktop, no JS errors).

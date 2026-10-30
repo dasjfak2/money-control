@@ -1,0 +1,6 @@
+FexaFY v125
+- Tab/menu label "Tx" -> "Transactions" (es "Movimientos", fr "Opérations", pt "Transações"); tab font 10.5px so every language fits at 360px wide.
+- Plan / More / Account labels + Analytics label translated for hi, ur, ar, es, fr, pt, ru, zh.
+- Fixed: the "Before you sleep" reminder card covered the new bottom tab bar on phones (now sits above it).
+- US Tax pills "38px": not an app bug — the pills were measured during their 0.3s pop animation; all are 44px. The old check script was fixed (opens the Calculators page, waits for the animation) so it measures properly.
+Tests: all suites pass + new v125 (10 languages x labels, no truncation @360px, nudge above tab bar).

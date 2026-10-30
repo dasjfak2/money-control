@@ -1,0 +1,8 @@
+FexaFY v118 — 2026-10-29 — Security hardening (no feature changes)
+
+- register.js: every push device record now expires after 90 days (refreshed each time the app re-registers), so junk/abandoned records cannot pile up in Redis.
+- check.js: updates keep that expiry (keepTtl) instead of wiping it. A device whose record expired is dropped from the due-list automatically (existing code path).
+- push-backend/scripts/check-secrets.mjs: pre-release scan for private keys / API keys / tokens / private files. Run before every upload.
+- SECURITY.md: standing rules for any future API/key work (server-side keys only, origin lock, rate limits, caps, budget alerts, server-side payment verification) + the one-time dashboard settings.
+- index.html / sw.js: version label only (v118). App behaviour unchanged.
+Audit result: no real secret was ever in index.html, sw.js, the backend code or the release zip; all secrets are Vercel environment variables.

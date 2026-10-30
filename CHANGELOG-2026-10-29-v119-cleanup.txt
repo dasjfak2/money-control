@@ -1,0 +1,22 @@
+FexaFY v119 — 2026-10-29 — Cleaner Home, Settings/Data tabs, small fixes
+
+A) SMALL FIXES
+ 1. The owner-only "Plus: real state" box no longer floats over the header on every screen. It now sits at the bottom of Account & Backup ("Owner test mode"). Normal users never see it.
+ 2. Debt Freedom: when the monthly amount is below the total minimum payments, the warning now has a "Use the minimum: ৳X" button (one tap fixes it). Nothing is changed silently.
+ 3. Net Worth: a note explains that account balances are not counted in "Total assets" (only entries you add yourself). The math is unchanged.
+ 4. Budget page: removed the "Per-category limits moved" card (it only pointed to Limits, which is in the menu).
+
+B) HOME
+ - If nothing was saved/invested/set aside this month, the four ৳0 tiles (Investment, Savings, Emergency, Future) and the four 0% rings collapse into one short line with a link to Goals. As soon as any amount exists, everything shows as before.
+ - With only one spending category, the full circle is dropped; the legend line (name, amount, 100%) stays.
+ - Quick Add card removed (the + button does the same). The daily streak badge moved to the Reminders card; the Speak (voice) button moved into the + menu (shown only when the phone supports it).
+ - Home guide step 2 now points at the + button.
+
+C) ACCOUNT & BACKUP
+ - Account + Profile stay on top. Below: two tabs.
+   Settings: Language/Currency, Privacy, Notifications & Sound, App Lock.
+   Data & reports: Storage, Export, Monthly/Yearly report, Backup & Restore, Diagnostics, Legal, Reset all data.
+ - Alarm sounds/ringtones and the daily-reminder sound are folded under "Alarm sounds & ringtones" / "Reminder sound" (tap to open). All switches and values are unchanged.
+ - Global search still jumps to the right card and opens the right tab.
+
+Tests: all earlier suites (Plus on/off, owner, server client, mobile, nav, auth, calculators, auto-fill, profile lock) + new v119 suite (58 checks on desktop and phone). Speed unchanged or slightly better (phone render 300 tx ≈ 0.51s). Known old item: verify_mobile "[US Tax] no visible .fx-pill" fails the same way on v118 (test artefact, not new).

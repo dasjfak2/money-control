@@ -1,0 +1,7 @@
+FexaFY v120 — 2026-10-29 — Faster Transactions page
+
+- The Income and Expense columns on Transactions now show the newest 50 rows each, with a "Show more (N)" button (+50 each tap). Months with 50 or fewer rows look exactly as before.
+- Category headers and column totals still count EVERY transaction of the month (only the rows are capped), so no number changes.
+- Fixed a hidden slowness: every row used db.tx.indexOf(...) to find its position (slow with thousands of entries); now a one-time lookup table is used. Row tap / swipe edit / delete still point to the right entry (tested).
+- Measured on a 4x-slowed phone: Transactions drawing 242 ms -> 82 ms (300 entries this month), 479 ms -> 60 ms (1,000 entries this month).
+Tests: all earlier suites + new v120 suite (28 checks: cap, totals, show more x2, row/delete/transfer index, Bangla label, small month).

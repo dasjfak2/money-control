@@ -1,0 +1,18 @@
+FexaFY v121 — 2026-10-29 — Faster start-up (Excel / PDF / OCR load only when used)
+
+What changed
+- index.html shrank from 2.26 MB to 0.96 MB. The three big libraries are now separate files in a new folder  lib/  :
+    lib/xlsx.full.min.js   (Excel)       lib/jspdf.umd.min.js  (PDF)       lib/tesseract.min.js  (receipt OCR)
+  They are loaded the first time you tap Export / PDF report / scan a receipt (about a fraction of a second), then stay loaded.
+- sw.js now also caches those 3 files (best effort) so Export / PDF / OCR keep working OFFLINE.
+- If a file cannot be loaded (e.g. offline before it was ever cached) you get a friendly message instead of a crash, and the next tap retries.
+
+Measured (headless Chrome, phone with 4x slower CPU): page load 2.06 s -> 1.40 s (about 32% faster). Desktop: no visible change.
+
+YOU MUST UPLOAD
+- the new folder  lib/  (3 files) together with index.html and sw.js. Without lib/ the app opens fine but Export / PDF / OCR will show "Couldn't load this tool".
+- The existing tesseract/ folder (worker, core, language data) must stay as before.
+
+Tests: all earlier suites + new v121 suite (19 checks, run through a real web server with the service worker):
+  nothing from lib/ is fetched at start-up; Excel export, section export, yearly PDF, analytics PDF, monthly report (xlsx+pdf) all download; OCR library initialises;
+  each lib is fetched once; blocked file -> friendly message + later retry works; service worker caches all 3; OFFLINE Excel export and PDF report still work.

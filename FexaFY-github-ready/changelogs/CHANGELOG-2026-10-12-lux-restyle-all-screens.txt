@@ -1,0 +1,33 @@
+FEXAFY - LUX RESTYLE, PHASE 2: ALL REMAINING SCREENS (2026-10-12, v95)
+======================================================================
+Files touched: index.html, sw.js (v94 -> v95). Nothing else.
+
+WHAT CHANGED (CSS ONLY, added to the "LUX RESTYLE LAYER" block)
+- Transactions, Bills, Future, Net Worth, Analytics and Account & Backup now
+  match the look Budget/Goals/Debt/Calc already had: gradient screen titles,
+  soft rounded glass cards with a hairline top glow, small uppercase section
+  labels, rounded list rows and account chips.
+- Primary buttons (screens and bottom sheets): plum -> violet -> cyan gradient.
+- Inputs and selects: larger radius, violet focus ring.
+- Dark mode (these existed before): text links such as "+ Add account" and
+  "Download this view as PDF" were nearly invisible, now gold; dark buttons
+  start from a lighter plum so their left edge doesn't vanish.
+- Bengali: letter-spacing and forced capitals are switched off on the new
+  labels, because they break Bengali conjunct letters.
+- Budget, Goals, Debt and Calc (.fx-theme) are untouched.
+
+SAFETY
+- No element was made position:relative and no overflow was changed, so
+  nothing absolutely positioned inside a card can shift.
+- No markup, id, class or JavaScript changed. Removing the LUX block restores
+  the previous look completely.
+- index.html and sw.js are both v95.
+
+VERIFIED
+- 6 inline script blocks pass node --check; no duplicate functions.
+- Real headless Chromium, 390px wide, light and dark, every screen
+  screenshotted and reviewed; no page errors.
+- Not tested on a real phone, and Bengali was not screenshotted this round.
+
+DEPLOYMENT
+Upload index.html and sw.js. No backend change.

@@ -1,0 +1,36 @@
+FEXAFY — STORAGE-FULL PROTECTION (2026-10-13, v101)
+=====================================================================
+Files: index.html, sw.js (v100 -> v101, versions match). Backend untouched.
+
+PROBLEM
+Browsers give a site only ~5 MB of localStorage. When it was full, save()
+threw inside persistDbToLocalStorage() and the newest entry was silently NOT
+stored: it looked saved, then vanished after reopening the app.
+
+WHAT CHANGED
+1) persistDbToLocalStorage() now catches the write error. The entry stays in
+   memory, save() no longer breaks, Drive sync still runs.
+2) Red banner (always visible, light/dark): "Storage full - your latest
+   changes are NOT saved on this device" with [Back up now] (opens the
+   existing encrypted-backup export) and [Hide]. It reappears on the next
+   failed save.
+3) Early warning: at >=90% full, an amber "Storage almost full (x of ~5 MB)"
+   banner with [Back up now] / [Dismiss]. Dismiss lasts for the session. The
+   banner disappears by itself once space is freed.
+4) Account & Backup has a new "Storage on this device" card: MB used, a bar
+   (green < 70%, amber 70-90%, red 90%+), plus a short tip.
+Nothing else in the data/save logic was changed. Return value of persist is
+now true/false; no existing caller used it.
+
+TESTED (real Chromium, light + dark)
+- Normal save: no banner. 92% full: amber banner. Real QuotaExceededError
+  with an oversized entry: save() does not throw, red banner shows, entry kept
+  in memory. After freeing space: next save succeeds and banner clears.
+- Syntax of all 6 script blocks, duplicate names, tag balance: clean.
+NOT DONE / LIMITS
+- The unsaved entry is only in memory until space is freed; if the user
+  closes the app first, it is lost. The banner exists to prevent that.
+- No automatic cleanup of receipt photos yet (possible next step).
+- Banner text is English only. Not tested on a real phone.
+
+DEPLOY: upload index.html and sw.js.

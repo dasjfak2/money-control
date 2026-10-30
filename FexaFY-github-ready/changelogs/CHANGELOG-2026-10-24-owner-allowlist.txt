@@ -1,0 +1,16 @@
+FexaFY — CHANGELOG
+Date: 2026-10-24 (evening)
+Feature: Owner allowlist + owner-only state switcher (Plus)
+App version: v109 -> v110
+
+- Server (push-backend/entitlement.js): new env OWNER_EMAILS (comma-separated).
+  If the Google account's VERIFIED email is in the list, the server issues
+  plan "plus" (400-day expiry, renewed on every refresh) with owner:true in
+  the signed token. Email is matched in memory only, never stored. Unverified
+  emails never qualify.
+- App: when the signed token says owner, a small "Plus: ..." switcher appears
+  (top-left) to simulate anon / trial / expired / plus for testing. Non-owners
+  never see it and cannot override their state.
+- Works the same in the website and Play Store versions (identity = Google account).
+- Still dormant: PLUS_ENABLED=false, so nothing changes until switched on.
+- Tests: server 23 checks, client owner flow 5 checks, all earlier suites pass.

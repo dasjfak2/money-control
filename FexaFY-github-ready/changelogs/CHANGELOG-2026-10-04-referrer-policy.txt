@@ -1,0 +1,68 @@
+FEXAFY — REFERRER-POLICY META TAG ADDED (2026-10-04, v78)
+=====================================================================
+Files touched: index.html, sw.js (v77 -> v78). All other files:
+untouched. Verified: all 6 real inline <script> blocks parse cleanly
+with `node --check`. div/button/span/svg/label tag counts balanced
+before and after (0 diff). Confirmed exactly one real tag landed (a
+naive substring count initially showed 2 — the second was just the
+tag name mentioned as an example inside the explanatory comment next
+to it, not a real duplicate; checked and confirmed below).
+
+This fixes the finding you raised: no Referrer-Policy was ever set
+explicitly, anywhere.
+
+--------------------------------------------------------------------
+WHAT CHANGED
+--------------------------------------------------------------------
+Added, right in <head>, alongside the existing viewport/theme-color
+meta tags:
+
+    <meta name="referrer" content="strict-origin-when-cross-origin">
+
+Worth being precise about the syntax: the standard way to deliver this
+is a <meta name="referrer"> tag — not an http-equiv="Referrer-Policy"
+variant, which isn't how this one is actually specified (easy mix-up
+by analogy with how the CSP meta tag right below it uses http-equiv,
+but Referrer Policy's HTML integration is specifically name="referrer").
+
+Chose "strict-origin-when-cross-origin" specifically: it's what every
+current browser already defaults to, so this changes nothing about
+actual behavior today — it makes the policy explicit and intentional
+rather than relying on an implicit default, as a safety net for any
+older or unusual browser that might still default to something looser.
+It also stays compatible with Google Sign-In (loaded further down):
+that still needs the request's origin on cross-origin navigation,
+which this policy still sends — a stricter "no-referrer" would strip
+that too and risked interfering with that flow, so that option was
+deliberately not used here.
+
+Honest framing, not oversold: this app's own pages don't currently put
+anything sensitive in a URL (no tokens or amounts in query strings),
+so there's no active leak being closed today. This is about not
+depending on that staying true forever, on either the browser-default
+side or this app's own URL usage down the line, for close to zero cost
+to add now.
+
+--------------------------------------------------------------------
+HOW THIS WAS VALIDATED
+--------------------------------------------------------------------
+- All 6 inline <script> blocks still pass node --check.
+- div/button/span/svg/label tags balanced before and after.
+- Checked the new explanatory HTML comment itself for any accidental
+  "-->" or "<script" substrings that could break HTML parsing (a real
+  mistake caught earlier in this conversation with a different
+  comment) — confirmed clean before using it.
+- A naive count of <meta name="referrer"> initially showed 2 in the
+  file; traced it and confirmed the first "hit" was just the tag name
+  mentioned as a written example inside the comment explaining the
+  real tag right below it — not a second, duplicate tag. Only one
+  actual <meta name="referrer"> element exists.
+
+--------------------------------------------------------------------
+DEPLOYMENT
+--------------------------------------------------------------------
+Frontend: upload index.html and sw.js to your web hosting, overwriting
+what's there. Backend: nothing changed, no redeploy needed. No visible
+change in behavior for anyone — this only matters if a browser's own
+default ever turns out to be less safe than assumed, or if a URL on
+this app ever carries something sensitive in the future.

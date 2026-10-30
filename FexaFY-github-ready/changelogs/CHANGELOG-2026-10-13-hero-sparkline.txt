@@ -1,0 +1,33 @@
+FEXAFY - HERO SPARKLINE (2026-10-13, v98)
+=========================================
+Files touched: index.html, sw.js (v97 -> v98). Nothing else.
+
+WHAT IT DOES
+A small line on the Home hero card (between "Safe to spend today" and the
+income bar) showing this month's running total of spending, one point per
+day so far, with a glowing dot at today. It shows the pace of spending at
+a glance. It has no text, so there is nothing to translate.
+
+HOW IT STAYS CONSISTENT WITH THE REST OF THE APP
+- Read-only. totals(), render() and the stored data are not touched.
+- Uses the same filter totals() uses for "Spent" (Expense type, same month
+  test), so the line always ends at exactly the number shown as Spent. An
+  entry dated later in the month than today is counted on today's point.
+- The day is read from the YYYY-MM-DD text, never through a Date, so time
+  zones cannot shift it.
+- Hidden until there are at least 2 days in the month AND some spending;
+  also hidden if anything goes wrong while drawing (the call is wrapped in
+  try/catch), so the hero can never break because of it.
+
+VERIFIED
+- 6 inline script blocks pass node --check; no duplicate functions.
+- Real extracted functions run in Asia/Dhaka, America/New_York and UTC with 7
+  cases each (normal, future-dated, other month, no spending, empty,
+  malformed date, text amounts) plus first-day-of-month: last point always
+  equals Spent; hidden/shown as described.
+- Headless Chromium, light and dark: line and dot sit correctly in the hero;
+  no page errors.
+- Not tested on a real phone.
+
+DEPLOYMENT
+Upload index.html and sw.js. No backend change.

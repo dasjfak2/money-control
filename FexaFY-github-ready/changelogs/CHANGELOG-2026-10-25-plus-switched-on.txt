@@ -1,0 +1,6 @@
+FexaFY — CHANGELOG 2026-10-25 (v111)
+Plus switched ON: PLUS_ENABLED=true, PLUS_API_BASE set to the Vercel project,
+public licence key embedded. Needs push-backend/entitlement.js deployed as
+api/entitlement.js + Vercel env vars (see VERCEL-PASTE-SHEET). If the server is
+not reachable the app falls back to a local-only 7-day trial; no errors.
+To switch off instantly: PLUS_ENABLED=false.

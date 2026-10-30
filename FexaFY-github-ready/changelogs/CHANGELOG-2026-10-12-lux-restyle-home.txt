@@ -1,0 +1,35 @@
+FEXAFY - LUX RESTYLE, PHASE 1: HOME + APP CHROME (2026-10-12, v94)
+====================================================================
+Files touched: index.html, sw.js (v93 -> v94). Nothing else.
+
+WHAT CHANGED (CSS ONLY)
+- One new block at the very end of the main <style>, headed
+  "LUX RESTYLE LAYER (v94)". No markup, id, class or JavaScript changed.
+  Deleting that block restores the old look exactly.
+- Home hero: richer aurora (violet + cyan + soft gold glow), hairline rim,
+  40px balance, slow drifting glow (off under reduced-motion).
+- Home stat tiles: bento tiles, rounded 20px, each softly tinted by its own
+  colour with a small colour tab, replacing the heavy left stripe.
+- Other Home cards: same soft surface, small uppercase labels.
+- Glass, on chrome only: top bar, side menu (mobile drawer), blurred scrim
+  behind bottom sheets, quick-add menu. Forms stay on solid surfaces.
+- Sheets: larger corner radius, grab handle. Gold quick-add button with glow.
+- Active menu item: gold gradient.
+- Dark mode fixes (existed before): "FexaFY" title and the top-bar icon
+  buttons were nearly invisible in dark mode; both now use the light ink colour.
+
+SAFETY
+- Every blur / colour-mix effect sits inside @supports with a solid colour set
+  first, so older phones show the solid version.
+- APP_VERSION in index.html was still v81 while sw.js was v93; both are now v94.
+
+VERIFIED
+- 6 inline script blocks pass node --check; no duplicate functions; tag
+  balance identical to v93; diff vs v93 = added CSS lines + the version line.
+- Real headless Chromium, 390px wide, light and dark: Home, side menu and the
+  Add Expense sheet reviewed; no page errors (same console output as v93).
+- Not tested on a real phone. Other screens (Tx, Budget, Goals, Analytics...)
+  still use their old card look until Phase 2.
+
+DEPLOYMENT
+Upload index.html and sw.js. No backend change.

@@ -1,0 +1,27 @@
+FexaFY v115 — 2026-10-27 — Six new country calculators (additive, no existing calculator touched)
+
+WHAT'S NEW (all in index.html + APP_VERSION v115 in index.html and sw.js)
+1. End-of-Service Gratuity (Gulf): UAE, Saudi Arabia, Qatar, Oman. Visible to everyone (many expats).
+   - UAE: basic/30 x (21 days/yr first 5 yrs, 30 days/yr after), pro-rata, needs >=1 yr, capped at 24 months' wage.
+   - Saudi: Arts. 84-85 (half month/yr first 5, month/yr after; resignation: <2y none, 2-<5y 1/3, 5-<10y 2/3, >=10y full), last total wage.
+   - Qatar: 21 days basic/yr, >=1 yr, pro-rata.
+   - Oman: split at 1 Aug 2023 (old: 15 days/yr first 3 yrs then 1 month; new: 1 basic wage/yr). Note about 2027 savings scheme.
+2. UK take-home 2026-27 (England/Wales/NI + Scotland six bands, NI 8%/2%, student loan Plans 1/2/4/5 + postgrad, pension %).
+3. Australia take-home 2026-27 (resident rates incl. 15% first band, LITO, Medicare levy, marginal HELP table).
+4. Canada 2026 (federal 14% first rate, 12 provinces/territories, CPP/CPP2/EI, Ontario surtax + health premium, BC reduction, RRSP). Quebec not covered.
+5. Singapore (IRAS resident rates, 20% employee CPF with S$8,000 ceiling, CPF relief, earned income relief).
+6. Malaysia YA 2026 (LHDN rates, EPF/SOCSO/EIS, reliefs, RM400 rebate).
+
+HOW IT SHOWS UP
+- UK/AU/CA/SG/MY tiles + menu items appear by profile country (+44 / +61 / +1 / +65 / +60). A small toggle under the calculator tiles
+  ("Show calculators for other countries") reveals them for everyone (stored only in this browser: fx_calcShowAll).
+- English + Bengali strings. Locked-state (FexaFY Plus) covers the new panels automatically (ids start with calcPanel).
+
+SAFETY
+- New code lives in separate <script> blocks before the Plus block; it wraps calcSetMode/refreshCalcNavItems/applyI18n and never edits
+  existing calculator logic. Currency is shown as the country's own code/symbol so the app currency setting is not changed.
+- Each engine hand-verified (e.g. UK 50k -> 39,519.60; AU 80k -> 63,880; UAE 8,000 x 4y -> 22,400) and browser-tested on desktop + iPhone
+  with Plus ON and OFF; existing push/owner/auth/US-tax tests still pass.
+
+SOURCES: GOV.UK, mygov.scot, ATO, CRA (rates, T4032, CPP, EI), IRAS/CPF Board, LHDN/PwC/KWSP, UAE (Gulf News / MOHRE rules), HRSD Saudi, Qatar Labour Law Art. 54, Oman MOL 2024 clarification.
+KNOWN LIMITS: Australian Medicare low-income thresholds use 2025-26 (2026-27 not yet published); Malaysia Budget 2027 proposals not included; Alberta/Scottish edge cases above the personal-allowance taper are simplified.

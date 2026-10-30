@@ -1,0 +1,29 @@
+FEXAFY — MERGE: MONTHLY REVIEW (your v94) + LUX RESTYLE & FIXES (my v99)  =>  v100
+=====================================================================
+Files: index.html, sw.js (both v100, versions match). Backend untouched.
+
+WHAT WAS DONE
+- Your v94 index.html and my v99 index.html were compared line by line.
+- Only the 6 Monthly Review blocks from your file were added into my v99:
+  settings toggle + "See last month's review now" link, default settings,
+  monthlyReviewHTML/maybeShowMonthlyReview/handleMonthlyReviewShortcut,
+  the ?review=1 hook in render(), toggle sync in the notification settings,
+  and the delayed auto-open after the notification gate.
+  All 6 were pure additions, nothing of yours was removed or rewritten.
+- Everything of mine is kept: restyle, local-date fixes, monthKey/fmtDate
+  fix, sync-failure reason, hero sparkline, dark-mode fixes.
+- The index.html APP_VERSION constant now matches sw.js (v100). In your file
+  it still said v81 (crash reports were tagged with the wrong release).
+
+CHECKED
+- All 6 inline scripts pass node --check; no duplicate top-level names;
+  div/button/span/svg/label/select tags balanced.
+- Real browser (Chromium, Asia/Dhaka): review shows correct numbers for
+  Sept 2026 (income 55,000 / expense 7,000 / net 48,000), month name
+  localizes in Bengali; toggle OFF => no popup; ON => shows once and marks
+  2026-09 seen; second call => not shown again; Settings toggle present.
+- Not checked: popup screenshots in dark/Bengali (the first-run tour covered
+  the page in my test), real phone, and the push nudge (?review=1) which
+  still needs the backend change described in your v94 changelog.
+
+DEPLOY: upload index.html and sw.js.

@@ -1,0 +1,113 @@
+FEXAFY — BACKUP/EXPORT FILES ARE NOW ENCRYPTED (2026-10-03, v73)
+=====================================================================
+Files touched: index.html, sw.js (v72 -> v73). All other frontend and
+backend files: untouched. Verified: all 6 real inline <script> blocks
+parse cleanly with `node --check`. No TRUE top-level duplicate
+function/const/let names (including async function, which an earlier
+version of this same check in this conversation initially missed —
+redone properly this time). div/button/span/svg/label tag counts
+balanced before and after (0 diff). The actual AES-GCM encrypt/decrypt
+round-trip was unit-tested in isolation before being wired into the
+app — results below.
+
+This fixes the finding you raised: exportJSON() wrote the entire `db`
+object (name, email, every transaction, every balance) as plain,
+readable JSON, with no password — even though the app's own onboarding
+screen and Privacy Policy both say data is "encrypted... at rest."
+That claim was true for localStorage, never for this downloaded file.
+
+--------------------------------------------------------------------
+WHAT CHANGED
+--------------------------------------------------------------------
+exportJSON() now asks for a password before building the file, derives
+a key from it with PBKDF2 (250,000 rounds, SHA-256), and encrypts the
+whole backup with AES-256-GCM before writing it to disk — the same
+cipher the app already uses for local storage, just keyed from a
+password instead of a device-bound key (see "why not reuse the
+existing key" below). The downloaded file is now an envelope —
+`{__mcBackup:2, salt, iv, iterations, data}` — where `data` is
+ciphertext, not your financial history.
+
+importJSON() now checks for that `__mcBackup:2` shape: if present, it
+asks for the password, derives the same key, and decrypts before
+restoring. A wrong password fails cleanly with "Wrong password, or
+this backup file is corrupted" — nothing partially restores.
+
+Backward compatibility: an old backup file from before this change
+(no `__mcBackup` field, just the bare `{tx:[...], ...}` shape) is
+still readable — those don't get bricked by this update. exportJSON()
+itself will just never produce that shape again going forward.
+
+The "Backup & Restore" card's description text now mentions the
+password requirement, so it isn't a surprise mid-export.
+
+--------------------------------------------------------------------
+WHY NOT JUST REUSE THE EXISTING LOCAL-STORAGE ENCRYPTION KEY?
+--------------------------------------------------------------------
+Worth explaining, since it's the one non-obvious decision here. The
+app already has getDeviceKey() / encryptForStorage() for localStorage
+— a random key generated once and deliberately never leaving the
+device. Reusing that same key for exported backups would have been
+the smaller change, but it would also have silently broken the entire
+point of taking a backup: a backup has to be restorable on a
+DIFFERENT device (a new phone, a reinstalled browser, disaster
+recovery) — if the file were encrypted with a key that only exists on
+the original device, it would become permanently unreadable anywhere
+else. So this derives a fresh, portable key from a password chosen at
+export time instead, using the same AES-256-GCM primitive, just salted
+and keyed differently. Comments explaining this are left directly in
+the code.
+
+--------------------------------------------------------------------
+A RELATED FINDING, FLAGGED BUT NOT FIXED HERE (your call)
+--------------------------------------------------------------------
+While tracing this, found that the optional Google Drive sync
+(driveUpload(db), used when you sign in with Google) has the exact
+same issue — it also uploads the raw, unencrypted `db` object to your
+Drive's appDataFolder. Didn't fix this as part of the same change
+because it's a materially different problem: Drive sync is automatic,
+continuous, cross-device-by-design background sync (the whole point is
+restoring onto a new device after signing back in without any manual
+step) — so it can't use a device-bound key either, AND prompting for a
+password on every silent background sync would defeat the "seamless"
+part of what Drive sync is for. Solving it properly likely means
+either a password set once at sign-in and cached for the session, or
+a different key-management approach entirely — a real design decision,
+not a drop-in fix like this one was. Flagging it here rather than
+picking an approach for you. Say the word if you want this addressed
+next and how you'd like it to behave.
+
+--------------------------------------------------------------------
+HOW THIS WAS VALIDATED
+--------------------------------------------------------------------
+- Unit-tested the actual encrypt/decrypt code in isolation (not just
+  checked for syntax errors) before considering it done:
+    - A JSON envelope built from a sample record with an obviously
+      identifiable name, category, and email showed NONE of that text
+      anywhere in the output — confirmed by searching the serialized
+      envelope for each value directly.
+    - Decrypting with the correct password reproduced the original
+      data exactly (byte-for-byte JSON match).
+    - Decrypting with the wrong password correctly throws/rejects
+      rather than silently returning garbage or partial data.
+  (One early test check gave a false "fail" — a generic 3-digit
+  amount happened to appear as a substring of the unrelated
+  `iterations: 250000` field. Re-ran with a longer, unambiguous marker
+  string to confirm it was a false positive in the test, not a real
+  leak, before trusting the result.)
+- All 6 inline <script> blocks still pass node --check after the edit.
+- No duplicate top-level declarations anywhere (checked function,
+  async function, const, and let this time).
+- div/button/span/svg/label tags balanced before and after.
+- exportJSON/importJSON's only call sites are the existing onclick/
+  onchange attributes in the Backup & Restore card — confirmed no
+  other code depends on their old synchronous, unencrypted behavior.
+
+--------------------------------------------------------------------
+DEPLOYMENT
+--------------------------------------------------------------------
+Frontend: upload index.html and sw.js to your web hosting, overwriting
+what's there. Backend: nothing changed, no redeploy needed. Anyone
+restoring an old (pre-v73) backup file can still do so — nothing to
+re-export on their end unless they want the new password protection
+on a fresh backup going forward.

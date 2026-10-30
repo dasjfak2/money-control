@@ -1,0 +1,66 @@
+FexaFY — CHANGELOG
+Date: 2026-10-23
+Feature: US Tax Estimator — added to the left-nav "Calc" shortcut menu
+App version: v106 -> v107 (index.html + sw.js, kept in sync)
+
+================================================================
+WHY THIS CHANGE HAPPENED
+================================================================
+You were testing the US Tax Estimator and were confused that it appeared
+grouped together with "Loan Calculator" on the same screen, with no
+dedicated entry of its own in the left-side "Calc" menu.
+
+That grouping is intentional and not a bug: "Loan Calculator", "Deposit
+Calculator", "Zakat Calculator", "Income Tax Estimator (BD)", and "Income
+Tax Estimator (USA)" are all tabs/cards on one shared Calculators screen,
+and whichever one you tap switches the form shown below. But the
+left-side "Calc" menu's own shortcut list was out of date: it already had
+entries for "Loan Calculator", "Deposit Calculator", and (hidden until a
+Bangladesh/Muslim-majority profile) "Income Tax Calculator" and "Zakat
+Calculator" -- but it was never extended with a matching shortcut for the
+US Tax Estimator when that feature was added, so there was no direct way
+to jump straight to it from the menu.
+
+================================================================
+WHAT CHANGED
+================================================================
+Added a new "US Income Tax Calculator" entry to the "Calc" shortcut menu,
+in both places it exists (the desktop sidebar and the mobile slide-out
+menu). Like the existing Bangladesh tax and Zakat shortcuts, it is hidden
+by default and only appears for a profile with country code +1 (USA) --
+exactly the same condition that already controls whether the US Tax tab
+itself shows up on the Calculators screen. Tapping it jumps straight to
+the Calculators screen with the US Tax panel already open.
+
+This reused the exact visibility-toggling mechanism already written for
+the Bangladesh tax/Zakat shortcuts (a function called refreshCalcNavItems,
+which was already being called at the right times -- it just didn't know
+about the US tab yet) -- only three small, targeted additions were made:
+two new HTML menu buttons (desktop + mobile, one line each) and one new
+line inside that existing function.
+
+================================================================
+TESTING PERFORMED
+================================================================
+  1. Confirmed the new menu item stays hidden for a Bangladesh (+880)
+     profile, in both the desktop and mobile menu locations.
+  2. Confirmed it becomes visible, with the correct label, in both
+     locations the moment the profile's country code is set to +1.
+  3. Confirmed tapping it correctly opens the Calculators screen with the
+     US Tax panel active, the tile highlighted, and the menu item itself
+     marked active -- in both the desktop and mobile menu.
+  4. Re-ran the full previous regression suite (pill tap-targets, FAB
+     clearance, Loan/BD-tax/US-tax calculations, both mobile device
+     profiles and desktop) to confirm nothing else was disturbed.
+  5. Zero JavaScript errors throughout.
+
+================================================================
+FILES CHANGED
+================================================================
+  - index.html -- two new menu-button lines (desktop + mobile sidebar),
+    one new line in refreshCalcNavItems(), and two new i18n labels
+    (English: "US Income Tax Calculator"; Bengali translation included).
+    APP_VERSION bumped v106 -> v107.
+  - sw.js -- APP_VERSION bumped to match (v107).
+
+No other screen, calculator logic, or styling was touched in this pass.

@@ -1,0 +1,185 @@
+FexaFY — CHANGELOG
+Date: 2026-10-18
+Feature: US Income Tax Estimator (new Calculator tab, USA only)
+App version: v103 -> v104 (index.html + sw.js, kept in sync)
+
+================================================================
+WHAT WAS ADDED
+================================================================
+A new "Income Tax Estimator (USA)" tab inside the existing Calculator
+section, shown only to accounts whose profile phone country code is
+"+1" (USA) — exactly the same gating pattern already used for the
+Bangladesh Income Tax Estimator (gated on "+880") and the Zakat
+calculator (gated on a list of Muslim-majority country codes). Users
+outside the US never see this tab; nothing changes for them.
+
+Given your income, filing status, employment type and state, it
+estimates:
+  - Federal income tax (2026 IRS brackets, all 4 filing statuses)
+  - FICA: Social Security + Medicare (W-2) or Self-Employment tax
+    (1099 / self-employed, Schedule-SE style, with the correct
+    above-the-line half-SE-tax federal deduction applied)
+  - Child Tax Credit, including its income phase-out
+  - State income tax for all 50 states + DC (8 no-tax states, 15
+    flat-rate states, 26 states + DC with progressive brackets)
+  - Local/city tax for New York City and Philadelphia (the two
+    largest city-level income taxes by affected population)
+  - Total estimated tax, take-home pay, and effective tax rate
+
+Covers the scope you asked for: both W-2 and self-employed income,
+both standard AND itemized federal deductions (whichever is larger
+is used automatically — same as real filing), a handful of major
+city/local taxes (NYC, Philadelphia), and the Child Tax Credit.
+
+================================================================
+WHY THIS DESIGN (deep-analysis summary, as discussed)
+================================================================
+US tax is three layered systems, not one:
+  1. Federal — same for everyone, but has 4 filing statuses.
+  2. State — 51 different jurisdictions (50 states + DC), each with
+     its OWN rules: 8 charge no income tax at all, 15 use a single
+     flat rate, and 26 + DC use progressive brackets that are all
+     different from each other and from the federal brackets.
+  3. Local/city — a few hundred US cities/counties layer a THIRD tax
+     on top (NYC, Philadelphia, all of Maryland's counties, many
+     Ohio cities, Kentucky's occupational tax, etc.).
+
+Rather than guess at this complexity, the whole thing is DATA-DRIVEN:
+the calculation engine (how brackets/FICA/CTC math works) never
+hardcodes a single dollar figure — every number lives in one isolated,
+heavily-commented, dated data object. Next year's rates will be a
+single-file data update, not a rewrite of the logic.
+
+================================================================
+DISCLOSED SIMPLIFICATIONS (shown directly to the user in-app, not
+hidden — same "honesty over guessing" approach used for the Zakat
+calculator's rate disclosures)
+================================================================
+  - Most states don't publish an easy, independently-verifiable
+    standard-deduction figure. Where a real state-specific number was
+    confirmed (currently just Virginia), it's used. Every other state
+    falls back to using the FEDERAL standard/itemized deduction as a
+    stand-in base for that state's own tax brackets — flagged in the
+    results whenever this fallback applies. Pennsylvania is a
+    confirmed real exception (it taxes gross compensation with NO
+    deduction at all) and does NOT get this fallback.
+  - Local/city tax is modelled for only NYC and Philadelphia. Other
+    real local taxes (Maryland's per-county tax, Ohio municipalities,
+    Kentucky occupational tax, etc.) are NOT modelled. Maryland's
+    result explicitly notes this in the UI.
+  - Not modelled at all: AMT, Net Investment Income Tax, state-level
+    tax credits, itemized-deduction phase-outs, capital-gains-specific
+    rates.
+  - Most states only publish Single/Married-Filing-Jointly brackets;
+    Head-of-Household and Married-Filing-Separately fall back to the
+    Single bracket table on those states (noted in the data file's own
+    comments, state by state).
+  - This is clearly marked a rough estimate, not tax advice or
+    preparation, with a disclaimer card at the top of the panel
+    pointing users to the IRS, their state's Department of Revenue, or
+    a tax professional before filing.
+
+================================================================
+DATA SOURCES (2026 tax year, researched 2026-10-17)
+================================================================
+  - Federal brackets + standard deduction: cpapracticeadvisor.com and
+    kiplinger.com, cross-checked against each other.
+  - FICA (Social Security wage base, Medicare, Additional Medicare
+    Tax) and the Child Tax Credit (citing IRS Rev. Proc. 2025-32 and
+    OBBBA sec. 70104): ustax.tools.
+  - All 50 states + DC: each state's own dated 2026 bracket page on
+    ustax.tools (not the generic, stale hub page), cross-checked
+    against taxfoundation.org's state overview where possible.
+  - South Carolina specifically: confirmed directly against the South
+    Carolina Department of Revenue's own page, after finding a
+    conflict between two secondary sources (the DOR's own 2-tier
+    1.99%/5.21% system under H.4216 is authoritative; an older ~6%
+    figure found elsewhere describes pre-reform law).
+  - NYC and Philadelphia local tax: ustax.tools + taxbracketcalc.com
+    (NYC), phila.gov (Philadelphia), cross-checked.
+  - Every figure in the data file carries its own source comment, and
+    every place a source disagreed with another is called out and
+    resolved in a comment, not silently picked.
+
+================================================================
+TESTING PERFORMED (per your standing "no new bugs" instruction)
+================================================================
+This went through more layers of testing than any single-step change,
+specifically because tax-calculation bugs are easy to introduce
+silently (a wrong bracket threshold, a transcription slip from the
+data file to the in-app copy, etc.):
+
+  1. Calculation engine built and tested COMPLETELY SEPARATELY from
+     the app first, with 908 hand-verified checks: federal tax at
+     known reference points (e.g. $75,000 single -> $7,670 federal
+     tax), FICA capped/uncapped scenarios, self-employment tax, Child
+     Tax Credit with and without phase-out, each state-tax category
+     type (no-tax, flat, progressive), NYC/Philadelphia local tax, the
+     full orchestrator (including self-employed vs W-2 comparisons), a
+     full 51-jurisdiction x 4-filing-status sweep checking for crashes
+     or negative tax, a monotonicity check (more income never produces
+     less tax), and a dedicated check that no state's *implied*
+     marginal rate ever exceeds its highest *listed* bracket rate
+     (this class of check is specifically designed to catch
+     bracket-transcription errors). Result: 908/908 passed.
+
+  2. The engine was then rewritten in vanilla JS for direct inclusion
+     in index.html (no build step — this app is single-file by
+     design). Before this inline copy ever touched the real app file,
+     a dedicated parity test compared its output against the already-
+     tested standalone engine across 12,340 scenario combinations
+     (filing status x income x self-employed x children x itemized x
+     state x local code, plus a full 51-jurisdiction single-filer
+     sweep) — checking every output field (total tax, take-home,
+     federal tax, FICA, Child Tax Credit, state tax). Result:
+     12,340/12,340 passed, confirming zero transcription drift.
+
+  3. Only after both of the above passed did the feature get wired
+     into the real index.html: the panel UI, the tested JS block, tab
+     navigation/gating, and ~46 new bilingual (English + Bengali) UI
+     strings.
+
+  4. Final verification, done in a real headless browser (same method
+     used for last week's clickjacking fix):
+       - node --check on the full extracted script block: no syntax
+         errors.
+       - Full page load: zero uncaught JavaScript errors.
+       - Exercised the actual UI end-to-end (not just the engine):
+         switched into the tab, filled in real values for three
+         different scenarios (W-2 in Texas / self-employed with 2
+         children + itemized deductions in New York City / self-
+         employed in Philadelphia), and the ON-SCREEN numbers matched
+         the already-validated engine's output exactly in every case.
+       - Confirmed the country-code gating works both ways (+1 shows
+         the tab, anything else keeps it hidden, and forcing the mode
+         directly while on a non-US profile correctly falls back to
+         the Loan tab instead of showing a broken panel).
+       - Confirmed switching between ALL calculator tabs (BD tax,
+         Zakat, Loan, Deposit, US tax) still works correctly and nothing
+         pre-existing broke — this was a genuine regression check, not
+         just a check of the new code.
+       - Confirmed the currency display correctly reuses the app's
+         existing multi-currency formatter (shows $ once the profile's
+         currency is synced to USD) — no new currency-formatting code
+         was needed or added.
+       - Switched the whole app to Bengali and checked every new
+         calc_taxus_* / calc_tab_taxus* UI string for the English-key-
+         leaking-through bug (where a missing translation shows the
+         raw internal key name on screen instead of real text) — zero
+         leaks found in either language.
+
+================================================================
+FILES CHANGED
+================================================================
+  - index.html — new #calcPanelTaxUS panel UI, new nav tab button, new
+    calcState.taxUS state, calcSetMode()/refreshTaxUSTabVisibility()
+    wiring (mirrors the existing BD-tax-tab pattern exactly), the full
+    tested calculation engine + 2026 tax data (isolated and dated for
+    easy yearly updates), ~46 new bilingual (English + Bengali) UI
+    strings. APP_VERSION bumped v103 -> v104.
+  - sw.js — APP_VERSION bumped to match (v104), so returning users get
+    the new version served instead of a stale cached copy.
+
+No existing feature's code was rewritten or restructured — this was
+purely additive, following the same tab/gating/panel pattern the BD
+tax estimator already established.

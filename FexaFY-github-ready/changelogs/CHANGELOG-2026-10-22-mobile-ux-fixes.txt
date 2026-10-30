@@ -1,0 +1,107 @@
+FexaFY — CHANGELOG
+Date: 2026-10-22
+Feature: Mobile usability fixes — pill-button tap-target size, floating
+"+" button overlap (app-wide, affects every screen)
+App version: v105 -> v106 (index.html + sw.js, kept in sync)
+
+================================================================
+WHY THIS PASS HAPPENED
+================================================================
+You asked whether testing the US Tax Estimator on mobile would need a
+special plugin or connection. It doesn't -- the same headless-browser
+setup already used for desktop testing also supports real mobile-device
+emulation (iPhone 14, Pixel 7 profiles), with real touch taps, so I ran
+the whole US Tax Estimator through both and confirmed it works correctly
+on mobile.
+
+While doing that, I also noticed two small mobile-usability issues. They
+were NOT introduced by the new US tax feature -- they are pre-existing and
+app-wide, affecting every screen (confirmed by re-testing the original,
+untouched BD tax calculator at the same mobile viewport and seeing the
+identical behavior). Since fixing them meant touching shared/global CSS
+used by every screen in the app, I described both issues and asked before
+changing anything. You said yes, so this pass makes those two fixes.
+
+================================================================
+WHAT WAS WRONG, AND WHAT CHANGED
+================================================================
+1. PILL BUTTONS WERE TOO SHORT TO TAP COMFORTABLY ON PHONES
+   The round pill-style buttons used throughout the app (Loan type, FDR/DPS
+   type, Zakat nisab basis, BD tax filing options, and the new US tax
+   panel's filing status / employment / deduction choices -- all built on
+   the same shared ".fx-pill" style) rendered at about 34px tall on a
+   phone. Common mobile-usability guidance (and Apple/Google's own
+   platform guidelines) call for roughly 44px as a comfortable minimum
+   tap target; anything smaller is more prone to mis-taps, especially for
+   people with larger fingers or using the app one-handed.
+
+   Fix: gave ".fx-pill" a minimum height of 44px. The existing padding,
+   font size, icon size, colors, and animations are all unchanged -- only
+   the minimum tap-target height was added. Multi-word labels (e.g.
+   "Married filing separately") still wrap and lay out exactly the same
+   way inside the existing flexible pill-row layout; nothing needed to
+   change there because the row already wraps pills onto their own line
+   when a label is long, independent of the pill's height.
+
+2. THE FLOATING "+" BUTTON COULD SIT ON TOP OF THE LAST LINE OF A LONG
+   RESULTS CARD
+   The floating "+" quick-add button sits fixed in the bottom-right
+   corner on every screen, by design, so it's always reachable. But on a
+   phone, the shared content area didn't leave quite enough space below
+   its own content for that button's footprint, so scrolling all the way
+   down on a long card (a detailed tax or deposit result, for example)
+   could end with the last line or two sitting behind the button.
+
+   Fix: increased the shared bottom padding below the app's main content
+   area on phone and small-tablet widths (under 900px -- the same range
+   where the button uses its compact-screen position) by enough to fully
+   clear the button's height and position. Nothing on tablet/desktop
+   layouts (900px and wider) was touched, since the button sits in a
+   different, already-adequately-clear position there and this wasn't
+   something found to be broken at that size.
+
+Both fixes are small, targeted CSS changes to shared styles -- no HTML
+structure, JavaScript logic, or screen-specific code was touched.
+
+================================================================
+TESTING PERFORMED
+================================================================
+  1. Visual + measured confirmation on two mobile device emulations
+     (iPhone 14, Pixel 7): measured the rendered height of every visible
+     pill button across Loan, Deposit, Zakat, BD tax, and US tax panels --
+     all now render at 44-48px, none below the 44px target.
+
+  2. Measured confirmation that, after scrolling a long results card
+     (BD tax, income high enough to trigger every result line + the TIN
+     notice) all the way to the natural bottom of the page on both mobile
+     profiles, the card's content now ends with roughly 160px of clear
+     space above the floating button -- no overlap. Also visually
+     confirmed via screenshot.
+
+  3. Re-ran the full previous regression suite at mobile viewport after
+     the fix: Loan EMI, BD tax, and US tax (Texas scenario) all still
+     compute and display the correct figures, confirming the CSS changes
+     didn't disturb any calculator logic.
+
+  4. Confirmed desktop layout (1440px viewport) is unaffected -- the
+     existing 900px+ breakpoint's own padding rule (unrelated to this
+     fix) still applies exactly as before.
+
+  5. Zero JavaScript errors on any of the above (the only console
+     messages seen are pre-existing, environment-level ones unrelated to
+     this change -- a CSP meta-tag notice and blocked analytics/font
+     network calls from this sandboxed test environment, both present
+     before this change too and unrelated to app logic).
+
+================================================================
+FILES CHANGED
+================================================================
+  - index.html -- two shared CSS rules only:
+      - the base and tablet (<900px) rules for the main content area's
+        bottom padding (adds FAB clearance)
+      - the shared ".fx-pill" rule (adds a 44px minimum height)
+    APP_VERSION bumped v105 -> v106.
+  - sw.js -- APP_VERSION bumped to match (v106).
+
+No HTML structure, JavaScript calculation logic, or i18n text was
+touched in this pass.

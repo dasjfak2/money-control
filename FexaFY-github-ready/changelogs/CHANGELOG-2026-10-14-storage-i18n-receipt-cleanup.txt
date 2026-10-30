@@ -1,0 +1,39 @@
+FEXAFY — STORAGE: BANGLA TEXT + FREE-UP-SPACE BUTTONS (2026-10-14, v102)
+=====================================================================
+Files: index.html, sw.js (v101 -> v102, versions match). Backend untouched.
+
+1) TRANSLATION
+- All storage texts (red "Storage full" banner, amber "almost full" banner,
+  "Storage on this device" card, toasts, confirm questions) now go through
+  the app's t() translation system.
+- English + Bangla written. Other languages show English for these lines
+  (the app's normal fallback) until translations are added.
+- Fixed a small display bug from v101: the card tip showed a literal
+  "—" instead of a dash.
+- Switching language now refreshes the storage meter text too.
+
+2) FREE UP SPACE (Account & Backup -> Storage on this device)
+- "Shrink receipt photos": re-saves every receipt photo smaller (max 640px,
+  JPEG 50%). Only replaces a photo if it becomes at least 10% smaller; a
+  photo that fails to load is left untouched. Asks first, then shows how much
+  was freed.
+- "Remove receipt photos older than 1 year": deletes only the photo of
+  entries dated more than 1 year ago. The entries themselves stay. Asks first
+  with the exact count.
+- The card also shows how many receipt photos are stored.
+- Both go through the normal save(); nothing else in the data logic changed.
+- Dark mode button text fixed (was dark on dark).
+
+TESTED (real Chromium, light/dark/Bangla)
+- 5 receipt photos seeded with local login: storage 2.3 MB -> 0.8 MB after
+  shrink, all 5 kept; remove-old deleted 3 photos (2024/early-2025), kept the
+  2 recent ones, and all 5 entries stayed. Bangla and English texts correct.
+- 6 script blocks pass node --check; no duplicate names; tags balanced;
+  Monthly Review and restyle still present.
+LIMITS
+- Both actions cannot be undone (the confirm says so and suggests a backup).
+  Shrinking lowers photo quality; text on very small receipts may be harder
+  to read.
+- Not tested on a real phone. Other languages still English for these lines.
+
+DEPLOY: upload index.html and sw.js.

@@ -1,0 +1,110 @@
+FEXAFY — NOTIFICATION PERMISSION GATE ON EVERY ENTRY (2026-10-06, v81)
+=====================================================================
+Files touched: index.html, sw.js (v80 -> v81). All other files:
+untouched. Verified: all 6 real inline <script> blocks parse cleanly
+with `node --check`. No TRUE top-level duplicate declarations.
+div/button/span/svg/label tag counts balanced before and after
+(0 diff). The actual decision logic (notifGateVariant()) was
+extracted verbatim and tested against 9 realistic device/permission
+combinations before being wired in — results below.
+
+Implements what you asked for: a reminder popup that shows every time
+someone enters the app until they allow notifications, and granting
+it turns on background push immediately — no separate toggle to find
+afterward.
+
+--------------------------------------------------------------------
+WHAT IT DOES
+--------------------------------------------------------------------
+Fires once per app entry (right after the first-run tour finishes/is
+skipped for a brand new signup, or directly on entry for anyone
+returning) — see "Where this hooks in" below. What it shows depends
+on the actual, LIVE browser permission state each time, not a
+separate "did we ask before" flag:
+
+  - Already granted -> shows nothing. Never appears again for that
+    person on that device once they've said yes.
+  - Never decided yet -> "Turn on reminders", with Allow / Not now.
+    Tapping Allow triggers the real browser permission dialog.
+  - Previously blocked -> different message: explains the browser
+    won't let this app re-ask directly, and points to Settings ->
+    Notifications -> FexaFY. A browser that's been told "block" once
+    genuinely cannot be re-prompted by any website's own code — this
+    is a platform security rule, not something to work around.
+  - iPhone/iPad, not added to the Home Screen -> different message
+    again: "Add to Home Screen first." iOS only supports background
+    web push for an installed PWA, never a regular Safari tab — asking
+    for permission in that context wouldn't do anything, so this
+    guides toward the actual fix instead of showing a broken prompt.
+
+None of this blocks entry into the app. "Not now" or the modal's own
+close button lets someone keep using the app immediately — the gate
+simply reappears on their next visit, because it's reading live
+permission state, not remembering a dismissal.
+
+--------------------------------------------------------------------
+GRANTING ALSO TURNS ON BACKGROUND PUSH, AUTOMATICALLY
+--------------------------------------------------------------------
+Per what was asked, "Allow notifications" doesn't just unlock
+foreground notifications — it calls toggleTruePush(true) directly,
+the exact same function the manual Settings toggle already uses. That
+one call requests permission if needed, then subscribes this device
+and registers it with your push backend. This is not a second,
+parallel way of turning background push on; it's this new screen
+calling the existing one. The Settings toggle itself is untouched and
+still there afterward, for anyone who wants to turn background push
+off again later without revoking the browser's notification
+permission entirely.
+
+--------------------------------------------------------------------
+WHERE THIS HOOKS IN
+--------------------------------------------------------------------
+Added to the one shared place all three entry paths (fresh local
+signup, fresh Google sign-in, reopening with a cached Google session)
+already funnel through — gateAppLock()'s shared callback
+(render(); runEntryOnboarding();). Specifically:
+
+  - Brand new signup (first-run tour will show): the gate fires from
+    endMenuTour() — the function that already runs when that tour
+    finishes OR is skipped — so it appears genuinely "at the end," not
+    competing with the tour overlay for attention.
+  - Returning person (no tour this time): fires directly from
+    runEntryOnboarding()'s non-tour branch instead.
+
+Either way there's a short 600ms delay before it appears, so it
+doesn't visually stack with that entry's own page-guide spotlight in
+the same instant.
+
+--------------------------------------------------------------------
+HOW THIS WAS VALIDATED
+--------------------------------------------------------------------
+Extracted the real notifGateVariant() (and its isIOSDevice/
+isStandalonePWA/notifPermission dependencies) verbatim and ran them
+against 9 scenarios covering every combination that matters:
+  1. Android, never asked -> "ask"
+  2. Android, already granted -> null (nothing shown)
+  3. Android, previously blocked -> "blocked"
+  4. iPhone Safari, not installed -> "ios-add-home"
+  5. iPhone, installed, not yet decided -> "ask"
+  6. iPhone, installed, already granted -> null
+  7. iPad (reports as "MacIntel" like a real Mac does), not
+     installed -> correctly still "ios-add-home"
+  8. A genuinely unsupported old browser -> null (nothing actionable
+     to say, so nothing shown)
+  9. A REAL MacBook (same "MacIntel" platform string an iPad reports,
+     but 0 touch points instead of an iPad's >1) -> correctly "ask",
+     NOT misidentified as an iPad -- this is the one case that would
+     have been easy to get wrong, so it was deliberately included.
+All 9 produced the intended result. Also confirmed via node --check
+on all 6 inline script blocks, a true top-level duplicate-name check
+(including the new isStandalonePWA/isIOSDevice/notifGateVariant/
+maybeShowNotifGate/notifGateAllow/notifGateDismiss — each appears
+exactly once), and tag-balance checks across the whole file.
+
+--------------------------------------------------------------------
+DEPLOYMENT
+--------------------------------------------------------------------
+Frontend: upload index.html and sw.js to your web hosting, overwriting
+what's there. Backend: nothing changed, no redeploy needed. Anyone who
+already granted notifications sees no change at all; everyone else
+sees the gate starting from their next app entry.

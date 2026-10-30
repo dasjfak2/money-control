@@ -1,0 +1,6 @@
+FexaFY v122 — save/render speed
+- Icons are no longer re-drawn on every render if unchanged.
+- Loan/Deposit calculators recompute only when the Calc screen is open (and on open).
+- Currency formatting reuses one cached number formatter.
+Measured (3,000 transactions, 4x slower CPU): 5 renders 3.7s -> 1.9s (~49% faster).
+Tests: all suites pass (extra 476, autofill 168, profile 32, plus 93/9/5/7, v119 58, v120 28, v121 19, v122 7).

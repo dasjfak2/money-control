@@ -1,0 +1,48 @@
+FexaFY — CHANGELOG
+Date: 2026-10-24
+Feature: FexaFY Plus — Phase 1 foundation (DORMANT, switched off)
+App version: v108 -> v109 (index.html + sw.js)
+
+WHAT THIS IS
+Groundwork for the paid "Plus" version: 7-day trial, locked-state screens,
+popup, and a server endpoint that issues signed licence tokens. Everything
+is behind one switch, PLUS_ENABLED (in the "FexaFY Plus" script at the very
+end of index.html), and it is OFF. While it is off the app behaves exactly
+as v108 -- verified by re-running every earlier test.
+
+HOW IT WORKS (when switched on)
+- Trial starts only when someone signs in with Google (7 days).
+- Calculators: menu stays visible/clickable; after the trial the content is
+  replaced by a lock card and a Plus popup appears on every click.
+- Excel/PDF export: during the trial only the last 7 days of
+  transactions/bills/future expenses are exported (account balances still
+  use all data, so they stay correct); after the trial -> popup.
+- Receipt OCR, SMS reading, background push: allowed in trial, popup after.
+- AI insight / multi-device sync: Plus only (hooks ready, features not built).
+- Local-only (no Google) users: locked with a "sign in with Google to start
+  your free trial" popup.
+- Plus never sends transactions anywhere. Server stores only a hashed
+  account id, trial start, plan and expiry.
+
+HOW IT'S BUILT SAFELY
+- No existing function was edited. The block wraps them (calcSetMode,
+  goToScreen, export/report functions, OCR, SMS, push, updateAccountUI).
+- Only two tiny edits to existing code: a lock-card block in the calculators
+  screen (hidden by default) and accountBalance() reading
+  (window.__plusFullTx||db.tx) so trial-limited exports keep correct balances.
+- Data swap during a trial export is restored in a finally{} block.
+
+SERVER (push-backend/)
+- entitlement.js  POST /api/entitlement  (Google token check incl. audience,
+  atomic trial start via Redis SET NX, ECDSA-signed token, CORS, rate limit)
+- scripts/gen-license-key.mjs  one-time key generator
+- test_entitlement.mjs  18 checks (all pass)
+NOT yet wired: PLUS_API_BASE / PLUS_PUBKEY_JWK are empty and the API host
+must be added to the CSP connect-src before switching it on.
+Payment, server-side push enforcement, sync and AI are later phases.
+
+TESTING
+- Flag off: earlier suites (mobile fixes, nav item, regression) all pass.
+- Flag on (test copy): 93 checks over desktop/iPhone 14/Pixel 7 (states
+  anon/trial/expired/plus, popups, export limit, restore of data, no
+  overflow, no JS errors). Token verify test: valid/forged/expired/offline.

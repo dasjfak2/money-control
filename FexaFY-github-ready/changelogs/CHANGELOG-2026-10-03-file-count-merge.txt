@@ -1,0 +1,126 @@
+FEXAFY — FEWER FILES TO MANAGE (2026-10-03, v72)
+=====================================================================
+Files touched: index.html, sw.js (v71 -> v72). package.json / check.js
+/ register.js: untouched, explained below rather than merged.
+tesseract-core-simd-lstm_wasm.js / worker_min.js / eng.traineddata:
+untouched, also explained below. Verified: all 6 real inline <script>
+blocks (xlsx, jspdf, tesseract, the theme IIFE, the icons block, and
+the main app block) parse cleanly with `node --check`, same for sw.js.
+No TRUE top-level (column-0) duplicate function/const/let names across
+all 6 blocks combined. div/button/span/svg tag counts balanced before
+and after (0 diff).
+
+You asked to reduce/merge files twice now — this round actually does
+it, on top of the v71 premium-style build. Here's exactly what moved
+and, just as importantly, what didn't and why — three of the twelve
+files genuinely can't be merged without breaking something, so rather
+than force it, those are left alone and explained below.
+
+--------------------------------------------------------------------
+WHAT GOT MERGED (3 fewer files)
+--------------------------------------------------------------------
+xlsx.full.min.js, jspdf.umd.min.js and tesseract.min.js were being
+loaded as three separate <script src="..."> tags at the top of
+<head>. All three are now inlined directly into index.html as plain
+<script> blocks, in the same order, so they still execute
+synchronously before the rest of the page parses — same global names
+afterward (XLSX, window.jspdf, Tesseract), same behavior, nothing
+about how the app calls them changes. index.html's own header comment
+already said "this one index.html is the entire app" — this makes
+that actually true for everything except the one file browsers won't
+let it be true for (next section).
+
+Checked before merging, not assumed:
+  - Neither library contains a literal "</script" anywhere that could
+    break out of the wrapping <script> tag — confirmed with a direct
+    grep on each file.
+  - sw.js's own ASSETS precache list only ever contained "./" and
+    "./index.html" — it never cached these three by filename, so
+    removing them as separate files on your server creates no stale-
+    cache risk for anyone who already has the app installed.
+  - Nothing else in index.html referenced these three filenames
+    anywhere outside the three <script src> lines themselves (the only
+    other hits were a code comment and an error-path comment, neither
+    of which depend on the literal filename).
+  - The app's Content-Security-Policy already allows 'unsafe-inline'
+    for scripts (it has to, for the app's own large inline blocks), so
+    this isn't a new CSP exception — it uses one that was already
+    there.
+
+Net effect: 3 fewer files to upload. index.html is bigger (the three
+libraries' bytes moved into it instead of sitting next to it), but
+total bytes served to a first-time visitor are the same, since all
+three were being loaded unconditionally on every page load either way
+— nothing here was lazy-loaded before, so nothing about load timing
+changes either.
+
+--------------------------------------------------------------------
+WHAT DELIBERATELY DIDN'T GET MERGED, AND WHY
+--------------------------------------------------------------------
+1) sw.js — a Service Worker has to be its own real, separately-
+   fetchable script file; that's a browser security rule (scope is
+   derived from the script's own URL), not something any amount of
+   restructuring inside index.html can work around. This was already
+   true before today and stays true.
+
+2) tesseract/worker.min.js, tesseract/tesseract-core-simd-lstm.wasm.js
+   and tesseract/eng.traineddata — the OCR feature creates its worker
+   with `new Worker(workerPath)` and loads its WASM core and language
+   data by fetching real URLs at runtime (see the Tesseract.createWorker
+   call in index.html, around the receipt-scanning code). A Worker
+   needs an actual fetchable script URL, and the WASM core / trained-
+   data files are binary, not something that folds into a JS or HTML
+   file. These three have to stay as real files in the tesseract/
+   folder on your server, same as before.
+
+3) package.json, check.js, register.js (the push-notification
+   backend) — these are a separate deployment on your own Vercel
+   account, not part of index.html's file count at all. Beyond that,
+   merging check.js and register.js into one file would change their
+   URLs (they're each their own endpoint, /api/check and /api/register,
+   by Vercel's file-based routing), which would require you to go
+   update the free cron-job.org schedule that calls /api/check every
+   15 minutes — an external, manual step outside anything I can do
+   from here, for a change that wouldn't actually reduce anything on
+   the frontend side. Left alone as the lower-risk, zero-benefit-to-
+   merge option.
+
+--------------------------------------------------------------------
+HOW THIS WAS VALIDATED (worth flagging honestly)
+--------------------------------------------------------------------
+My first couple of validation passes on this merge gave false "syntax
+FAIL" results — not because the file was actually broken, but because
+my own check script's regex for finding script blocks got fooled by
+the xlsx library's own content: it contains embedded HTML-comment-like
+tokens (<!-- / -->, used internally for HTML/XML generation) and
+XML attribute text that looks like "<a:font script=...". A regex-based
+comment-stripper or tag-scanner run across the *whole* document can
+misread those as real tag/comment boundaries. Caught this by extracting
+the embedded library with exact string markers instead of regex,
+confirming it was byte-for-byte identical to the original file you
+uploaded, and only then trusting a clean node --check result. Flagging
+this so it's clear the final "ALL OK" was actually earned, not just
+the first green result taken at face value.
+
+--------------------------------------------------------------------
+CLEANLINESS CHECK
+--------------------------------------------------------------------
+- No eval()/new Function()/document.write anywhere.
+- No new external domains, scripts, or endpoints of any kind.
+- node --check clean on all 6 inline <script> blocks and on sw.js.
+- div/button/span/svg tag counts balanced before and after (0 diff).
+- No TRUE top-level duplicate function/const/let names.
+- OCR/tesseract files and the two backend files genuinely untouched
+  (not just claimed — explained above why each one has to stay as-is).
+
+--------------------------------------------------------------------
+DEPLOYMENT
+--------------------------------------------------------------------
+Frontend: upload index.html and sw.js to your web hosting, overwriting
+what's there. You can now also DELETE xlsx.full.min.js, jspdf.umd.min.js
+and tesseract.min.js from your hosting once the new index.html is live
+— they're no longer referenced. Leave the tesseract/ folder and
+everything in it exactly as it is. Backend: nothing changed, no
+redeploy needed. Installed users will see the usual "A new version is
+ready — Refresh" banner (service worker bumped to v72) next time they
+open the app.

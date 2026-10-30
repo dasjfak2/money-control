@@ -1,0 +1,98 @@
+FEXAFY — PIN ENTRY NOW HAS LOCKOUT/THROTTLE (2026-10-04, v74)
+=====================================================================
+Files touched: index.html, sw.js (v73 -> v74). All other files:
+untouched. Verified: all 6 real inline <script> blocks parse cleanly
+with `node --check`. No TRUE top-level duplicate function/async
+function/const/let names. div/button/span/svg/label tag counts
+balanced before and after (0 diff). The actual lockout schedule was
+unit-tested in isolation, including the specific "can a page reload
+skip the wait?" question, before being wired into the app — results
+below.
+
+This fixes the finding you raised: handlePinComplete() only ever
+showed "Incorrect PIN — try again" on a wrong guess, with no delay and
+no attempt counter. A 4-digit PIN is 10,000 combinations — with zero
+throttling, all of them are guessable in well under an hour by someone
+with the device in hand.
+
+--------------------------------------------------------------------
+WHAT CHANGED
+--------------------------------------------------------------------
+Wrong PIN entries now follow an escalating delay, stored in
+localStorage (not a JS variable) so closing and reopening the app —
+or just reloading the page — can't reset the count or skip the wait:
+
+    1st, 2nd wrong attempt  -> no delay (typos happen)
+    3rd wrong attempt       -> 10s
+    4th wrong attempt       -> 30s
+    5th wrong attempt       -> 60s
+    6th wrong attempt       -> 180s (3 min)
+    7th+ wrong attempt      -> 300s (5 min), stays here
+
+While locked out: the PIN pad's number buttons are disabled, a live
+countdown shows in the existing error-message area ("Too many wrong
+attempts — try again in 47s"), and the countdown resumes correctly if
+the app is closed and reopened mid-wait. A correct PIN at any point
+resets the counter back to zero. Setting a brand-new PIN, turning App
+Lock off, or using "Forgot PIN" also clears any stale lockout state,
+so it never carries over to a PIN that wasn't involved in the original
+guessing.
+
+Biometric unlock (Face/Touch ID via WebAuthn) is deliberately left
+unaffected by this — it's a separate channel with its own built-in
+attempt-limiting at the OS level, so a correct fingerprint shouldn't
+be blocked just because the numeric PIN was mistyped a few times
+first.
+
+Nothing here is destructive: no wipe, no permanent lockout, no data
+loss path. This only slows down guessing — it doesn't add a new way
+to lose access to your own data. "Forgot PIN" still works exactly as
+before as the legitimate recovery path (see below).
+
+--------------------------------------------------------------------
+A RELATED FINDING, FLAGGED BUT NOT FIXED HERE (your call, same as
+last time)
+--------------------------------------------------------------------
+While tracing this, confirmed something worth knowing: "Forgot PIN" —
+the button right on the lock screen — currently bypasses the PIN
+entirely with no challenge at all. Tap it, confirm a dialog, and
+you're in, no PIN knowledge needed. That's a bigger bypass than slow-
+guessing ever was, but it's a different, deliberate trade-off (the app
+treats "never risk losing your own data to a forgotten PIN" as more
+important than resisting someone with physical access) — not an
+oversight, and not something this change touches. This lockout still
+does real work: it closes the specific rapid-guessing path, which is
+what was actually asked for here. Whether "Forgot PIN" itself should
+require some additional confirmation is a separate decision — say the
+word if you want that looked at next.
+
+--------------------------------------------------------------------
+HOW THIS WAS VALIDATED
+--------------------------------------------------------------------
+- Simulated the actual lockout logic (not just the UI) against a fake
+  localStorage and a manually-advanced clock:
+    - 7 consecutive wrong attempts produced exactly the delays above,
+      in order.
+    - Explicitly checked that a simulated "reload" (fresh in-memory
+      state, same localStorage) still reports the correct remaining
+      lockout time — confirming reload can't be used to skip it.
+    - Waiting past the lockout duration correctly brings the remaining
+      time back to 0.
+    - Clearing failure state (what a correct PIN does) resets both the
+      count and the lockout timestamp.
+  One early run of this test showed only 1 free attempt instead of the
+  intended 2 — an indexing mismatch in the delay schedule (failCount
+  starts at 1, not 0, so the schedule array needed an extra leading
+  zero). Caught by the test before this shipped, not after.
+- All 6 inline <script> blocks still pass node --check.
+- No duplicate top-level declarations (function, async function,
+  const, let all checked).
+- div/button/span/svg/label tags balanced before and after.
+
+--------------------------------------------------------------------
+DEPLOYMENT
+--------------------------------------------------------------------
+Frontend: upload index.html and sw.js to your web hosting, overwriting
+what's there. Backend: nothing changed, no redeploy needed. Anyone
+with App Lock already turned on keeps their existing PIN — nothing to
+re-enter or reset on their end.

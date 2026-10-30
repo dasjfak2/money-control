@@ -1,0 +1,48 @@
+FEXAFY - LOCAL-DATE BUG FIX + BENGALI CHECK (2026-10-12, v96)
+==============================================================
+Files touched: index.html, sw.js (v95 -> v96). Nothing else.
+
+THE BUG
+Several places turned a LOCAL-midnight date into text with toISOString(),
+which converts to UTC first. In any timezone ahead of UTC (Bangladesh is
+UTC+6) that gives the PREVIOUS day. Confirmed with the real extracted
+functions under TZ=Asia/Dhaka before fixing:
+  - addOneMonthClampDay("2026-09-23")  gave 2026-10-22  (should be 10-23)
+  - Jan 31 + 1 month gave Feb 27 (should be Feb 28)
+  - a paid bill rolling to its next cycle ended one day early
+    (2026-11-04 instead of 2026-11-05)
+  - a recurring item set to day 1 was logged on the LAST DAY OF THE PREVIOUS
+    MONTH (2026-09-30 instead of 2026-10-01), so it landed in the wrong month
+  - Analytics "Goals accumulation" used 30 Oct as end of October, so anything
+    logged on the last day of a month was missing from that month's total
+  - between midnight and 6am, "today" was yesterday: the default date in the
+    Add Expense/Income form, and the daily-reminder "already logged today"
+    check
+
+THE FIX
+All of these now use the app's existing localDateStr() (local y/m/d). Changed:
+addOneMonthClampDay, payBillFromTx, advanceBillCycles, processRecurring,
+the goals-accumulation month end, the "behind" goal suggested date,
+todayStr(), and the date default in the two transaction forms.
+9 lines changed, nothing added or removed.
+
+VERIFIED
+- Real extracted functions run in 5 timezones (Dhaka, UTC, New York,
+  Auckland, Honolulu): all give the correct dates, including Jan 31 -> Feb 28,
+  leap-year Jan 31 -> Feb 29, Dec -> Jan year rollover.
+- todayStr() at 02:00 Dhaka returns the local date; bill roll-forward correct.
+- 6 inline script blocks pass node --check; no duplicate functions.
+
+NOT FIXED (needs your decision)
+- Entries already saved with the wrong date are not changed. If a recurring
+  item on day 1 was auto-logged before this update, it may sit on the last day
+  of the previous month; edit it by hand if it matters.
+
+BENGALI CHECK
+- Home, Transactions, Bills, Analytics, Goals and Account & Backup were
+  screenshotted in Bengali, light and dark: no broken letters, no overflow,
+  gradient titles render correctly. Some labels are still English because
+  they were never translated (not related to this update).
+
+DEPLOYMENT
+Upload index.html and sw.js. No backend change.

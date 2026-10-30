@@ -1,0 +1,98 @@
+FEXAFY — 4 PREMIUM-STYLE UPGRADES (2026-10-03, v71)
+=====================================================================
+Files touched: index.html, sw.js (v70 -> v71). jspdf_umd_min.js /
+xlsx_full_min.js / tesseract_min.js / tesseract-core-simd-lstm_wasm.js
+/ worker_min.js / eng.traineddata / package.json / check.js /
+register.js: untouched. Verified: all 3 real inline <script> blocks
+parse cleanly with `node --check`, same for sw.js. No duplicate
+TRUE top-level function/const/let names anywhere (checked at column 0,
+not just indentation — the earlier "standing check" over-counts
+function-scoped locals reused across different functions, which is
+normal; redid it properly this round).
+
+This was a style-only review you asked for ("is there anything to add
+to make it feel more premium") — I inspected style.css first (gradient/
+shadow/animation/dark-mode counts) before suggesting anything, found
+the app already had a lot of this built in, and only proposed what was
+genuinely missing. You picked all 4.
+
+--------------------------------------------------------------------
+1) TABULAR NUMERALS
+--------------------------------------------------------------------
+Added `font-variant-numeric: tabular-nums;` on the main html,body rule.
+Every digit now takes the same width, so balances/stat numbers don't
+visibly shift as animateNumber() counts them up or down. No-op on any
+font/engine that doesn't support the feature — not a visible risk.
+
+--------------------------------------------------------------------
+2) CUSTOM SVG CATEGORY ICONS (replacing emoji)
+--------------------------------------------------------------------
+All 19 category emoji (🍔🚌🏠💡 etc.) replaced with a hand-built,
+single-stroke SVG icon set — same visual language across Android/iOS/
+Windows instead of each OS's own emoji font, and colored with the
+app's own --gold-dark token instead of whatever colors each platform's
+emoji happen to use. Pure inline SVG (CATEGORY_ICON_PATHS + the
+rewritten categoryIconHTML()) — no icon font, no new external domain,
+nothing added to the CSP.
+
+Before shipping these I rendered the full 19-icon set standalone,
+caught two that didn't read clearly at a glance (Shopping first looked
+like a trash can, Savings first looked identical to the Health icon),
+redrew both, re-rendered, then rendered a third pass at the *actual*
+production size/color/background (15px icon in the real 26px --paper
+wrapper, --gold-dark stroke) to confirm they still hold up small. All
+19 still appear with a text label right next to them everywhere
+they're used, so the icon is a visual aid, not the only identifier.
+
+--------------------------------------------------------------------
+3) HAPTIC FEEDBACK ON CELEBRATIONS
+--------------------------------------------------------------------
+New hapticPulse() — a short vibrate([12,40,12]) — now fires at the
+start of showCelebration() (bill paid, debt payment, every goal-
+reached celebration — same shared function, so all of them get it)
+and showStreakMilestone(). Feature-detected and wrapped in try/catch,
+so it's a silent no-op anywhere it isn't supported — which in practice
+means iOS Safari, since there's no Vibration API for web pages there
+at all; Android Chrome/WebView is where this will actually be felt.
+Deliberately NOT tied to prefers-reduced-motion — that setting is
+about on-screen motion, a haptic tap is a different kind of feedback.
+
+--------------------------------------------------------------------
+4) HERO AMOUNT TYPOGRAPHY
+--------------------------------------------------------------------
+One honest adjustment from what was originally pitched: taka() in this
+app formats with NO decimal places (maximumFractionDigits:0), so
+there's no ".00" to lighten the way the preview mockup showed. Checked
+the actual formatter before building rather than assuming the mockup
+was accurate. Adapted the same idea to what's really there: the
+Home hero "Left to spend" figure now de-emphasizes the currency symbol
+instead (smaller, lighter weight, slightly muted) so the number itself
+reads as the hero element — the same convention Stripe/Mercury-style
+balances use. Built as a new richSymbol option on animateNumber()
+(off by default) and only switched on for the one #remaining call —
+every other number in the app (stat cards, calculators, etc.) renders
+exactly as before, untouched.
+
+--------------------------------------------------------------------
+CLEANLINESS CHECK
+--------------------------------------------------------------------
+- No eval()/new Function()/document.write anywhere.
+- No new external domains, scripts, or endpoints of any kind.
+- node --check clean on all 3 inline <script> blocks and on sw.js.
+- div/button/span/svg tag counts balanced before and after (0 diff).
+- No stale references to the old CATEGORY_ICONS name anywhere.
+- No TRUE top-level (column-0) duplicate function/const/let names.
+- The 4 new top-level names (hapticPulse, splitAmountHTML,
+  CATEGORY_ICON_PATHS, CATEGORY_ICON_FALLBACK) each appear exactly
+  once.
+- OCR/tesseract files and the two backend files are completely
+  unrelated to this update and were not touched.
+
+--------------------------------------------------------------------
+DEPLOYMENT
+--------------------------------------------------------------------
+Frontend: upload index.html and sw.js to your web hosting, overwriting
+what's there — the other frontend files are unchanged and don't need
+re-uploading. Backend: nothing changed, no redeploy needed. Installed
+users will see the usual "A new version is ready — Refresh" banner
+(service worker bumped to v71) next time they open the app.

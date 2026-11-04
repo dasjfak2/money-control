@@ -9,7 +9,7 @@
 // installed device — follows automatically. index.html listens for the
 // new service worker and shows a "new version ready, tap to refresh"
 // banner to the user automatically; nothing else to wire up.
-const APP_VERSION = "v127";
+const APP_VERSION = "v130";
 const CACHE = "money-control-" + APP_VERSION;
 // index.html is now the entire app (icons + manifest are inlined inside it),
 // so this is the whole precache list — one page to fetch and store offline.
@@ -24,8 +24,11 @@ const LIBS = ["./lib/xlsx.full.min.js", "./lib/jspdf.umd.min.js", "./lib/tessera
 self.addEventListener("install", (e) => {
   e.waitUntil(
     caches.open(CACHE).then(async (c) => {
-      await c.addAll(ASSETS);
-      await Promise.allSettled(LIBS.map((u) => c.add(u)));
+      // cache:"reload" = always fetch fresh from the server, never the browser's HTTP-cache copy,
+      // so a new version can't install an old index.html (GitHub Pages sends max-age=600).
+      const fresh = (u) => new Request(u, { cache: "reload" });
+      await Promise.all(ASSETS.map((u) => c.add(fresh(u))));
+      await Promise.allSettled(LIBS.map((u) => c.add(fresh(u))));
     })
   );
   self.skipWaiting();

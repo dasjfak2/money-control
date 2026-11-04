@@ -1,0 +1,5 @@
+v128 - Calculators: only what you pick, only your country
+1. Tapping a calculator in More now opens ONLY that calculator. The tile grid with every other calculator is hidden, and the page title is the calculator's own name (e.g. "Income Tax Calculator").
+2. "Show calculators for other countries" is no longer remembered. It used to be saved on the phone, so one accidental tap left UK/Australia/Canada/Singapore/Malaysia visible forever. It now lives in More under the Calc list and resets every time the app opens. Default: only your phone country code's calculators (+880: BD tax + Zakat; +44: UK; +1: US + Canada ...), plus Loan, Deposit and Gulf End-of-Service (always shown).
+3. Country calculator rows in More now use the same font/size as Loan/Deposit rows.
+Tests: v128_test.mjs (new, 18 checks) + all earlier suites pass.

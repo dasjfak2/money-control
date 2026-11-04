@@ -1,0 +1,20 @@
+v130 — Settings / Data & reports / Suggestions & reports (2026-11-04)
+
+What changed
+- The old "Account & Backup" screen is now two separate menus in More:
+  * Settings: sync/account, profile, language, privacy, notifications & sounds, reminders, app lock, updates.
+  * Data & reports: storage, export/reports, backup & restore, legal, danger zone.
+- New menu "Suggestions & reports": pick Suggestion / Bug report / Other, write a message, send by email
+  (opens the user's mail app, addressed to the existing public contact address) or Copy.
+  Optional app info (version, language, device, screen). No money data or account names are ever included.
+  No backend, nothing stored or collected by the app.
+- All 10 languages translated. Global search lands in the correct view. Privacy text mentions the email feedback.
+- Removed the old in-page tab bar (replaced by the two menu rows).
+
+Safety
+- No data/storage/schema change. Same cards, same ids and handlers, just shown in two views.
+- sw.js APP_VERSION = v130.
+
+Tests (tools/v130_test.mjs + full regression)
+- v130: all pass on mobile and desktop. Older v119/v124/v126 tests updated only where they referenced the removed tab buttons.
+- Regression suites unchanged vs v129 (af_test failures are pre-existing, identical on v129).

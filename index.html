@@ -484,7 +484,8 @@ main{
   min-height:52px;
   line-height:1.3;
 }
-.form input:focus,.form select:focus{
+.form textarea{width:100%;min-height:130px;padding:15px 16px;border:1.5px solid var(--line);border-radius:var(--radius-s);margin-top:6px;background:var(--paper);font-size:16.5px;font-family:"Manrope",sans-serif;color:var(--ink);line-height:1.4;resize:vertical}
+.form input:focus,.form select:focus,.form textarea:focus{
   outline:none;
   border-color:var(--gold-dark);
   box-shadow:0 0 0 3px rgba(217,164,65,.22);
@@ -1062,10 +1063,6 @@ html[dir="rtl"] .stat-future{border-right-color:var(--future)}
 .budget-bar>i{display:block;height:100%;border-radius:6px;background:var(--income);transition:width .3s ease}
 .budget-bar.over>i{background:var(--expense)}
 .analytics-period-row{display:flex;flex-direction:column;gap:10px;margin-bottom:14px}
-.fx-sync-tabs{display:flex;gap:6px;background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:4px;margin:2px 0 12px}
-.fx-sync-tab{flex:1;border:0;background:transparent;color:var(--ink-soft);font-weight:700;font-size:13.5px;padding:9px 6px;border-radius:9px;cursor:pointer;transition:background .15s ease,color .15s ease}
-.fx-sync-tab.active{background:var(--plum);color:#fff}
-[data-theme="dark"] .fx-sync-tab.active{background:var(--gold);color:var(--plum)}
 .fx-adv{margin:10px 0 2px}
 .fx-adv>summary{cursor:pointer;font-weight:700;font-size:13.5px;padding:8px 0;color:var(--ink-soft)}
 .analytics-period-tabs{display:flex;gap:6px;background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:4px}
@@ -1819,6 +1816,7 @@ html[lang="bn"] .screen:not(.fx-theme) .card h3{letter-spacing:0;text-transform:
 .fx-more-calc .calc-nav-item small{font-size:inherit;font-weight:inherit;opacity:1}
 .fx-more-calc .calc-nav-item.hidden{display:none !important}
 .fx-more-row{display:flex;width:100%;align-items:center;justify-content:space-between;gap:10px;background:none;border:0;border-top:1px solid var(--line);padding:14px 2px;font:inherit;font-size:15px;font-weight:600;color:var(--ink);text-align:start;cursor:pointer}
+#calculators #calcModeRow{display:none !important}
 .fx-more-row::after,.fx-more-calc .calc-nav-item::after{content:"\203A";opacity:.5;font-size:22px;line-height:1}
 html[dir="rtl"] .fx-more-row::after,html[dir="rtl"] .fx-more-calc .calc-nav-item::after{content:"\2039"}
 </style>
@@ -2004,7 +2002,7 @@ html[dir="rtl"] .fx-more-row::after,html[dir="rtl"] .fx-more-calc .calc-nav-item
       <button id="gsearchBtn" class="iconbtn gsearch-trigger" title="Search" onclick="openGlobalSearch()"><span class="navicon" data-icon="search" data-icon-size="17"></span></button>
     </div>
     <button id="themeToggleBtn" class="iconbtn theme-toggle" title="Toggle dark mode" onclick="toggleTheme()"><span class="navicon" data-icon="moon" data-icon-size="17"></span></button>
-    <button id="pageRefreshBtn" class="iconbtn" title="Refresh page" onclick="location.reload()"><span class="navicon" data-icon="rotate-ccw" data-icon-size="17"></span></button>
+    <button id="pageRefreshBtn" class="iconbtn" title="Refresh page" onclick="fxRefresh()"><span class="navicon" data-icon="rotate-ccw" data-icon-size="17"></span></button>
   </div>
 </header>
 
@@ -2443,8 +2441,8 @@ html[dir="rtl"] .fx-more-row::after,html[dir="rtl"] .fx-more-calc .calc-nav-item
 </section>
 
 <section id="calculators" class="screen fx-theme">
-  <h2 data-i18n="calc_title">Loan &amp; Deposit Calculators</h2>
-  <div class="fx-sub"><span data-icon="calculator"></span><span data-i18n="calc_sub">Work out any loan's EMI, or see how a Fixed Deposit (FDR) or monthly DPS will grow — entirely on this device, nothing is sent anywhere.</span></div>
+  <h2 id="calcTitle">Loan Calculator</h2>
+  <div class="fx-sub" id="calcSub"><span data-icon="calculator"></span><span data-i18n="calc_sub">Work out any loan's EMI, or see how a Fixed Deposit (FDR) or monthly DPS will grow — entirely on this device, nothing is sent anywhere.</span></div>
 
   <div class="fx-plan-strategy" id="calcModeRow">
     <div class="fx-strat-btn active" id="calcModeBtnLoan" onclick="calcSetMode('loan')">
@@ -2801,12 +2799,16 @@ html[dir="rtl"] .fx-more-row::after,html[dir="rtl"] .fx-more-calc .calc-nav-item
   </div>
   <div class="card fx-more-card">
     <h3><span class="fx-ico"><span data-icon="cloud"></span></span><span data-i18n="more_account">Account</span></h3>
-    <button type="button" class="fx-more-row" id="moreAcctBtn" onclick="goToScreen('sync')"><span data-i18n="sync_title">Account &amp; Backup</span></button>
+    <button type="button" class="fx-more-row" id="moreSetBtn" onclick="fxOpenSync('set')"><span data-i18n="sync_tab_settings">Settings</span></button>
+    <button type="button" class="fx-more-row" id="moreDataBtn" onclick="fxOpenSync('data')"><span data-i18n="sync_tab_data">Data &amp; reports</span></button>
+    <button type="button" class="fx-more-row" id="moreFbBtn" onclick="goToScreen('feedback')"><span data-i18n="fb_title">Suggestions &amp; reports</span></button>
   </div>
 </section>
 
 <section id="sync" class="screen">
-  <h2 data-i18n="sync_title">Account &amp; Backup</h2>
+  <h2 id="syncTitle" data-i18n="sync_tab_settings">Settings</h2>
+
+  <div id="fxSyncSet">
 
   <div class="card" id="acctCard"></div>
 
@@ -2824,13 +2826,6 @@ html[dir="rtl"] .fx-more-row::after,html[dir="rtl"] .fx-more-calc .calc-nav-item
       <button class="primary full" onclick="saveProfileEdit()">Save profile</button>
     </div>
   </div>
-
-  <div class="fx-sync-tabs" id="fxSyncTabs">
-    <button type="button" class="fx-sync-tab active" id="fxTabSet" onclick="fxSyncTab('set')" data-i18n="sync_tab_settings">Settings</button>
-    <button type="button" class="fx-sync-tab" id="fxTabData" onclick="fxSyncTab('data')" data-i18n="sync_tab_data">Data &amp; reports</button>
-  </div>
-
-  <div id="fxSyncSet">
 
   <div class="card" id="cardLanguage">
     <h3 data-i18n="language">Language</h3>
@@ -2872,7 +2867,7 @@ html[dir="rtl"] .fx-more-row::after,html[dir="rtl"] .fx-more-calc .calc-nav-item
       <label>Reminder time
         <input type="time" id="inpNotifTime" onchange="db.settings.notifTime=this.value||'09:00';save()">
       </label>
-      <div class="muted-small">Bill and budget alerts will wait until this time on the day they're due. You can change this any time — it applies the next time an alert would fire. Alerts still need FexaFY open, installed, or running in the background at that time (see Account &amp; Backup → Legal for the full explanation).</div>
+      <div class="muted-small">Bill and budget alerts will wait until this time on the day they're due. You can change this any time — it applies the next time an alert would fire. Alerts still need FexaFY open, installed, or running in the background at that time (see Data &amp; reports → Legal for the full explanation).</div>
     </div>
     <div id="truePushBlock" style="margin-top:10px"></div>
     <details class="fx-adv" id="fxSoundAdv"><summary data-i18n="sound_adv">Alarm sounds &amp; ringtones</summary>
@@ -2951,6 +2946,13 @@ html[dir="rtl"] .fx-more-row::after,html[dir="rtl"] .fx-more-calc .calc-nav-item
     <button class="primary full" id="lockToggleBtn" style="margin-top:12px" onclick="onLockToggleClick()">Turn on App Lock</button>
     <button class="filebtn full" id="biometricBtn" style="display:none;margin-top:8px" onclick="changeLockSecure('biometric')">👆 Enable fingerprint / face unlock</button>
     <button class="linktext" id="changePinBtn" style="display:none" onclick="changeLockSecure('pin')">Change PIN</button>
+  </div>
+
+  <div class="card" id="cardUpdate">
+    <h3 data-i18n="upd_title">App version</h3>
+    <div class="muted" style="margin-bottom:12px"><span data-i18n="upd_current">Current version</span>: <b id="updVer"></b> &middot; <span data-i18n="upd_last">Last checked</span>: <span id="updLast">-</span></div>
+    <button class="filebtn full" id="updBtn" onclick="fxCheckUpdate()"><span class="navicon" data-icon="rotate-ccw" data-icon-size="16"></span> <span data-i18n="upd_check">Check for update</span></button>
+    <div class="muted" id="updMsg" role="status" aria-live="polite" style="margin-top:10px"></div>
   </div>
 
   </div>
@@ -3045,6 +3047,29 @@ html[dir="rtl"] .fx-more-row::after,html[dir="rtl"] .fx-more-calc .calc-nav-item
 
   </div>
 </section>
+
+<section id="feedback" class="screen">
+  <h2 data-i18n="fb_title">Suggestions &amp; reports</h2>
+  <div class="card">
+    <div class="muted" data-i18n="fb_sub">Found a bug or have an idea? Tell us.</div>
+    <div class="form">
+      <label><span data-i18n="fb_type">Type</span>
+        <select id="fbType">
+          <option value="suggestion" data-i18n="fb_t_sug">Suggestion</option>
+          <option value="bug" data-i18n="fb_t_bug">Bug report</option>
+          <option value="other" data-i18n="fb_t_other">Other</option>
+        </select>
+      </label>
+      <label><span data-i18n="fb_msg">Your message</span>
+        <textarea id="fbMsg" maxlength="1000"></textarea>
+      </label>
+      <div class="switchrow"><span data-i18n="fb_info">Include app info (version, language, device)</span><label class="switch"><input type="checkbox" id="fbInfo" checked><span class="slider"></span></label></div>
+      <button type="button" class="primary full" onclick="fxFbSend()" data-i18n="fb_send">Send by email</button>
+      <button type="button" class="filebtn full" onclick="fxFbCopy()" data-i18n="fb_copy">Copy message</button>
+      <div class="muted-small" style="margin-top:10px" data-i18n="fb_note">Opens your email app with the message ready for the developer. Nothing is sent until you press Send. Your money data is never included.</div>
+    </div>
+  </div>
+</section>
 </main>
 </div>
 </div>
@@ -3083,7 +3108,7 @@ html[dir="rtl"] .fx-more-row::after,html[dir="rtl"] .fx-more-calc .calc-nav-item
 
 <script>
 const SENTRY_DSN = "https://accd3f87b3f615f44f3274b4045fa63d@o4512055606640640.ingest.de.sentry.io/4512055628726352"; 
-const APP_VERSION = "v127"; 
+const APP_VERSION = "v130"; 
 const CRASH_LOG_KEY = "mc_crashlog";
 function logCrashLocally(err, source){
   try{
@@ -3780,7 +3805,7 @@ function fmtDateTime(d){
 }
 const I18N={
   en:{home:"Home",tx:"Tx",budget:"Budget",budget2:"Limits",bills:"Bills",goals:"Goals",debt:"Debt",future:"Future",net:"Net",analytics_nav:"Analytics",calc:"Calc",sync:"Sync",
-    dashboard_remaining:"Left to Spend",sto_title:"Storage on this device",sto_used:"{used} MB used of about 5 MB ({pct}%)",sto_tip:"Your data lives in this browser. Receipt photos take the most room. Back up regularly (Backup & Restore, above) \u2014 and if this fills up, shrink or delete old receipt photos.",sto_receipts:"{n} receipt photo(s) stored",sto_full_title:"Storage full \u2014 your latest changes are NOT saved on this device",sto_full_body:"Back up now so nothing is lost, then free space (Account & Backup \u2192 Storage on this device).",sto_near_title:"Storage almost full ({used} of ~5 MB)",sto_near_body:"Back up now, and consider shrinking or deleting old receipt photos before it fills up.",sto_backup:"Back up now",sto_hide:"Hide",sto_dismiss:"Dismiss",sto_shrink:"Shrink receipt photos",sto_remove_old:"Remove receipt photos older than 1 year",sto_no_receipts:"No receipt photos stored.",sto_shrink_confirm:"Shrink {n} receipt photo(s)? They get smaller and slightly lower quality, and this cannot be undone. Tip: back up first.",sto_shrink_done:"Done. Freed about {mb} MB.",sto_shrink_none:"Photos are already small \u2014 nothing to shrink.",sto_remove_none:"No receipt photos older than 1 year.",sto_remove_confirm:"Delete {n} receipt photo(s) older than 1 year? The entries stay, only the photos are removed. This cannot be undone. Tip: back up first.",sto_remove_done:"Removed {n} receipt photo(s).",sto_working:"Working\u2026",reminders:"Reminders",tx_title:"Transactions",budget_title:"Budget Setup",budget2_title:"Category Budgets",
+    dashboard_remaining:"Left to Spend",sto_title:"Storage on this device",sto_used:"{used} MB used of about 5 MB ({pct}%)",sto_tip:"Your data lives in this browser. Receipt photos take the most room. Back up regularly (Backup & Restore, above) \u2014 and if this fills up, shrink or delete old receipt photos.",sto_receipts:"{n} receipt photo(s) stored",sto_full_title:"Storage full \u2014 your latest changes are NOT saved on this device",sto_full_body:"Back up now so nothing is lost, then free space (Data & reports \u2192 Storage on this device).",sto_near_title:"Storage almost full ({used} of ~5 MB)",sto_near_body:"Back up now, and consider shrinking or deleting old receipt photos before it fills up.",sto_backup:"Back up now",sto_hide:"Hide",sto_dismiss:"Dismiss",sto_shrink:"Shrink receipt photos",sto_remove_old:"Remove receipt photos older than 1 year",sto_no_receipts:"No receipt photos stored.",sto_shrink_confirm:"Shrink {n} receipt photo(s)? They get smaller and slightly lower quality, and this cannot be undone. Tip: back up first.",sto_shrink_done:"Done. Freed about {mb} MB.",sto_shrink_none:"Photos are already small \u2014 nothing to shrink.",sto_remove_none:"No receipt photos older than 1 year.",sto_remove_confirm:"Delete {n} receipt photo(s) older than 1 year? The entries stay, only the photos are removed. This cannot be undone. Tip: back up first.",sto_remove_done:"Removed {n} receipt photo(s).",sto_working:"Working\u2026",reminders:"Reminders",tx_title:"Transactions",budget_title:"Budget Setup",budget2_title:"Category Budgets",
     bills_title:"Bill Reminder",goals_title:"Savings & Emergency Goals",debt_title:"Debt Freedom",future_title:"Future Expenses",
     net_title:"Net Worth",sync_title:"Account & Backup",income:"Income",expense:"Expense",investment:"Investment",
     savings:"Savings",emergency:"Emergency",add_bill:"＋ Add bill",add_debt:"＋ Add debt",add_future:"＋ Add future expense",
@@ -3947,7 +3972,7 @@ const I18N={
     pg_sync_2_title:"Change the app's language",pg_sync_2_body:"Pick your preferred language here any time — the whole app switches instantly.",
     hero_over_cta_prefix:"See your biggest expense this month: ",hero_over_cta_suffix:""},
   bn:{home:"হোম",tx:"লেনদেন",budget:"বাজেট",budget2:"সীমা",bills:"বিল",goals:"লক্ষ্য",debt:"ঋণ",future:"ভবিষ্যৎ",net:"নিট",analytics_nav:"বিশ্লেষণ",calc:"ক্যালকুলেটর",sync:"সিঙ্ক",
-    dashboard_remaining:"খরচ করার জন্য বাকি",sto_title:"এই ডিভাইসের স্টোরেজ",sto_used:"প্রায় ৫ MB-এর মধ্যে {used} MB ব্যবহার হয়েছে ({pct}%)",sto_tip:"তোমার data এই browser-এই থাকে। Receipt-এর ছবিতে সবচেয়ে বেশি জায়গা লাগে। নিয়মিত Backup নাও (উপরে Backup ও Restore) \u2014 আর জায়গা ভরে গেলে পুরনো receipt-এর ছবি ছোট করো বা মুছে দাও।",sto_receipts:"{n}টা receipt-এর ছবি জমা আছে",sto_full_title:"স্টোরেজ ভরে গেছে \u2014 তোমার সর্বশেষ পরিবর্তন এই ডিভাইসে সেভ হচ্ছে না",sto_full_body:"এখনই Backup নাও যাতে কিছু হারিয়ে না যায়, তারপর জায়গা খালি করো (Account ও Backup \u2192 এই ডিভাইসের স্টোরেজ)।",sto_near_title:"স্টোরেজ প্রায় ভরে গেছে (~৫ MB-এর মধ্যে {used} MB)",sto_near_body:"এখনই Backup নাও, আর ভরে যাওয়ার আগে পুরনো receipt-এর ছবি ছোট করো বা মুছে দাও।",sto_backup:"এখনই Backup নাও",sto_hide:"লুকাও",sto_dismiss:"বন্ধ করো",sto_shrink:"Receipt-এর ছবি ছোট করো",sto_remove_old:"১ বছরের পুরনো receipt-এর ছবি মুছো",sto_no_receipts:"কোনো receipt-এর ছবি জমা নেই।",sto_shrink_confirm:"{n}টা receipt-এর ছবি ছোট করবে? ছবি ছোট ও একটু কম মানের হবে, আর এটা ফেরানো যাবে না। পরামর্শ: আগে Backup নাও।",sto_shrink_done:"হয়ে গেছে। প্রায় {mb} MB জায়গা খালি হয়েছে।",sto_shrink_none:"ছবিগুলো আগে থেকেই ছোট \u2014 ছোট করার কিছু নেই।",sto_remove_none:"১ বছরের পুরনো কোনো receipt-এর ছবি নেই।",sto_remove_confirm:"১ বছরের পুরনো {n}টা receipt-এর ছবি মুছবে? Entry থেকে যাবে, শুধু ছবি মুছবে। এটা ফেরানো যাবে না। পরামর্শ: আগে Backup নাও।",sto_remove_done:"{n}টা receipt-এর ছবি মুছে ফেলা হয়েছে।",sto_working:"কাজ চলছে\u2026",reminders:"রিমাইন্ডার",tx_title:"লেনদেন",budget_title:"বাজেট সেটআপ",budget2_title:"ক্যাটাগরি বাজেট",
+    dashboard_remaining:"খরচ করার জন্য বাকি",sto_title:"এই ডিভাইসের স্টোরেজ",sto_used:"প্রায় ৫ MB-এর মধ্যে {used} MB ব্যবহার হয়েছে ({pct}%)",sto_tip:"তোমার data এই browser-এই থাকে। Receipt-এর ছবিতে সবচেয়ে বেশি জায়গা লাগে। নিয়মিত Backup নাও (উপরে Backup ও Restore) \u2014 আর জায়গা ভরে গেলে পুরনো receipt-এর ছবি ছোট করো বা মুছে দাও।",sto_receipts:"{n}টা receipt-এর ছবি জমা আছে",sto_full_title:"স্টোরেজ ভরে গেছে \u2014 তোমার সর্বশেষ পরিবর্তন এই ডিভাইসে সেভ হচ্ছে না",sto_full_body:"এখনই Backup নাও যাতে কিছু হারিয়ে না যায়, তারপর জায়গা খালি করো (ডেটা ও রিপোর্ট \u2192 এই ডিভাইসের স্টোরেজ)।",sto_near_title:"স্টোরেজ প্রায় ভরে গেছে (~৫ MB-এর মধ্যে {used} MB)",sto_near_body:"এখনই Backup নাও, আর ভরে যাওয়ার আগে পুরনো receipt-এর ছবি ছোট করো বা মুছে দাও।",sto_backup:"এখনই Backup নাও",sto_hide:"লুকাও",sto_dismiss:"বন্ধ করো",sto_shrink:"Receipt-এর ছবি ছোট করো",sto_remove_old:"১ বছরের পুরনো receipt-এর ছবি মুছো",sto_no_receipts:"কোনো receipt-এর ছবি জমা নেই।",sto_shrink_confirm:"{n}টা receipt-এর ছবি ছোট করবে? ছবি ছোট ও একটু কম মানের হবে, আর এটা ফেরানো যাবে না। পরামর্শ: আগে Backup নাও।",sto_shrink_done:"হয়ে গেছে। প্রায় {mb} MB জায়গা খালি হয়েছে।",sto_shrink_none:"ছবিগুলো আগে থেকেই ছোট \u2014 ছোট করার কিছু নেই।",sto_remove_none:"১ বছরের পুরনো কোনো receipt-এর ছবি নেই।",sto_remove_confirm:"১ বছরের পুরনো {n}টা receipt-এর ছবি মুছবে? Entry থেকে যাবে, শুধু ছবি মুছবে। এটা ফেরানো যাবে না। পরামর্শ: আগে Backup নাও।",sto_remove_done:"{n}টা receipt-এর ছবি মুছে ফেলা হয়েছে।",sto_working:"কাজ চলছে\u2026",reminders:"রিমাইন্ডার",tx_title:"লেনদেন",budget_title:"বাজেট সেটআপ",budget2_title:"ক্যাটাগরি বাজেট",
     bills_title:"বিল রিমাইন্ডার",goals_title:"সঞ্চয় ও জরুরি তহবিল লক্ষ্য",debt_title:"ঋণমুক্তি",future_title:"ভবিষ্যৎ খরচ",
     net_title:"নিট সম্পদ",sync_title:"অ্যাকাউন্ট ও ব্যাকআপ",income:"আয়",expense:"খরচ",investment:"বিনিয়োগ",
     savings:"সঞ্চয়",emergency:"জরুরি তহবিল",add_bill:"＋ বিল যোগ করুন",add_debt:"＋ ঋণ যোগ করুন",add_future:"＋ ভবিষ্যৎ খরচ যোগ করুন",
@@ -4777,7 +4802,7 @@ function disableLockAfterForgotPin(){
   appUnlocked=true;
   hideLockScreen();
   if(lockOnSuccess){ const fn=lockOnSuccess; lockOnSuccess=null; fn(); } else { render(); }
-  showToast("App Lock turned off — set a new PIN any time from Account & Backup.");
+  showToast("App Lock turned off — set a new PIN any time from Settings.");
   offerNewPinAfterRecovery();
 }
 let recoveryPinOffer=false; 
@@ -4801,14 +4826,14 @@ function cancelRecoveryPinSetup(){
   showLockError("");
   hideLockScreen();
   showToast(wasRecovery
-    ? "No PIN set — App Lock stays off. Turn it on any time from Account & Backup."
+    ? "No PIN set — App Lock stays off. Turn it on any time from Settings."
     : "PIN not changed.");
 }
 function offerBiometricAfterRecovery(){
   if(!biometricSupported || localStorage.getItem(BIOMETRIC_CRED_KEY)) return;
   setTimeout(()=>{
     if(!document.getElementById("modal").classList.contains("hidden")){
-      showToast("Tip: add Face/Touch ID from Account & Backup.");
+      showToast("Tip: add Face/Touch ID from Settings.");
       return;
     }
     modal(`<h3>Add Face/Touch ID?</h3><div class="form">
@@ -9300,8 +9325,9 @@ const PRIVACY_POLICY_HTML = `<div class="legalmodal"><div class="top"><h1>Privac
   <div class="lcard">
     <h2>5. Your control over your data</h2>
     <ul>
-      <li>Export a full backup (JSON) or a per-period Excel/PDF report at any time from Account &amp; Backup.</li>
-      <li>Delete everything on this device at any time from Account &amp; Backup → Reset All Data.</li>
+      <li>Export a full backup (JSON) or a per-period Excel/PDF report at any time from Data &amp; reports.</li>
+      <li>Delete everything on this device at any time from Data &amp; reports → Reset all data.</li>
+      <li>Suggestions and bug reports (Suggestions &amp; reports) are sent by email from your own email app. The app itself sends nothing; you see the message, and the optional app info (version, language, device), before you press Send.</li>
       <li>Sign out at any time; your local data stays on the device unless you also reset it.</li>
       <li>Revoke this app's access to your Google Drive at any time from your Google Account's "Third-party access" settings.</li>
     </ul>
@@ -9402,7 +9428,7 @@ function fxCalcRefresh(){
   if(typeof calcLoanCompute==="function") calcLoanCompute();
   if(typeof calcDepositCompute==="function") calcDepositCompute();
 }
-const FX_NAV_GROUPS={dashboard:"home",transactions:"tx",budget:"plan",budget2:"plan",bills:"plan",goals:"plan",debt:"plan",future:"plan",networth:"plan",analytics:"analytics",calculators:"more",sync:"more",more:"more"};
+const FX_NAV_GROUPS={dashboard:"home",transactions:"tx",budget:"plan",budget2:"plan",bills:"plan",goals:"plan",debt:"plan",future:"plan",networth:"plan",analytics:"analytics",calculators:"more",sync:"more",feedback:"more",more:"more"};
 const FX_PLAN_TABS=[["budget","budget"],["bills","bills"],["goals","goals"],["debt","debt"],["future","future"],["networth","net"]];
 function fxNavSync(name){
   const g=FX_NAV_GROUPS[name]||"";
@@ -9435,7 +9461,7 @@ function goToScreen(name){
   maybeShowPageGuide(name);
   updateCalcNavState();
   if(name==="calculators"){ try{ fxCalcRefresh(); }catch(e){} }
-  if(name==="sync"){ try{ renderStorageMeter(); }catch(e){} }
+  if(name==="sync"){ try{ renderStorageMeter(); }catch(e){} try{ fxUpdInfo(); }catch(e){} }
 }
 document.querySelectorAll(".nav button[data-screen]").forEach(b=>b.onclick=()=>goToScreen(b.dataset.screen));
 
@@ -9445,6 +9471,10 @@ function updateCalcNavState(){
   let mode="loan";
   try{ mode=(calcState && calcState.mode) || "loan"; }catch(e){   }
   document.querySelectorAll(".calc-nav-item").forEach(b=>b.classList.toggle("active",onCalc && b.dataset.calc===mode));
+  const h=document.getElementById("calcTitle"), sub=document.getElementById("calcSub");
+  const row=document.querySelector('.fx-more-calc .calc-nav-item[data-calc="'+mode+'"]');
+  if(h && row) h.textContent=row.textContent.trim();
+  if(sub) sub.style.display=(mode==="loan"||mode==="deposit")?"":"none";
 }
 function openCalcFromNav(mode){
   goToScreen("calculators");
@@ -9694,9 +9724,46 @@ function showUpdateAvailable(){
   updateBannerShown=true;
   const bar=document.createElement("div");
   bar.className="update-banner";
-  bar.innerHTML=`<span>${ic('rotate-ccw',15)} A new version is ready.</span><button class="update-refresh-btn" id="updateReloadBtn">Refresh</button>`;
+  bar.innerHTML=`<span>${ic('rotate-ccw',15)} ${t("upd_ready")}</span><button class="update-refresh-btn" id="updateReloadBtn">${t("upd_refresh")}</button>`;
   document.body.appendChild(bar);
   document.getElementById("updateReloadBtn").onclick=()=>location.reload();
+}
+async function fxFindUpdate(ms){
+  if(!("serviceWorker" in navigator) || !location.protocol.startsWith("http")) return "na";
+  if(!navigator.onLine) return "offline";
+  const reg=await navigator.serviceWorker.getRegistration();
+  if(!reg) return "na";
+  if(reg.waiting) return "ready";
+  let found=false; const onFound=()=>{ found=true; };
+  reg.addEventListener("updatefound",onFound);
+  try{ await Promise.race([reg.update(), new Promise((_,no)=>setTimeout(no,ms))]); }
+  catch(e){ reg.removeEventListener("updatefound",onFound); return navigator.onLine?"error":"offline"; }
+  await new Promise(r=>setTimeout(r,0)); 
+  reg.removeEventListener("updatefound",onFound);
+  if(!found && !reg.installing && !reg.waiting) return "none";
+  const w=reg.installing||reg.waiting||reg.active;
+  if(!w) return "error";
+  return new Promise(res=>{
+    const done=()=>{ if(w.state==="redundant") res("error"); else if(w.state==="activated") res("ready"); }; 
+    w.addEventListener("statechange",done); setTimeout(()=>res("error"),ms); done();
+  });
+}
+async function fxCheckUpdate(){
+  const btn=document.getElementById("updBtn"), msg=document.getElementById("updMsg");
+  if(btn) btn.disabled=true; if(msg) msg.textContent=t("upd_checking");
+  const r=await fxFindUpdate(20000);
+  try{ localStorage.setItem("fx_updChecked",String(Date.now())); }catch(e){}
+  fxUpdInfo();
+  if(msg) msg.textContent=t(r==="ready"?"upd_ready":r==="none"?"upd_latest":r==="offline"?"upd_offline":"upd_error");
+  if(r==="ready") showUpdateAvailable();
+  if(btn) btn.disabled=false;
+}
+async function fxRefresh(){ try{ await fxFindUpdate(4000); }catch(e){} location.reload(); }
+function fxUpdInfo(){
+  const v=document.getElementById("updVer"), l=document.getElementById("updLast"); if(!v||!l) return;
+  v.textContent=APP_VERSION;
+  let ts=0; try{ ts=+localStorage.getItem("fx_updChecked")||0; }catch(e){}
+  l.textContent=ts?new Date(ts).toLocaleString():"-";
 }
 
 function onExpPeriodChange(){
@@ -10747,7 +10814,9 @@ function gsearchPageItems(){
     {icon:"pie-chart",label:t("net_title")||"Net Worth",screen:"networth"},
     {icon:"activity",label:t("analytics_title")||"Analytics",screen:"analytics"},
     {icon:"calculator",label:t("calc_title")||"Loan & Deposit Calculators",screen:"calculators"},
-    {icon:"cloud",label:t("sync_title")||"Account & Backup",screen:"sync"},
+    {icon:"sliders",label:t("sync_tab_settings")||"Settings",screen:"sync",anchor:"acctCard"},
+    {icon:"download",label:t("sync_tab_data")||"Data & reports",screen:"sync",anchor:"cardStorage"},
+    {icon:"edit",label:t("fb_title")||"Suggestions & reports",screen:"feedback"},
     {icon:"link",label:t("my_profile")||"My Profile",screen:"sync",anchor:"cardProfile"},
     {icon:"globe",label:t("language")||"Language",screen:"sync",anchor:"cardLanguage"},
     {icon:"wallet",label:t("currency")||"Currency",screen:"sync",anchor:"cardLanguage"},
@@ -11025,8 +11094,9 @@ window.__fxExtraCalc={
   modes(){ return Object.keys(REG); },
   visible(mode){ try{ const d=REG[mode]; if(!d) return false; if(d.always) return true; if(showAll()) return true; const cc=(typeof db!=="undefined"&&db&&db.profile)?db.profile.countryCode:""; return !!(d.countries&&d.countries.indexOf(cc)>=0); }catch(e){ return false; } }
 };
-function showAll(){ try{ return localStorage.getItem("fx_calcShowAll")==="1"; }catch(e){ return false; } }
-window.fxCalcToggleAll=function(){ try{ localStorage.setItem("fx_calcShowAll",showAll()?"0":"1"); }catch(e){} if(typeof refreshCalcNavItems==="function") refreshCalcNavItems(); updateToggle(); };
+let SHOW_ALL=false; 
+function showAll(){ return SHOW_ALL; }
+window.fxCalcToggleAll=function(){ SHOW_ALL=!SHOW_ALL; if(typeof refreshCalcNavItems==="function") refreshCalcNavItems(); updateToggle(); };
 function updateToggle(){
   const b=document.getElementById("fxCalcAllToggle"); if(!b) return;
   const hasGated=Object.keys(REG).some(m=>!REG[m].always);
@@ -11037,8 +11107,9 @@ function setup(){
   const row=document.getElementById("calcModeRow");
   if(!row) return;
   if(!document.getElementById("fxCalcAllToggle")){
-    const tg=document.createElement("button"); tg.type="button"; tg.id="fxCalcAllToggle"; tg.className="fx-pill hidden"; tg.style.margin="8px 0 0"; tg.setAttribute("onclick","fxCalcToggleAll()");
-    row.parentNode.insertBefore(tg,row.nextSibling);
+    const tg=document.createElement("button"); tg.type="button"; tg.id="fxCalcAllToggle"; tg.className="fx-pill hidden"; tg.style.margin="12px 0 0"; tg.setAttribute("onclick","fxCalcToggleAll()");
+    const list=document.querySelector(".fx-more-calc");
+    (list?list.parentNode:row.parentNode).appendChild(tg);
   }
   Object.keys(REG).forEach(mode=>{
     const d=REG[mode];
@@ -11059,9 +11130,9 @@ function setup(){
     document.querySelectorAll(".calc-nav-sub").forEach(sub=>{
       if(sub.querySelector('[data-calc="'+mode+'"]')) return;
       const b=document.createElement("button");
-      b.type="button"; b.className="calc-nav-item hidden"; b.setAttribute("data-calc",mode);
+      b.type="button"; b.className="fx-more-row calc-nav-item hidden"; b.setAttribute("data-calc",mode);
       b.setAttribute("onclick","openCalcFromNav('"+mode+"')");
-      b.innerHTML='<small data-i18n="'+d.navKey+'"></small>';
+      b.innerHTML='<span data-i18n="'+d.navKey+'"></span>';
       sub.appendChild(b);
     });
   });
@@ -11985,9 +12056,10 @@ window.fxSyncTab=function(which){
   if(!set||!dat) return;
   const d=(which==="data");
   set.classList.toggle("hidden",d); dat.classList.toggle("hidden",!d);
-  const a=document.getElementById("fxTabSet"), b=document.getElementById("fxTabData");
-  if(a) a.classList.toggle("active",!d); if(b) b.classList.toggle("active",d);
+  const h=document.getElementById("syncTitle");
+  if(h){ const k=d?"sync_tab_data":"sync_tab_settings"; h.setAttribute("data-i18n",k); h.textContent=t(k); }
 };
+window.fxOpenSync=function(which){ window.fxSyncTab(which); goToScreen("sync"); };
 window.fxSyncShowFor=function(id){
   const el=document.getElementById(id); if(!el) return;
   if(el.closest("#fxSyncData")) window.fxSyncTab("data");
@@ -12000,7 +12072,7 @@ window.fxSyncShowFor=function(id){
 "use strict";
 Object.assign(I18N.en,{ tx:"Transactions", tx_show_more:"Show more",
   nav_plan:"Plan",nav_more:"More",more_account:"Account",
-  onb_limits_title:"Category limits (inside Budget)",onb_calc_title:"More — Loan & Deposit Calculators",onb_sync_title:"More — Account & Backup",
+  onb_limits_title:"Category limits (inside Budget)",onb_calc_title:"More — Loan & Deposit Calculators",onb_sync_title:"More — Settings",
   opening_group_title:"Opening balances (already saved before tracking)",open_invest_lbl:"Investment",open_save_lbl:"Savings",open_emerg_lbl:"Emergency fund",
   goals_edit_in_budget:"Edit targets & opening balances (Budget)",
   exp_one_title:"Or export just one section",exp_sec_tx:"Transactions",exp_sec_bills:"Bills",exp_sec_debts:"Debts",exp_sec_future:"Future expenses",exp_sec_assets:"Net Worth" });
@@ -12012,9 +12084,19 @@ Object.assign(I18N.fr,{ home_nosave:"Rien n'a encore été épargné, investi ou
 Object.assign(I18N.pt,{ home_nosave:"Nada foi poupado, investido ou reservado este mês ainda.",sync_tab_settings:"Configurações",sync_tab_data:"Dados e relatórios",sound_adv:"Sons de alarme e toques",nudge_adv:"Som do lembrete",tx_show_more:"Mostrar mais",opening_group_title:"Saldos iniciais (já poupados antes do acompanhamento)",open_invest_lbl:"Investimento",open_save_lbl:"Poupança",open_emerg_lbl:"Fundo de emergência",goals_edit_in_budget:"Editar metas e saldos iniciais (Orçamento)",exp_one_title:"Ou exporte apenas uma seção",exp_sec_tx:"Transações",exp_sec_bills:"Contas",exp_sec_debts:"Dívidas",exp_sec_future:"Despesas futuras",exp_sec_assets:"Patrimônio líquido",analytics_nav:"Análises",tx:"Transações",nav_plan:"Plano",nav_more:"Mais",more_account:"Conta" });
 Object.assign(I18N.ru,{ home_nosave:"В этом месяце вы ещё ничего не отложили и не инвестировали.",sync_tab_settings:"Настройки",sync_tab_data:"Данные и отчёты",sound_adv:"Звуки будильника и рингтоны",nudge_adv:"Звук напоминания",tx_show_more:"Показать ещё",opening_group_title:"Начальные остатки (накоплено до начала учёта)",open_invest_lbl:"Инвестиции",open_save_lbl:"Сбережения",open_emerg_lbl:"Резервный фонд",goals_edit_in_budget:"Изменить цели и начальные остатки (Бюджет)",exp_one_title:"Или экспортируйте только один раздел",exp_sec_tx:"Операции",exp_sec_bills:"Счета",exp_sec_debts:"Долги",exp_sec_future:"Будущие расходы",exp_sec_assets:"Чистый капитал",analytics_nav:"Аналитика",nav_plan:"План",nav_more:"Ещё",more_account:"Аккаунт" });
 Object.assign(I18N.zh,{ home_nosave:"本月尚未储蓄、投资或预留任何金额。",sync_tab_settings:"设置",sync_tab_data:"数据与报表",sound_adv:"闹钟声音与铃声",nudge_adv:"提醒声音",tx_show_more:"显示更多",opening_group_title:"期初余额（开始记账前已有）",open_invest_lbl:"投资",open_save_lbl:"储蓄",open_emerg_lbl:"应急基金",goals_edit_in_budget:"修改目标与期初余额（预算）",exp_one_title:"或只导出一个部分",exp_sec_tx:"交易",exp_sec_bills:"账单",exp_sec_debts:"债务",exp_sec_future:"未来支出",exp_sec_assets:"净资产",analytics_nav:"分析",nav_plan:"计划",nav_more:"更多",more_account:"账户" });
+Object.assign(I18N.en,{ upd_title:"App version",upd_check:"Check for update",upd_checking:"Checking…",upd_current:"Current version",upd_last:"Last checked",upd_latest:"You're on the latest version.",upd_ready:"A new version is ready.",upd_offline:"No internet. Try again later.",upd_error:"Couldn't check right now. Try again.",upd_refresh:"Refresh" });
+Object.assign(I18N.bn,{ upd_title:"অ্যাপ ভার্সন",upd_check:"আপডেট আছে কিনা দেখুন",upd_checking:"দেখা হচ্ছে…",upd_current:"বর্তমান ভার্সন",upd_last:"সর্বশেষ চেক",upd_latest:"আপনি সর্বশেষ ভার্সনেই আছেন।",upd_ready:"নতুন ভার্সন প্রস্তুত।",upd_offline:"ইন্টারনেট নেই। পরে আবার চেষ্টা করুন।",upd_error:"এখন চেক করা যায়নি। আবার চেষ্টা করুন।",upd_refresh:"রিফ্রেশ" });
+Object.assign(I18N.hi,{ upd_title:"ऐप वर्ज़न",upd_check:"अपडेट जाँचें",upd_checking:"जाँच रहे हैं…",upd_current:"मौजूदा वर्ज़न",upd_last:"आख़िरी जाँच",upd_latest:"आप नवीनतम वर्ज़न पर हैं।",upd_ready:"नया वर्ज़न तैयार है।",upd_offline:"इंटरनेट नहीं है। बाद में फिर कोशिश करें।",upd_error:"अभी जाँच नहीं हो सकी। फिर कोशिश करें।",upd_refresh:"रीफ़्रेश" });
+Object.assign(I18N.ur,{ upd_title:"ایپ ورژن",upd_check:"اپ ڈیٹ چیک کریں",upd_checking:"چیک کیا جا رہا ہے…",upd_current:"موجودہ ورژن",upd_last:"آخری بار چیک کیا",upd_latest:"آپ تازہ ترین ورژن پر ہیں۔",upd_ready:"نیا ورژن تیار ہے۔",upd_offline:"انٹرنیٹ نہیں ہے۔ بعد میں دوبارہ کوشش کریں۔",upd_error:"ابھی چیک نہیں ہو سکا۔ دوبارہ کوشش کریں۔",upd_refresh:"ریفریش" });
+Object.assign(I18N.ar,{ upd_title:"إصدار التطبيق",upd_check:"التحقق من التحديث",upd_checking:"جارٍ التحقق…",upd_current:"الإصدار الحالي",upd_last:"آخر تحقق",upd_latest:"أنت على أحدث إصدار.",upd_ready:"إصدار جديد جاهز.",upd_offline:"لا يوجد اتصال بالإنترنت. حاول لاحقًا.",upd_error:"تعذّر التحقق الآن. حاول مرة أخرى.",upd_refresh:"تحديث الصفحة" });
+Object.assign(I18N.es,{ upd_title:"Versión de la app",upd_check:"Buscar actualización",upd_checking:"Comprobando…",upd_current:"Versión actual",upd_last:"Última comprobación",upd_latest:"Tienes la última versión.",upd_ready:"Hay una versión nueva lista.",upd_offline:"Sin internet. Inténtalo más tarde.",upd_error:"No se pudo comprobar ahora. Inténtalo de nuevo.",upd_refresh:"Actualizar" });
+Object.assign(I18N.fr,{ upd_title:"Version de l'app",upd_check:"Rechercher une mise à jour",upd_checking:"Vérification…",upd_current:"Version actuelle",upd_last:"Dernière vérification",upd_latest:"Vous avez la dernière version.",upd_ready:"Une nouvelle version est prête.",upd_offline:"Pas d'internet. Réessayez plus tard.",upd_error:"Vérification impossible pour le moment. Réessayez.",upd_refresh:"Actualiser" });
+Object.assign(I18N.pt,{ upd_title:"Versão do app",upd_check:"Verificar atualização",upd_checking:"Verificando…",upd_current:"Versão atual",upd_last:"Última verificação",upd_latest:"Você está na versão mais recente.",upd_ready:"Uma nova versão está pronta.",upd_offline:"Sem internet. Tente mais tarde.",upd_error:"Não foi possível verificar agora. Tente novamente.",upd_refresh:"Atualizar" });
+Object.assign(I18N.ru,{ upd_title:"Версия приложения",upd_check:"Проверить обновление",upd_checking:"Проверка…",upd_current:"Текущая версия",upd_last:"Последняя проверка",upd_latest:"У вас последняя версия.",upd_ready:"Новая версия готова.",upd_offline:"Нет интернета. Попробуйте позже.",upd_error:"Сейчас проверить не удалось. Попробуйте снова.",upd_refresh:"Обновить" });
+Object.assign(I18N.zh,{ upd_title:"应用版本",upd_check:"检查更新",upd_checking:"正在检查…",upd_current:"当前版本",upd_last:"上次检查",upd_latest:"您已是最新版本。",upd_ready:"新版本已就绪。",upd_offline:"没有网络，请稍后再试。",upd_error:"暂时无法检查，请重试。",upd_refresh:"刷新" });
 Object.assign(I18N.bn,{ tx_show_more:"আরও দেখান",
   nav_plan:"পরিকল্পনা",nav_more:"আরও",more_account:"অ্যাকাউন্ট",
-  onb_limits_title:"ক্যাটাগরি সীমা (Budget-এর ভেতরে)",onb_calc_title:"আরও — লোন ও ডিপোজিট ক্যালকুলেটর",onb_sync_title:"আরও — অ্যাকাউন্ট ও ব্যাকআপ",
+  onb_limits_title:"ক্যাটাগরি সীমা (Budget-এর ভেতরে)",onb_calc_title:"আরও — লোন ও ডিপোজিট ক্যালকুলেটর",onb_sync_title:"আরও — সেটিংস",
   opening_group_title:"শুরুর ব্যালেন্স (ট্র্যাকিং শুরুর আগে জমানো)",open_invest_lbl:"বিনিয়োগ",open_save_lbl:"সঞ্চয়",open_emerg_lbl:"জরুরি তহবিল",
   goals_edit_in_budget:"টার্গেট ও শুরুর ব্যালেন্স বদলান (Budget)",
   exp_one_title:"অথবা শুধু একটি অংশ এক্সপোর্ট করুন",exp_sec_tx:"লেনদেন",exp_sec_bills:"বিল",exp_sec_debts:"ঋণ",exp_sec_future:"ভবিষ্যৎ খরচ",exp_sec_assets:"নিট সম্পদ" });
@@ -12293,6 +12375,48 @@ function plusMountSwitcher(){
   }
 }
 if(PLUS_ENABLED && PLUS_DEBUG_OVERRIDE) document.addEventListener("DOMContentLoaded",plusMountSwitcher);
+</script>
+<script>
+(function(){
+"use strict";
+Object.assign(I18N.en,{"fb_title":"Suggestions & reports","fb_sub":"Found a bug or have an idea? Tell us.","fb_type":"Type","fb_t_sug":"Suggestion","fb_t_bug":"Bug report","fb_t_other":"Other","fb_msg":"Your message","fb_info":"Include app info (version, language, device)","fb_send":"Send by email","fb_copy":"Copy message","fb_note":"Opens your email app with the message ready for the developer. Nothing is sent until you press Send. Your money data is never included.","fb_empty":"Please write a message first.","fb_copied":"Message copied."});
+Object.assign(I18N.bn,{"fb_title":"পরামর্শ ও রিপোর্ট","fb_sub":"কোনো বাগ পেয়েছেন বা নতুন আইডিয়া আছে? আমাদের জানান।","fb_type":"ধরন","fb_t_sug":"পরামর্শ","fb_t_bug":"বাগ রিপোর্ট","fb_t_other":"অন্যান্য","fb_msg":"আপনার বার্তা","fb_info":"অ্যাপের তথ্য যুক্ত করুন (ভার্সন, ভাষা, ডিভাইস)","fb_send":"ইমেইলে পাঠান","fb_copy":"বার্তা কপি করুন","fb_note":"আপনার ইমেইল অ্যাপ খুলবে, বার্তা ডেভেলপারের জন্য তৈরি থাকবে। আপনি Send চাপার আগে কিছুই পাঠানো হয় না। আপনার টাকা-পয়সার ডেটা কখনো যুক্ত হয় না।","fb_empty":"আগে একটি বার্তা লিখুন।","fb_copied":"বার্তা কপি হয়েছে।"});
+Object.assign(I18N.hi,{"fb_title":"सुझाव और रिपोर्ट","fb_sub":"कोई बग मिला या कोई आइडिया है? हमें बताइए।","fb_type":"प्रकार","fb_t_sug":"सुझाव","fb_t_bug":"बग रिपोर्ट","fb_t_other":"अन्य","fb_msg":"आपका संदेश","fb_info":"ऐप की जानकारी जोड़ें (वर्ज़न, भाषा, डिवाइस)","fb_send":"ईमेल से भेजें","fb_copy":"संदेश कॉपी करें","fb_note":"आपका ईमेल ऐप खुलेगा और संदेश डेवलपर के लिए तैयार होगा। आपके Send दबाने तक कुछ नहीं भेजा जाता। आपका पैसों का डेटा कभी शामिल नहीं होता।","fb_empty":"पहले एक संदेश लिखें।","fb_copied":"संदेश कॉपी हो गया।"});
+Object.assign(I18N.ur,{"fb_title":"تجاویز اور رپورٹس","fb_sub":"کوئی بگ ملا یا کوئی آئیڈیا ہے؟ ہمیں بتائیں۔","fb_type":"قسم","fb_t_sug":"تجویز","fb_t_bug":"بگ رپورٹ","fb_t_other":"دیگر","fb_msg":"آپ کا پیغام","fb_info":"ایپ کی معلومات شامل کریں (ورژن، زبان، ڈیوائس)","fb_send":"ای میل سے بھیجیں","fb_copy":"پیغام کاپی کریں","fb_note":"آپ کی ای میل ایپ کھلے گی اور پیغام ڈویلپر کے لیے تیار ہوگا۔ آپ کے Send دبانے تک کچھ نہیں بھیجا جاتا۔ آپ کا مالی ڈیٹا کبھی شامل نہیں ہوتا۔","fb_empty":"پہلے ایک پیغام لکھیں۔","fb_copied":"پیغام کاپی ہو گیا۔"});
+Object.assign(I18N.ar,{"fb_title":"الاقتراحات والتقارير","fb_sub":"هل وجدت خطأً أو لديك فكرة؟ أخبرنا.","fb_type":"النوع","fb_t_sug":"اقتراح","fb_t_bug":"تقرير خطأ","fb_t_other":"أخرى","fb_msg":"رسالتك","fb_info":"إرفاق معلومات التطبيق (الإصدار واللغة والجهاز)","fb_send":"إرسال عبر البريد","fb_copy":"نسخ الرسالة","fb_note":"سيفتح تطبيق البريد برسالة جاهزة للمطوّر. لا يُرسل شيء حتى تضغط إرسال. لا تُرفق بياناتك المالية أبدًا.","fb_empty":"اكتب رسالة أولًا.","fb_copied":"تم نسخ الرسالة."});
+Object.assign(I18N.es,{"fb_title":"Sugerencias e informes","fb_sub":"¿Encontraste un error o tienes una idea? Cuéntanoslo.","fb_type":"Tipo","fb_t_sug":"Sugerencia","fb_t_bug":"Informe de error","fb_t_other":"Otro","fb_msg":"Tu mensaje","fb_info":"Incluir información de la app (versión, idioma, dispositivo)","fb_send":"Enviar por correo","fb_copy":"Copiar mensaje","fb_note":"Abre tu app de correo con el mensaje listo para el desarrollador. No se envía nada hasta que pulses Enviar. Tus datos de dinero nunca se incluyen.","fb_empty":"Escribe primero un mensaje.","fb_copied":"Mensaje copiado."});
+Object.assign(I18N.fr,{"fb_title":"Suggestions et signalements","fb_sub":"Un bug ou une idée ? Dites-le-nous.","fb_type":"Type","fb_t_sug":"Suggestion","fb_t_bug":"Signalement de bug","fb_t_other":"Autre","fb_msg":"Votre message","fb_info":"Inclure les infos de l'app (version, langue, appareil)","fb_send":"Envoyer par e-mail","fb_copy":"Copier le message","fb_note":"Ouvre votre application e-mail avec le message prêt pour le développeur. Rien n'est envoyé tant que vous n'appuyez pas sur Envoyer. Vos données financières ne sont jamais incluses.","fb_empty":"Écrivez d'abord un message.","fb_copied":"Message copié."});
+Object.assign(I18N.pt,{"fb_title":"Sugestões e relatórios","fb_sub":"Encontrou um erro ou tem uma ideia? Conte para nós.","fb_type":"Tipo","fb_t_sug":"Sugestão","fb_t_bug":"Relatório de erro","fb_t_other":"Outro","fb_msg":"Sua mensagem","fb_info":"Incluir informações do app (versão, idioma, dispositivo)","fb_send":"Enviar por e-mail","fb_copy":"Copiar mensagem","fb_note":"Abre seu app de e-mail com a mensagem pronta para o desenvolvedor. Nada é enviado até você tocar em Enviar. Seus dados financeiros nunca são incluídos.","fb_empty":"Escreva uma mensagem primeiro.","fb_copied":"Mensagem copiada."});
+Object.assign(I18N.ru,{"fb_title":"Предложения и сообщения","fb_sub":"Нашли ошибку или есть идея? Расскажите нам.","fb_type":"Тип","fb_t_sug":"Предложение","fb_t_bug":"Сообщение об ошибке","fb_t_other":"Другое","fb_msg":"Ваше сообщение","fb_info":"Добавить сведения о приложении (версия, язык, устройство)","fb_send":"Отправить по e-mail","fb_copy":"Скопировать сообщение","fb_note":"Откроется почтовое приложение с готовым сообщением для разработчика. Ничего не отправляется, пока вы не нажмёте «Отправить». Ваши финансовые данные никогда не включаются.","fb_empty":"Сначала напишите сообщение.","fb_copied":"Сообщение скопировано."});
+Object.assign(I18N.zh,{"fb_title":"建议与反馈","fb_sub":"发现问题或有想法？告诉我们。","fb_type":"类型","fb_t_sug":"建议","fb_t_bug":"问题报告","fb_t_other":"其他","fb_msg":"您的留言","fb_info":"附带应用信息（版本、语言、设备）","fb_send":"通过邮件发送","fb_copy":"复制内容","fb_note":"将打开您的邮件应用，并准备好发给开发者的内容。点击发送前不会发送任何内容。您的财务数据绝不会被包含。","fb_empty":"请先写点内容。","fb_copied":"已复制。"});
+const TO="dasjfak2@gmail.com";
+function compose(){
+  const msg=document.getElementById("fbMsg").value.trim();
+  if(!msg){ showToast(t("fb_empty")); return null; }
+  let v=""; try{ v=APP_VERSION; }catch(e){}
+  const label={suggestion:"Suggestion",bug:"Bug report",other:"Other"}[document.getElementById("fbType").value]||"Other";
+  let body=msg;
+  if(document.getElementById("fbInfo").checked) body+="\n\n--\nApp: FexaFY "+v+"\nLanguage: "+(currentLang()||"en")+"\nDevice: "+navigator.userAgent+"\nScreen: "+screen.width+"x"+screen.height;
+  return {subject:"[FexaFY "+v+"] "+label, body:body};
+}
+window.fxFbSend=function(){
+  const m=compose(); if(!m) return;
+  const a=document.createElement("a");
+  a.href="mailto:"+TO+"?subject="+encodeURIComponent(m.subject)+"&body="+encodeURIComponent(m.body);
+  document.body.appendChild(a); a.click(); a.remove();
+};
+window.fxFbCopy=function(){
+  const m=compose(); if(!m) return;
+  const txt=m.subject+"\n\n"+m.body, ok=function(){ showToast(t("fb_copied")); };
+  function fallback(){
+    const ta=document.createElement("textarea"); ta.value=txt; ta.style.cssText="position:fixed;opacity:0";
+    document.body.appendChild(ta); ta.select();
+    try{ document.execCommand("copy"); ok(); }catch(e){}
+    ta.remove();
+  }
+  if(navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(ok,fallback); else fallback();
+};
+})();
 </script>
 </body>
 </html>

@@ -1,0 +1,7 @@
+v129 - "Check for update" + reliable updates
+1. Settings -> new "App version" card: shows the current version, last-checked time and a "Check for update" button. It asks the server for a newer version, installs it, then shows "A new version is ready" with a Refresh button (or "You're on the latest version" / "No internet" / "Couldn't check"). Translated into all 10 languages. User data is never touched.
+2. The top-bar refresh button now looks for a newer version first, so ONE tap updates (before: it took two reloads).
+3. sw.js installs with cache:"reload": a new version can no longer install a stale index.html from the browser's HTTP cache (GitHub Pages caches 10 minutes). Proven: with the old sw.js the same test fails 3 checks.
+4. The "new version ready" banner is translated.
+Test: v129_test.mjs (real HTTP server + real service worker, ships v901/v902 live) + all earlier suites.
+NOTE: a phone still on v117 has no button yet - update it once the old way (open link, wait, refresh twice).

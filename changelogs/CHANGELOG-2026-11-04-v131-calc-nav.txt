@@ -1,0 +1,6 @@
+v131 — Calculator navigation (2026-11-04)
+- Calculator page: back arrow (top-left of the title) returns to More.
+- More: "Calc" heading is now "Calculators" (all 10 languages).
+- Calculator page: "Other calculators" list under the open calculator, so you can switch without going back. Same country rules as More (Zakat, tax, Gulf EOSB follow the same visibility).
+- No data/schema change. sw.js APP_VERSION = v131.
+Tests: tools/v131_test.mjs (mobile+desktop, 10 languages, RTL) + full regression; v130 test updated for the version string.

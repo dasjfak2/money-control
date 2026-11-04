@@ -1817,6 +1817,11 @@ html[lang="bn"] .screen:not(.fx-theme) .card h3{letter-spacing:0;text-transform:
 .fx-more-calc .calc-nav-item.hidden{display:none !important}
 .fx-more-row{display:flex;width:100%;align-items:center;justify-content:space-between;gap:10px;background:none;border:0;border-top:1px solid var(--line);padding:14px 2px;font:inherit;font-size:15px;font-weight:600;color:var(--ink);text-align:start;cursor:pointer}
 #calculators #calcModeRow{display:none !important}
+.fx-titlebar{display:flex;align-items:center;gap:10px}
+.fx-titlebar h2{margin:0;min-width:0}
+.fx-back{flex:none;display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:50%;border:1px solid var(--line);background:transparent;color:var(--ink);cursor:pointer;padding:0}
+html[dir="rtl"] .fx-back svg{transform:scaleX(-1)}
+#calcOthers .calc-nav-item.active{display:none}
 .fx-more-row::after,.fx-more-calc .calc-nav-item::after{content:"\203A";opacity:.5;font-size:22px;line-height:1}
 html[dir="rtl"] .fx-more-row::after,html[dir="rtl"] .fx-more-calc .calc-nav-item::after{content:"\2039"}
 </style>
@@ -2441,7 +2446,7 @@ html[dir="rtl"] .fx-more-row::after,html[dir="rtl"] .fx-more-calc .calc-nav-item
 </section>
 
 <section id="calculators" class="screen fx-theme">
-  <h2 id="calcTitle">Loan Calculator</h2>
+  <div class="fx-titlebar"><button type="button" class="fx-back" aria-label="Back" onclick="goToScreen('more')"><span data-icon="chevron-left" data-icon-size="18"></span></button><h2 id="calcTitle">Loan Calculator</h2></div>
   <div class="fx-sub" id="calcSub"><span data-icon="calculator"></span><span data-i18n="calc_sub">Work out any loan's EMI, or see how a Fixed Deposit (FDR) or monthly DPS will grow — entirely on this device, nothing is sent anywhere.</span></div>
 
   <div class="fx-plan-strategy" id="calcModeRow">
@@ -2782,6 +2787,17 @@ html[dir="rtl"] .fx-more-row::after,html[dir="rtl"] .fx-more-calc .calc-nav-item
     </div>
   </div>
 
+  <div class="card fx-more-card" id="calcOthers">
+    <h3><span class="fx-ico"><span data-icon="calculator"></span></span><span data-i18n="calc_others">Other calculators</span></h3>
+    <div class="calc-nav-sub">
+<button type="button" class="fx-more-row calc-nav-item" data-calc="loan" onclick="openCalcFromNav('loan')"><span data-i18n="calc_tab_loan">Loan Calculator</span></button>
+<button type="button" class="fx-more-row calc-nav-item" data-calc="deposit" onclick="openCalcFromNav('deposit')"><span data-i18n="calc_tab_deposit">Deposit Calculator</span></button>
+<button type="button" class="fx-more-row calc-nav-item hidden" data-calc="tax" onclick="openCalcFromNav('tax')"><span data-i18n="calc_menu_tax">Income Tax Calculator</span></button>
+<button type="button" class="fx-more-row calc-nav-item hidden" data-calc="zakat" onclick="openCalcFromNav('zakat')"><span data-i18n="calc_tab_zakat">Zakat Calculator</span></button>
+<button type="button" class="fx-more-row calc-nav-item hidden" data-calc="taxUS" onclick="openCalcFromNav('taxUS')"><span data-i18n="calc_menu_taxus">US Income Tax Calculator</span></button>
+    </div>
+  </div>
+
   <div class="calc-note"><span data-icon="shield"></span><span data-i18n="calc_disclaimer">Estimates only, for planning purposes. Real bank products differ in exact compounding rules, day-count conventions, fees, early-encashment terms and current tax law — confirm the final numbers with your bank before deciding.</span></div>
 </section>
 
@@ -3108,7 +3124,7 @@ html[dir="rtl"] .fx-more-row::after,html[dir="rtl"] .fx-more-calc .calc-nav-item
 
 <script>
 const SENTRY_DSN = "https://accd3f87b3f615f44f3274b4045fa63d@o4512055606640640.ingest.de.sentry.io/4512055628726352"; 
-const APP_VERSION = "v130"; 
+const APP_VERSION = "v131"; 
 const CRASH_LOG_KEY = "mc_crashlog";
 function logCrashLocally(err, source){
   try{
@@ -3804,7 +3820,7 @@ function fmtDateTime(d){
   catch(e){ return new Date(d).toLocaleString(); }
 }
 const I18N={
-  en:{home:"Home",tx:"Tx",budget:"Budget",budget2:"Limits",bills:"Bills",goals:"Goals",debt:"Debt",future:"Future",net:"Net",analytics_nav:"Analytics",calc:"Calc",sync:"Sync",
+  en:{home:"Home",tx:"Tx",budget:"Budget",budget2:"Limits",bills:"Bills",goals:"Goals",debt:"Debt",future:"Future",net:"Net",analytics_nav:"Analytics",calc:"Calculators",sync:"Sync",
     dashboard_remaining:"Left to Spend",sto_title:"Storage on this device",sto_used:"{used} MB used of about 5 MB ({pct}%)",sto_tip:"Your data lives in this browser. Receipt photos take the most room. Back up regularly (Backup & Restore, above) \u2014 and if this fills up, shrink or delete old receipt photos.",sto_receipts:"{n} receipt photo(s) stored",sto_full_title:"Storage full \u2014 your latest changes are NOT saved on this device",sto_full_body:"Back up now so nothing is lost, then free space (Data & reports \u2192 Storage on this device).",sto_near_title:"Storage almost full ({used} of ~5 MB)",sto_near_body:"Back up now, and consider shrinking or deleting old receipt photos before it fills up.",sto_backup:"Back up now",sto_hide:"Hide",sto_dismiss:"Dismiss",sto_shrink:"Shrink receipt photos",sto_remove_old:"Remove receipt photos older than 1 year",sto_no_receipts:"No receipt photos stored.",sto_shrink_confirm:"Shrink {n} receipt photo(s)? They get smaller and slightly lower quality, and this cannot be undone. Tip: back up first.",sto_shrink_done:"Done. Freed about {mb} MB.",sto_shrink_none:"Photos are already small \u2014 nothing to shrink.",sto_remove_none:"No receipt photos older than 1 year.",sto_remove_confirm:"Delete {n} receipt photo(s) older than 1 year? The entries stay, only the photos are removed. This cannot be undone. Tip: back up first.",sto_remove_done:"Removed {n} receipt photo(s).",sto_working:"Working\u2026",reminders:"Reminders",tx_title:"Transactions",budget_title:"Budget Setup",budget2_title:"Category Budgets",
     bills_title:"Bill Reminder",goals_title:"Savings & Emergency Goals",debt_title:"Debt Freedom",future_title:"Future Expenses",
     net_title:"Net Worth",sync_title:"Account & Backup",income:"Income",expense:"Expense",investment:"Investment",
@@ -12386,6 +12402,16 @@ Object.assign(I18N.ur,{"fb_title":"تجاویز اور رپورٹس","fb_sub":"�
 Object.assign(I18N.ar,{"fb_title":"الاقتراحات والتقارير","fb_sub":"هل وجدت خطأً أو لديك فكرة؟ أخبرنا.","fb_type":"النوع","fb_t_sug":"اقتراح","fb_t_bug":"تقرير خطأ","fb_t_other":"أخرى","fb_msg":"رسالتك","fb_info":"إرفاق معلومات التطبيق (الإصدار واللغة والجهاز)","fb_send":"إرسال عبر البريد","fb_copy":"نسخ الرسالة","fb_note":"سيفتح تطبيق البريد برسالة جاهزة للمطوّر. لا يُرسل شيء حتى تضغط إرسال. لا تُرفق بياناتك المالية أبدًا.","fb_empty":"اكتب رسالة أولًا.","fb_copied":"تم نسخ الرسالة."});
 Object.assign(I18N.es,{"fb_title":"Sugerencias e informes","fb_sub":"¿Encontraste un error o tienes una idea? Cuéntanoslo.","fb_type":"Tipo","fb_t_sug":"Sugerencia","fb_t_bug":"Informe de error","fb_t_other":"Otro","fb_msg":"Tu mensaje","fb_info":"Incluir información de la app (versión, idioma, dispositivo)","fb_send":"Enviar por correo","fb_copy":"Copiar mensaje","fb_note":"Abre tu app de correo con el mensaje listo para el desarrollador. No se envía nada hasta que pulses Enviar. Tus datos de dinero nunca se incluyen.","fb_empty":"Escribe primero un mensaje.","fb_copied":"Mensaje copiado."});
 Object.assign(I18N.fr,{"fb_title":"Suggestions et signalements","fb_sub":"Un bug ou une idée ? Dites-le-nous.","fb_type":"Type","fb_t_sug":"Suggestion","fb_t_bug":"Signalement de bug","fb_t_other":"Autre","fb_msg":"Votre message","fb_info":"Inclure les infos de l'app (version, langue, appareil)","fb_send":"Envoyer par e-mail","fb_copy":"Copier le message","fb_note":"Ouvre votre application e-mail avec le message prêt pour le développeur. Rien n'est envoyé tant que vous n'appuyez pas sur Envoyer. Vos données financières ne sont jamais incluses.","fb_empty":"Écrivez d'abord un message.","fb_copied":"Message copié."});
+Object.assign(I18N.en,{"calc_others": "Other calculators"});
+Object.assign(I18N.bn,{"calc_others": "অন্যান্য ক্যালকুলেটর"});
+Object.assign(I18N.hi,{"calc_others": "अन्य कैलकुलेटर", "calc": "कैलकुलेटर"});
+Object.assign(I18N.ur,{"calc_others": "دیگر کیلکولیٹر", "calc": "کیلکولیٹر"});
+Object.assign(I18N.ar,{"calc_others": "حاسبات أخرى", "calc": "الحاسبات"});
+Object.assign(I18N.es,{"calc_others": "Otras calculadoras", "calc": "Calculadoras"});
+Object.assign(I18N.fr,{"calc_others": "Autres calculatrices", "calc": "Calculatrices"});
+Object.assign(I18N.pt,{"calc_others": "Outras calculadoras", "calc": "Calculadoras"});
+Object.assign(I18N.ru,{"calc_others": "Другие калькуляторы", "calc": "Калькуляторы"});
+Object.assign(I18N.zh,{"calc_others": "其他计算器", "calc": "计算器"});
 Object.assign(I18N.pt,{"fb_title":"Sugestões e relatórios","fb_sub":"Encontrou um erro ou tem uma ideia? Conte para nós.","fb_type":"Tipo","fb_t_sug":"Sugestão","fb_t_bug":"Relatório de erro","fb_t_other":"Outro","fb_msg":"Sua mensagem","fb_info":"Incluir informações do app (versão, idioma, dispositivo)","fb_send":"Enviar por e-mail","fb_copy":"Copiar mensagem","fb_note":"Abre seu app de e-mail com a mensagem pronta para o desenvolvedor. Nada é enviado até você tocar em Enviar. Seus dados financeiros nunca são incluídos.","fb_empty":"Escreva uma mensagem primeiro.","fb_copied":"Mensagem copiada."});
 Object.assign(I18N.ru,{"fb_title":"Предложения и сообщения","fb_sub":"Нашли ошибку или есть идея? Расскажите нам.","fb_type":"Тип","fb_t_sug":"Предложение","fb_t_bug":"Сообщение об ошибке","fb_t_other":"Другое","fb_msg":"Ваше сообщение","fb_info":"Добавить сведения о приложении (версия, язык, устройство)","fb_send":"Отправить по e-mail","fb_copy":"Скопировать сообщение","fb_note":"Откроется почтовое приложение с готовым сообщением для разработчика. Ничего не отправляется, пока вы не нажмёте «Отправить». Ваши финансовые данные никогда не включаются.","fb_empty":"Сначала напишите сообщение.","fb_copied":"Сообщение скопировано."});
 Object.assign(I18N.zh,{"fb_title":"建议与反馈","fb_sub":"发现问题或有想法？告诉我们。","fb_type":"类型","fb_t_sug":"建议","fb_t_bug":"问题报告","fb_t_other":"其他","fb_msg":"您的留言","fb_info":"附带应用信息（版本、语言、设备）","fb_send":"通过邮件发送","fb_copy":"复制内容","fb_note":"将打开您的邮件应用，并准备好发给开发者的内容。点击发送前不会发送任何内容。您的财务数据绝不会被包含。","fb_empty":"请先写点内容。","fb_copied":"已复制。"});

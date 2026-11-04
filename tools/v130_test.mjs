@@ -1,4 +1,4 @@
-// v130: More -> Settings / Data & reports / Suggestions & reports (the old Account & Backup screen split)
+// v131: More -> Settings / Data & reports / Suggestions & reports (the old Account & Backup screen split)
 import { chromium, devices } from 'playwright'; import path from 'path'; import fs from 'fs';
 const b=await chromium.launch({args:['--no-sandbox']});
 let f=0; const ok=(c,m)=>{console.log((c?'PASS ':'FAIL ')+m); if(!c)f++;};
@@ -14,7 +14,7 @@ const active=p=>p.evaluate(()=>document.querySelector('.screen.active').id);
 for(const [name,dev] of [['mobile',devices['Pixel 7']],['desktop',{viewport:{width:1280,height:800}}]]){
   console.log('== '+name);
   const p=await open(dev);
-  ok(await p.evaluate(()=>APP_VERSION)==='v130','version v130');
+  ok(await p.evaluate(()=>APP_VERSION)==='v131','version v131');
   await p.evaluate(()=>goToScreen('more'));
   ok(await p.evaluate(()=>['moreSetBtn','moreDataBtn','moreFbBtn'].every(i=>document.getElementById(i)&&document.getElementById(i).offsetParent!==null)&&!document.getElementById('moreAcctBtn')),'More shows 3 rows, old single row gone');
   ok(await p.evaluate(()=>!document.getElementById('fxSyncTabs')&&!document.getElementById('fxTabSet')&&!document.getElementById('fxTabData')),'in-page tab bar removed');
@@ -64,16 +64,16 @@ for(const [name,dev] of [['mobile',devices['Pixel 7']],['desktop',{viewport:{wid
   await p.evaluate(()=>fxFbSend());
   const href=await p.evaluate(()=>window.__mail[0]||''); const u=new URL(href); const body=decodeURIComponent(u.search.match(/body=([^&]*)/)[1]); const subj=decodeURIComponent(u.search.match(/subject=([^&]*)/)[1]);
   ok(href.startsWith('mailto:dasjfak2@gmail.com?'),'mailto goes to the public contact address');
-  ok(subj==='[FexaFY v130] Bug report','subject has version + type: '+subj);
+  ok(subj==='[FexaFY v131] Bug report','subject has version + type: '+subj);
   ok(body.startsWith('Crash when I add a bill & "quote" ünïcode ১২৩'),'message intact incl. & " unicode');
-  ok(/App: FexaFY v130/.test(body)&&/Language: en/.test(body)&&/Device: /.test(body)&&/Screen: \d+x\d+/.test(body),'app info appended');
+  ok(/App: FexaFY v131/.test(body)&&/Language: en/.test(body)&&/Device: /.test(body)&&/Screen: \d+x\d+/.test(body),'app info appended');
   ok(!/SECRETNAME|1234|opening|balance/i.test(href+body),'no money data / account names in the email');
   // info off
   await p.evaluate(()=>{ document.getElementById('fbInfo').checked=false; window.__mail=[]; fxFbSend(); });
   const body2=decodeURIComponent((await p.evaluate(()=>window.__mail[0])).match(/body=([^&]*)/)[1]);
   ok(body2==='Crash when I add a bill & "quote" ünïcode ১২৩','info unticked -> message only');
   await p.selectOption('#fbType','suggestion'); await p.evaluate(()=>{ window.__mail=[]; fxFbSend(); });
-  ok(/subject=%5BFexaFY%20v130%5D%20Suggestion/.test(await p.evaluate(()=>window.__mail[0])),'suggestion subject');
+  ok(/subject=%5BFexaFY%20v131%5D%20Suggestion/.test(await p.evaluate(()=>window.__mail[0])),'suggestion subject');
   // whitespace-only is empty
   await p.fill('#fbMsg','   \n  '); await p.evaluate(()=>{ window.__mail=[]; fxFbSend(); }); ok(await p.evaluate(()=>window.__mail.length===0),'whitespace-only counts as empty');
   // length cap
@@ -82,7 +82,7 @@ for(const [name,dev] of [['mobile',devices['Pixel 7']],['desktop',{viewport:{wid
   await p.fill('#fbMsg','copy me'); await p.evaluate(()=>{ document.getElementById('fbInfo').checked=true; });
   await p.evaluate(()=>fxFbCopy()); await p.waitForTimeout(300);
   const clip=await p.evaluate(()=>navigator.clipboard.readText());
-  ok(/^\[FexaFY v130\] Suggestion\n\ncopy me\n\n--\nApp: FexaFY v130/.test(clip),'Copy puts subject + message + info on the clipboard');
+  ok(/^\[FexaFY v131\] Suggestion\n\ncopy me\n\n--\nApp: FexaFY v131/.test(clip),'Copy puts subject + message + info on the clipboard');
   ok(await p.evaluate(()=>/copied/i.test(document.body.innerText)),'copied toast');
   // copy fallback when the clipboard API is unavailable
   await p.evaluate(()=>{ Object.defineProperty(navigator,'clipboard',{value:undefined,configurable:true}); window.__ec=0; const o=document.execCommand.bind(document); document.execCommand=function(c){ if(c==='copy'){ window.__ec++; return true;} return o.apply(document,arguments); }; fxFbCopy(); });

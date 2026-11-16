@@ -9,7 +9,7 @@
 // installed device — follows automatically. index.html listens for the
 // new service worker and shows a "new version ready, tap to refresh"
 // banner to the user automatically; nothing else to wire up.
-const APP_VERSION = "v131";
+const APP_VERSION = "v144";
 const CACHE = "money-control-" + APP_VERSION;
 // index.html is now the entire app (icons + manifest are inlined inside it),
 // so this is the whole precache list — one page to fetch and store offline.
@@ -21,6 +21,8 @@ const NOTIF_ICON = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAA
 // v121: Excel / PDF / OCR code lives in lib/*.js and loads on first use. They are cached best-effort
 // (a missing file must never block the app update), so Export / PDF / OCR keep working offline.
 const LIBS = ["./lib/xlsx.full.min.js", "./lib/jspdf.umd.min.js", "./lib/tesseract.min.js"];
+// v133: the app's typefaces are bundled (no Google Fonts request), cached the same best-effort way so the look is identical offline.
+const FONTS = ["./manifest.webmanifest", "./icons/icon-192.png", "./icons/icon-512.png", "./icons/icon-512-maskable.png", "./fonts/fraunces-latin.woff2", "./fonts/manrope-latin.woff2", "./fonts/manrope-latin-ext.woff2", "./fonts/manrope-cyrillic.woff2"];
 self.addEventListener("install", (e) => {
   e.waitUntil(
     caches.open(CACHE).then(async (c) => {
@@ -28,7 +30,7 @@ self.addEventListener("install", (e) => {
       // so a new version can't install an old index.html (GitHub Pages sends max-age=600).
       const fresh = (u) => new Request(u, { cache: "reload" });
       await Promise.all(ASSETS.map((u) => c.add(fresh(u))));
-      await Promise.allSettled(LIBS.map((u) => c.add(fresh(u))));
+      await Promise.allSettled(LIBS.concat(FONTS).map((u) => c.add(fresh(u))));
     })
   );
   self.skipWaiting();

@@ -1,0 +1,2 @@
+v136 — Category budget warning popup
+After you add a NEW expense, if that category's monthly limit (Budget > Category limits) is now at 90% or more, or has just been crossed, a small popup appears: "Budget almost used" (90%) / "Budget limit crossed". Once per category per month per level; resets every month. Not shown for edits, income, categories without a limit, entries dated in other months, or when Settings > "Budget exceeded alerts" is OFF. Texts in all 10 languages. No other screen, layout or feature changed.

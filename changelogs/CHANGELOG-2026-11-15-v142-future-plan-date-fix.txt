@@ -1,0 +1,2 @@
+v142 — Bug fix: Future "Smart monthly save plan" suggested absurd dates
+When the monthly budget left no money (or very little) for a future goal, the plan suggested a date thousands of years away (e.g. "Jul 23693") and the "Use ... ->" button would write it into the goal. Now, if nothing is left for a goal or the date would be more than 10 years away, no date is shown, the row explains that the budget leaves nothing/only about X per month for this goal, and the "Use" button is hidden. Normal cases (on track, or a reachable date within 10 years) are unchanged.

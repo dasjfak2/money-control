@@ -7,7 +7,7 @@ const act=p=>p.evaluate(()=>document.querySelector('.screen.active').id);
 const vis=(p,sel)=>p.evaluate(s=>[...document.querySelectorAll(s)].filter(e=>e.offsetParent!==null).map(e=>e.dataset.calc),sel);
 for(const [n,dev] of [['mobile',devices['Pixel 7']],['desktop',{viewport:{width:1280,height:800}}]]){
  console.log('== '+n); const p=await open(dev);
- ok(await p.evaluate(()=>APP_VERSION)==='v131','v131');
+ ok(/^v1[34]\d$/.test(await p.evaluate(()=>APP_VERSION)),'v131');
  await p.evaluate(()=>goToScreen('more'));
  ok(await p.evaluate(()=>document.querySelector('#more .fx-more-card h3').textContent.trim())==='Calculators','More header says Calculators (not Calc)');
  await p.click('#more .calc-nav-item[data-calc="loan"]');

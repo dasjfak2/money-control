@@ -1,0 +1,5 @@
+v138 — More built-in categories + "My categories"
+New built-in expense categories: Groceries, Mobile & Internet, Education, Insurance, Family & Kids, Subscriptions, Travel, Gifts & Donations. New built-in income categories: Bonus, Rent Income, Interest. All 22 original categories are unchanged and still present; built-ins can't be deleted.
+New "My categories" card (Plan > Budget): add your own expense or income category (1-24 letters/numbers, Bangla etc. OK, up to 20 per type, no duplicates). Your categories appear in Add expense/income, recurring entries and Category limits, work with budget warnings and Home reminders, and can be deleted with the x. Deleting removes it from the pickers and its limit; entries already saved under it keep their category name (editing such an entry keeps it too).
+Icons for the new built-ins; custom ones use the default icon. Voice quick-add recognises a few keywords for the new built-ins (existing matches unchanged). Stored in db.customCats (older backups migrate automatically).
+Not changed: the tax-calculator income autofill still counts only Salary, Business, Freelance, Investment Return, Gift, Other Income.

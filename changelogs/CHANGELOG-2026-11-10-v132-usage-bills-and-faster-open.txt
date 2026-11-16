@@ -1,0 +1,17 @@
+v132 — Usage bills + faster app open (2026-11-10)
+
+Bills
+- Bills already roll to the next month automatically (same day) once paid and the due date passes. The AMOUNT, however, stayed last month's figure, which is wrong for usage bills (electricity, gas, phone).
+- New optional checkbox on a bill: "Amount changes every month". For such bills:
+  * the next month's bill still appears automatically (nothing to add);
+  * its amount is shown as "≈ last amount" with an "Estimate" note until paid;
+  * tapping the tick asks for the ACTUAL amount, records it, and uses it as the next estimate;
+  * paying through an Expense entry also updates the estimate from the real expense.
+- Normal (fixed) bills behave exactly as before.
+- Editing a bill no longer drops its id and "last paid" history.
+
+Speed
+- Google Fonts stylesheet no longer blocks the first paint (loaded without blocking; fonts swap in when ready). Measured on a throttled phone with slow fonts: first paint 1776 ms -> ~170 ms.
+- Minimum splash time 550 ms -> 250 ms.
+
+Tests: tools/v132_test.mjs + full regression (unchanged vs v131; autofill 48 pre-existing).

@@ -172,7 +172,26 @@ function computeNextCheckAt(now, summary, notified) {
   return candidates.length ? Math.min(...candidates) : null;
 }
 
+/* ---- CORS (v144) ----
+   The app lives on a different origin (GitHub Pages) than this endpoint (Vercel), and it
+   sends JSON, so the browser first sends an OPTIONS "preflight". Without these headers the
+   browser blocks the request and the app only sees "Failed to fetch". Locked to the single
+   origin in PLUS_ALLOWED_ORIGIN (same env var entitlement.js already uses) -- no wildcard. */
+function cors(req, res) {
+  const allowed = process.env.PLUS_ALLOWED_ORIGIN;
+  const origin = req.headers.origin;
+  if (allowed && origin === allowed) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+    res.setHeader("Vary", "Origin");
+    res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+    res.setHeader("Access-Control-Max-Age", "600");
+  }
+}
+
 export default async function handler(req, res) {
+  cors(req, res);
+  if (req.method === "OPTIONS") return res.status(204).end();
   if (req.method !== "POST") {
     res.setHeader("Allow", "POST");
     return res.status(405).json({ error: "Method not allowed" });

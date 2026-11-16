@@ -1,0 +1,17 @@
+v144 — Background push delivery fix (2026-11-16)
+
+Cause found: push-backend/register.js sent no CORS headers and did not answer the browser's
+OPTIONS preflight. The app (GitHub Pages) and the push server (Vercel) are different origins,
+so the browser blocked the request -> "Failed to fetch" -> the device was never registered ->
+no push could ever be delivered. Proven in a real browser test (old file blocked, new file works).
+
+Server (register.js — must be redeployed to Vercel):
+- Answers the OPTIONS preflight and sends Access-Control-Allow-* headers for ONE origin only:
+  the value of the existing PLUS_ALLOWED_ORIGIN env var (no wildcard; no env var = no CORS).
+
+App (index.html, sw.js = v144):
+- Turning Background push on no longer says "enabled" when it did not work. It now checks the
+  server's answer, and on failure switches itself back OFF with the real reason
+  (permission blocked / push service unreachable / server unreachable / server error code).
+- Settings shows a small "Last sync OK / failed — reason · time" line while push is on.
+- No change when everything works. Automatic background syncs keep their existing retry/backoff.

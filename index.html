@@ -16,15 +16,14 @@ try {
 
 <meta name="referrer" content="strict-origin-when-cross-origin">
 
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://accounts.google.com https://browser.sentry-cdn.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://*.googleusercontent.com; connect-src 'self' https://www.googleapis.com https://oauth2.googleapis.com https://accounts.google.com https://fexa-fy-firebase.vercel.app https://o4512055606640640.ingest.de.sentry.io; frame-src https://accounts.google.com; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://accounts.google.com https://browser.sentry-cdn.com; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob: https://*.googleusercontent.com; connect-src 'self' https://www.googleapis.com https://oauth2.googleapis.com https://accounts.google.com https://fexa-fy-firebase.vercel.app https://o4512055606640640.ingest.de.sentry.io; frame-src https://accounts.google.com; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none';">
 <link rel="icon" id="iconLinkSvg" type="image/svg+xml">
 <link rel="icon" id="iconLink192" type="image/png" sizes="192x192">
 <link rel="icon" id="iconLink512" type="image/png" sizes="512x512">
 <link rel="apple-touch-icon" id="iconLinkApple">
-<link rel="manifest" id="manifestLink">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="preload" href="fonts/manrope-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/fraunces-latin.woff2" as="font" type="font/woff2" crossorigin>
 
 <script src="https://accounts.google.com/gsi/client" async defer onload="onGsiLoaded()"></script>
 <script>
@@ -50,31 +49,13 @@ window.__bootStart = Date.now();
   document.getElementById("iconLink192").href = ICONS.p192;
   document.getElementById("iconLink512").href = ICONS.p512;
   document.getElementById("iconLinkApple").href = ICONS.p192;
-
-  var manifest = {
-    name: "Personal Finance",
-    short_name: "Finance",
-    start_url: "./",
-    display: "standalone",
-    background_color: "#f7f3ea",
-    theme_color: "#2C1B3D",
-    description: "Offline money management and budget tracker",
-    icons: [
-      { src: ICONS.svg,   sizes: "any",     type: "image/svg+xml", purpose: "any" },
-      { src: ICONS.p192,  sizes: "192x192", type: "image/png",     purpose: "any" },
-      { src: ICONS.p512,  sizes: "512x512", type: "image/png",     purpose: "any" },
-      { src: ICONS.p512m, sizes: "512x512", type: "image/png",     purpose: "maskable" }
-    ],
-    shortcuts: [
-      { name: "Add Expense", short_name: "Add Expense", url: "./?quickadd=expense" },
-      { name: "Add Income",  short_name: "Add Income",  url: "./?quickadd=income" }
-    ]
-  };
-  var blob = new Blob([JSON.stringify(manifest)], { type: "application/manifest+json" });
-  document.getElementById("manifestLink").href = URL.createObjectURL(blob);
 })();
 </script>
 <style>
+@font-face{font-family:"Fraunces";font-style:normal;font-weight:100 900;font-display:swap;src:url(fonts/fraunces-latin.woff2) format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+@font-face{font-family:"Manrope";font-style:normal;font-weight:200 800;font-display:swap;src:url(fonts/manrope-cyrillic.woff2) format("woff2");unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116}
+@font-face{font-family:"Manrope";font-style:normal;font-weight:200 800;font-display:swap;src:url(fonts/manrope-latin-ext.woff2) format("woff2");unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
+@font-face{font-family:"Manrope";font-style:normal;font-weight:200 800;font-display:swap;src:url(fonts/manrope-latin.woff2) format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
 :root{
   --paper:#F4F0E6;
   --card:#FFFFFF;
@@ -994,6 +975,11 @@ button .navicon,.linktext .navicon{display:inline-flex;vertical-align:-4px;margi
 .legend-row{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #f5f2ec;font-size:12.5px}
 .legend-row:last-child{border-bottom:0}
 .legend-dot{width:10px;height:10px;border-radius:50%;flex:none}
+.cat-top-row{margin-top:12px}.cat-top-row .row{font-size:13px}.cat-top-row .budget-bar{margin-top:5px}
+.cat-top-name{display:flex;align-items:center;gap:6px}
+.fx-nw{cursor:pointer}.fx-nw-total{font-family:"Fraunces",serif;font-size:28px;font-weight:700;margin:4px 0 10px}
+.fx-nw-split{display:flex;gap:10px}.fx-nw-box{flex:1;padding:8px 10px;border-radius:12px}.fx-nw-box b{display:block}
+.fx-nw-a{background:rgba(31,122,92,.12)}.fx-nw-d{background:rgba(180,71,43,.12)}
 .legend-label{flex:1;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .legend-val{color:var(--ink-soft);font-weight:700;white-space:nowrap}
 .trend-label{font:600 9px "Manrope",sans-serif;fill:var(--ink-soft)}
@@ -1778,9 +1764,9 @@ html[lang="bn"] .screen:not(.fx-theme) .card h3{letter-spacing:0;text-transform:
 .plus-lock-card h3{margin:6px 0}
 .plus-lock-card .primary{margin-top:12px}
 .plus-badge{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:99px;background:rgba(217,164,65,.18);margin-left:6px}
-.plus-pop p{margin:8px 0}
+.plus-pop p,.bw-pop p{margin:8px 0}
 .plus-pop ul{margin:8px 0 12px 18px;padding:0}
-.plus-pop .row-btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.plus-pop .row-btns,.bw-pop .row-btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
 .fx-tabbar{display:none}
 @media(max-width:899px){
   .fx-tabbar{
@@ -1822,6 +1808,9 @@ html[lang="bn"] .screen:not(.fx-theme) .card h3{letter-spacing:0;text-transform:
 .fx-back{flex:none;display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:50%;border:1px solid var(--line);background:transparent;color:var(--ink);cursor:pointer;padding:0}
 html[dir="rtl"] .fx-back svg{transform:scaleX(-1)}
 #calcOthers .calc-nav-item.active{display:none}
+.plan-pill{margin-inline-start:auto;flex:none;font-size:11px;font-weight:700;padding:3px 10px;border-radius:99px;border:1px solid var(--line);color:var(--ink-soft);white-space:nowrap}
+.plan-pill.free{cursor:pointer}
+.plan-pill.plus{background:linear-gradient(135deg,#e9c46a,#d9a441);color:#2C1B3D;border-color:transparent}
 .fx-more-row::after,.fx-more-calc .calc-nav-item::after{content:"\203A";opacity:.5;font-size:22px;line-height:1}
 html[dir="rtl"] .fx-more-row::after,html[dir="rtl"] .fx-more-calc .calc-nav-item::after{content:"\2039"}
 </style>
@@ -2082,19 +2071,20 @@ html[dir="rtl"] .fx-more-row::after,html[dir="rtl"] .fx-more-calc .calc-nav-item
     </div>
   </div>
   <div class="card">
-    <h3>Spending by category</h3>
-    <div class="chart-row">
-      <div id="pieChartHolder"></div>
-      <div class="legend-col" id="pieLegendHolder"></div>
-    </div>
+    <div class="row"><h3 style="margin:0">Spending by category</h3><button type="button" class="fx-link-btn" onclick="fxOpenCats()">See all &rarr;</button></div>
+    <div id="catTopHolder"></div>
   </div>
   <div class="card">
-    <h3>Monthly spending trend</h3>
+    <div class="row"><h3 style="margin:0">Monthly spending trend</h3><button type="button" class="fx-link-btn" onclick="fxOpenTrend()">Details &rarr;</button></div>
     <div id="trendChartHolder"></div>
   </div>
-  <div class="card">
-    <div class="row"><b>Net worth</b><b id="netWorth">৳0</b></div>
-    <div class="muted">Assets − debts</div>
+  <div class="card fx-nw" role="button" tabindex="0" onclick="goToScreen('networth')" onkeydown="if(event.key==='Enter')goToScreen('networth')">
+    <div class="row"><b>Net worth</b><span class="fx-link-btn">Details &rarr;</span></div>
+    <div class="fx-nw-total" id="netWorth">৳0</div>
+    <div class="fx-nw-split">
+      <div class="fx-nw-box fx-nw-a"><span class="muted-small">Assets</span><b id="netWorthAssets">৳0</b></div>
+      <div class="fx-nw-box fx-nw-d"><span class="muted-small">Debts</span><b id="netWorthDebts">৳0</b></div>
+    </div>
   </div>
 </section>
 
@@ -2212,6 +2202,15 @@ html[dir="rtl"] .fx-more-row::after,html[dir="rtl"] .fx-more-calc .calc-nav-item
     <div class="muted-small" style="margin-bottom:10px">Leave a category at 0 to skip it — it won't show up in the comparison below.</div>
     <div id="categoryBudgetInputs" class="fx-cat-grid"></div>
     <button class="primary full" id="budget2SaveBtn" style="margin-top:14px" onclick="saveCategoryBudgets()">Save category budgets</button>
+  </div>
+
+  <div class="card form">
+    <h3><span class="fx-ico"><span data-icon="plus"></span></span>My categories</h3>
+    <div class="muted-small" style="margin-bottom:10px">Add your own expense or income category. Built-in ones can't be removed; yours can.</div>
+    <label>Type<select id="ccType"><option>Expense</option><option>Income</option></select></label>
+    <label>Name<input id="ccName" maxlength="24" placeholder="e.g. Pet care"></label>
+    <button type="button" class="primary full" onclick="addCustomCat()">Add category</button>
+    <div id="customCatList" style="margin-top:8px"></div>
   </div>
 
   <div class="card">
@@ -2382,7 +2381,7 @@ html[dir="rtl"] .fx-more-row::after,html[dir="rtl"] .fx-more-calc .calc-nav-item
       <div id="anTrendChart"></div>
     </div>
 
-    <div class="card">
+    <div class="card" id="anCatCard">
       <h3 data-i18n="analytics_where_money_goes">Spending by category</h3>
       <div class="muted" style="margin-bottom:10px" data-i18n="analytics_where_money_goes_sub">Everyday spending only — excludes savings, investment and debt/bill payments (shown above).</div>
       <div class="analytics-donut-row">
@@ -2822,7 +2821,7 @@ html[dir="rtl"] .fx-more-row::after,html[dir="rtl"] .fx-more-calc .calc-nav-item
 </section>
 
 <section id="sync" class="screen">
-  <h2 id="syncTitle" data-i18n="sync_tab_settings">Settings</h2>
+  <div class="fx-titlebar"><button type="button" class="fx-back" aria-label="Back" onclick="goToScreen('more')"><span data-icon="chevron-left" data-icon-size="18"></span></button><h2 id="syncTitle" data-i18n="sync_tab_settings">Settings</h2></div>
 
   <div id="fxSyncSet">
 
@@ -3065,7 +3064,7 @@ html[dir="rtl"] .fx-more-row::after,html[dir="rtl"] .fx-more-calc .calc-nav-item
 </section>
 
 <section id="feedback" class="screen">
-  <h2 data-i18n="fb_title">Suggestions &amp; reports</h2>
+  <div class="fx-titlebar"><button type="button" class="fx-back" aria-label="Back" onclick="goToScreen('more')"><span data-icon="chevron-left" data-icon-size="18"></span></button><h2 data-i18n="fb_title">Suggestions &amp; reports</h2></div>
   <div class="card">
     <div class="muted" data-i18n="fb_sub">Found a bug or have an idea? Tell us.</div>
     <div class="form">
@@ -3124,7 +3123,7 @@ html[dir="rtl"] .fx-more-row::after,html[dir="rtl"] .fx-more-calc .calc-nav-item
 
 <script>
 const SENTRY_DSN = "https://accd3f87b3f615f44f3274b4045fa63d@o4512055606640640.ingest.de.sentry.io/4512055628726352"; 
-const APP_VERSION = "v131"; 
+const APP_VERSION = "v144"; 
 const CRASH_LOG_KEY = "mc_crashlog";
 function logCrashLocally(err, source){
   try{
@@ -3211,7 +3210,7 @@ function buildPushSummary(){
 async function syncTruePush(subscribe, opts){
   opts = opts || {};
   if(!truePushConfigured()) return;
-  if(!("serviceWorker" in navigator) || !("PushManager" in window)) return;
+  if(!("serviceWorker" in navigator) || !("PushManager" in window)) return {ok:false,reason:"this browser doesn't support background push"};
   if(!opts.force && typeof navigator!=="undefined" && navigator.onLine===false) return;
   try{
     const reg = await navigator.serviceWorker.ready;
@@ -3236,16 +3235,26 @@ async function syncTruePush(subscribe, opts){
         plusToken: (typeof plusPushToken==="function") ? plusPushToken() : undefined 
       })
     });
+    if(!res.ok){ const he=new Error("push server answered "+res.status); he.pushStatus=res.status; throw he; }
     const out = await res.json().catch(()=>null);
     if(out && out.deviceId) localStorage.setItem("mc_push_device_id", out.deviceId);
     localStorage.removeItem("mc_push_fail_count");
     localStorage.removeItem("mc_push_last_fail_ts");
+    try{ localStorage.setItem("mc_push_status", JSON.stringify({ok:true,t:Date.now()})); }catch(_){}
+    return {ok:true};
   }catch(e){
     const failCount = (+localStorage.getItem("mc_push_fail_count")||0) + 1;
     localStorage.setItem("mc_push_fail_count", String(failCount));
     localStorage.setItem("mc_push_last_fail_ts", String(Date.now()));
     const online = typeof navigator!=="undefined" ? navigator.onLine : "unknown";
     logCrashLocally(e, `syncTruePush (online=${online}, consecutive failures=${failCount})`);
+    const reason = e && e.name==="NotAllowedError" ? "notification permission is blocked for this site"
+      : e && e.name==="AbortError" ? "the browser's push service couldn't be reached"
+      : e && e.pushStatus ? "the push server answered with an error ("+e.pushStatus+")"
+      : e && e.name==="TypeError" ? "couldn't reach the push server (offline or blocked)"
+      : "unexpected error";
+    try{ localStorage.setItem("mc_push_status", JSON.stringify({ok:false,t:Date.now(),reason})); }catch(_){}
+    return {ok:false,reason};
   }
 }
 
@@ -3257,8 +3266,12 @@ function renderTruePushBlock(){
     return;
   }
   const on = !!(db.settings && db.settings.notifTruePush);
+  let st=null; try{ st=JSON.parse(localStorage.getItem("mc_push_status")||"null"); }catch(_){}
+  const stLine = (on && st) ? `<div class="muted-small" id="truePushStatus"></div>` : "";
   el.innerHTML = `<div class="switchrow"><span>Background push (works even when fully closed)</span><label class="switch"><input type="checkbox" id="swTruePush" ${on?"checked":""} onchange="toggleTruePush(this.checked)"><span class="slider"></span></label></div>
-  <div class="muted-small">Sends bill names/amounts/due dates, a budget-over flag, and (if the daily reminder is on) its on/off state, your two reminder times, whether you've logged anything yet today, and your timezone offset — to your own backend so it can notify this device even when FexaFY isn't open. See Privacy Policy section 4.</div>`;
+  <div class="muted-small">Sends bill names/amounts/due dates, a budget-over flag, and (if the daily reminder is on) its on/off state, your two reminder times, whether you've logged anything yet today, and your timezone offset — to your own backend so it can notify this device even when FexaFY isn't open. See Privacy Policy section 4.</div>${stLine}`;
+  const stEl = document.getElementById("truePushStatus");
+  if(stEl) stEl.textContent = (st.ok ? "Last sync OK" : "Last sync failed — "+String(st.reason||"unknown")) + " · " + new Date(st.t).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"});
 }
 async function toggleTruePush(on){
   db.settings.notifTruePush = on;
@@ -3269,7 +3282,13 @@ async function toggleTruePush(on){
       if(p!=="granted"){ db.settings.notifTruePush=false; save(); renderTruePushBlock(); showToast("Notifications permission is needed for this."); return; }
     }
   }
-  await syncTruePush(on, {force:true});
+  const r = await syncTruePush(on, {force:true});
+  if(on && r && !r.ok){
+    db.settings.notifTruePush=false; save(); renderTruePushBlock();
+    showToast("Couldn't turn on background push: "+r.reason+".");
+    return;
+  }
+  renderTruePushBlock();
   showToast(on ? "Background push enabled." : "Background push disabled.");
 }
 function maybeSyncTruePush(){
@@ -3365,6 +3384,7 @@ async function decryptFromStorage(raw){
 function defaultDb(){
   return {
     setup:{configured:false,income:50000,invest:5000,savings:5000,emergency:100000,emergencyMonthly:2000,futureMonthly:0,categoryBudgets:{}},
+    customCats:{expense:[],income:[]},
     tx:[], bills:[], goals:{emergency:0,savings:0,investment:0}, debts:[], future:[], assets:[], snapshots:[],
     debtPlan:{budget:0,strategy:"avalanche"},
     accounts:[
@@ -3411,6 +3431,8 @@ function migrateDb(d){
   d.setup.emergencyMonthly = d.setup.emergencyMonthly || 0;
   d.setup.futureMonthly = d.setup.futureMonthly || 0;
   d.setup.categoryBudgets = d.setup.categoryBudgets || {};
+  d.customCats = d.customCats || {};
+  ["expense","income"].forEach(k=>{ d.customCats[k]=Array.isArray(d.customCats[k])?d.customCats[k].filter(x=>typeof x==="string"):[]; });
   d.celebrated = d.celebrated || {};
   d.goals = d.goals || {emergency:0,savings:0,investment:0};
   d.goals.investment = d.goals.investment || 0;
@@ -4495,7 +4517,21 @@ function reminders(){
   categoryAnomalyAlerts().forEach(a=>{
     list.push({level:"warn", text: a.category+t("anomaly_middle")+a.pctOver+t("anomaly_suffix")});
   });
+  if(db.settings.notifBudget){ 
+    const b=db.setup.categoryBudgets||{}, sp={};
+    db.tx.filter(x=>x.type==="Expense"&&monthKey(x.date)===thisMonth()).forEach(x=>{ sp[x.category]=(sp[x.category]||0)+ +x.amount; });
+    const over=Object.keys(b).filter(c=>+b[c]>0&&(sp[c]||0)>+b[c]).sort((x,y)=>(sp[y]-b[y])-(sp[x]-b[x]));
+    list=over.map(c=>({level:"danger",over:true,text:t("bw_rem_over").replace("{c}",c).replace("{n}",taka(sp[c]-b[c]))})).concat(list);
+  }
   return list;
+}
+let overRemOpen=false;
+function toggleOverRem(){ overRemOpen=!overRemOpen; renderReminderList(); }
+function renderReminderList(){
+  const rl=reminders(), ov=rl.filter(r=>r.over), row=r=>`<div class="reminder-item r-${r.level}"><span class="dot"></span>${escapeHtml(r.text)}</div>`;
+  document.getElementById("reminderList").innerHTML = rl.length
+    ? ov.slice(0,2).map(row).join("")+(ov.length>2 ? `<button type="button" class="fx-link-btn" onclick="toggleOverRem()">${overRemOpen?t("bw_less"):t("bw_more")+" ("+(ov.length-2)+")"}</button>`+(overRemOpen?ov.slice(2).map(row).join(""):"") : "")+rl.filter(r=>!r.over).map(row).join("")
+    : `<div class="muted">${ic('check',14)} No reminders right now — you're on track.</div>`;
 }
 
 function simpleHash(str){
@@ -5017,7 +5053,10 @@ function renderLockSettings(){
 }
 
 const CHART_PALETTE=["#2D5FA0","#B4472B","#C9932C","#1F7A5C","#8B5CF6","#0EA5E9","#D9A441","#6b5f75","#4a3160","#B9852B"];
-const EXPENSE_CATEGORIES=["Food","Transport","Rent/Housing","Utilities","Shopping","Health","Entertainment","Investment","Savings","Debt Payment","Credit Card Bill","Bill","Loan Payment","Emergency","Future","Other"];
+const BASE_EXPENSE_CATS=["Food","Groceries","Transport","Rent/Housing","Utilities","Mobile & Internet","Shopping","Health","Education","Insurance","Family & Kids","Entertainment","Subscriptions","Travel","Gifts & Donations","Investment","Savings","Debt Payment","Credit Card Bill","Bill","Loan Payment","Emergency","Future","Other"];
+const BASE_INCOME_CATS=["Salary","Business","Freelance","Bonus","Rent Income","Interest","Investment Return","Gift","Other Income"];
+const expenseCats=()=>BASE_EXPENSE_CATS.concat(db.customCats.expense);
+const incomeCats=()=>BASE_INCOME_CATS.concat(db.customCats.income);
 
 const CATEGORY_ICON_PATHS={
   "Food":'<path d="M6 13v8M3 3v4c0 1.1.9 2 3 2s3-.9 3-2V3M6 9V3"/><path d="M15 3c-2 2-2 6 0 9M18 3v18"/>',
@@ -5041,7 +5080,18 @@ const CATEGORY_ICON_PATHS={
   "Freelance":'<rect x="4" y="4" width="16" height="10" rx="1"/><path d="M2 18h20l-2-4H4z"/>',
   "Investment Return":'<path d="M3 17l5-5 4 4 7-8"/><path d="M15 8h4v4"/>',
   "Gift":'<rect x="4" y="9" width="16" height="11"/><line x1="12" y1="9" x2="12" y2="20"/><line x1="4" y1="13" x2="20" y2="13"/><path d="M8 9c0-2 1-4 4-4s4 2 4 4"/>',
-  "Other Income":'<rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="3"/>'
+  "Other Income":'<rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="3"/>',
+  "Groceries":'<path d="M5 9h14l-1.5 10h-11z"/><path d="M9 9l3-5 3 5"/>',
+  "Mobile & Internet":'<rect x="7" y="2" width="10" height="20" rx="2"/><line x1="11" y1="18" x2="13" y2="18"/>',
+  "Education":'<path d="M3 9l9-4 9 4-9 4z"/><path d="M7 11v5c0 1 2.2 2 5 2s5-1 5-2v-5"/>',
+  "Insurance":'<path d="M12 3l7 3v5c0 5-3 8-7 10-4-2-7-5-7-10V6z"/>',
+  "Family & Kids":'<circle cx="9" cy="8" r="3"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17" cy="9" r="2"/><path d="M17 14c2.2 0 4 1.8 4 4"/>',
+  "Subscriptions":'<path d="M17 2l3 3-3 3"/><path d="M4 11V9a4 4 0 014-4h12"/><path d="M7 22l-3-3 3-3"/><path d="M20 13v2a4 4 0 01-4 4H4"/>',
+  "Travel":'<path d="M2 16l20-8-8 20-3-8z"/>',
+  "Gifts & Donations":'<path d="M12 20s-7-4.5-7-10a4 4 0 017-2.5A4 4 0 0119 10c0 5.5-7 10-7 10z"/>',
+  "Bonus":'<path d="M12 3l2.6 5.6 6 .7-4.5 4.1 1.2 6L12 16.5l-5.3 2.9 1.2-6-4.5-4.1 6-.7z"/>',
+  "Rent Income":'<path d="M4 11l8-7 8 7"/><path d="M6 10v10h12V10"/><rect x="10" y="14" width="4" height="6"/>',
+  "Interest":'<line x1="19" y1="5" x2="5" y2="19"/><circle cx="7" cy="7" r="2"/><circle cx="17" cy="17" r="2"/>'
 };
 const CATEGORY_ICON_FALLBACK='<path d="M6 3h12v17l-2-1.5L14 20l-2-1.5L10 20l-2-1.5L6 20z"/><line x1="8" y1="8" x2="16" y2="8"/><line x1="8" y1="12" x2="16" y2="12"/>';
 function categoryIconHTML(cat){
@@ -5091,6 +5141,15 @@ function pieLegendHTML(data){
   const total=data.reduce((a,d)=>a+d.value,0)||1;
   return data.map((d,i)=>`<div class="legend-row"><span class="legend-dot" style="background:${CHART_PALETTE[i%CHART_PALETTE.length]}"></span><span class="legend-label">${escapeHtml(d.label)}</span><span class="legend-val">${taka(d.value)} · ${Math.round(d.value/total*100)}%</span></div>`).join("");
 }
+function catTopHTML(data){
+  if(!data.length) return '<div class="muted">Add some expenses to see the breakdown.</div>';
+  const total=data.reduce((a,d)=>a+d.value,0)||1, top=data.slice(0,4);
+  return top.map((d,i)=>{ const c=CHART_PALETTE[i%CHART_PALETTE.length];
+    return `<div class="cat-top-row"><div class="row"><span class="cat-top-name"><span class="legend-dot" style="background:${c}"></span>${escapeHtml(d.label)}</span><b>${taka(d.value)} · ${Math.round(d.value/total*100)}%</b></div><div class="budget-bar"><i style="width:${d.value/top[0].value*100}%;background:${c}"></i></div></div>`; }).join("")
+    + (data.length>4 ? `<button type="button" class="fx-link-btn" style="margin-top:8px" onclick="fxOpenCats()">+ ${data.length-4} more categories &rarr;</button>` : "");
+}
+function fxOpenTrend(){ goToScreen("analytics"); analyticsSetPeriod("6m"); }
+function fxOpenCats(){ goToScreen("analytics"); const c=document.getElementById("anCatCard"); if(c) c.scrollIntoView(); }
 
 const ANALYTICS_SET_ASIDE_CATS=["Savings","Investment","Emergency","Future"];
 const ANALYTICS_DEBT_CATS=["Credit Card Bill","Bill","Loan Payment","Debt Payment"];
@@ -5628,35 +5687,51 @@ function updateThemeToggleIcon(){
 
 function renderCategoryBudgetForm(){
   const el=document.getElementById("categoryBudgetInputs");
-  if(!el || el.dataset.built) return;
-  el.dataset.built="1";
-  el.innerHTML = EXPENSE_CATEGORIES.map(c=>{
-    const id="cb_"+c.replace(/[^a-zA-Z0-9]/g,"");
+  const sig=expenseCats().join("|");
+  if(!el || el.dataset.built===sig) return;
+  el.dataset.built=sig;
+  el.innerHTML = expenseCats().map((c,i)=>{
+    const id=i<BASE_EXPENSE_CATS.length ? "cb_"+c.replace(/[^a-zA-Z0-9]/g,"") : "cb_c"+i;
     return `<div class="fx-cat-item">
-      <label class="fx-cat-label" for="${id}">${categoryIconHTML(c)}${c}</label>
-      <input type="number" inputmode="decimal" id="${id}" data-cat="${c}" placeholder="0">
+      <label class="fx-cat-label" for="${id}">${categoryIconHTML(c)}${escapeHtml(c)}</label>
+      <input type="number" inputmode="decimal" id="${id}" data-cat="${escapeHtml(c)}" placeholder="0">
     </div>`;
   }).join("");
 }
 function fillCategoryBudgetForm(){
-  EXPENSE_CATEGORIES.forEach(c=>{
-    const id="cb_"+c.replace(/[^a-zA-Z0-9]/g,"");
-    const input=document.getElementById(id);
-    if(input) input.value = db.setup.categoryBudgets[c] || "";
-  });
+  document.querySelectorAll("#categoryBudgetInputs input[data-cat]").forEach(input=>{ input.value = db.setup.categoryBudgets[input.dataset.cat] || ""; });
 }
 function saveCategoryBudgets(){
   const budgets={};
-  EXPENSE_CATEGORIES.forEach(c=>{
-    const id="cb_"+c.replace(/[^a-zA-Z0-9]/g,"");
-    const input=document.getElementById(id);
-    const val=input? +input.value||0 : 0;
-    if(val>0) budgets[c]=val;
+  document.querySelectorAll("#categoryBudgetInputs input[data-cat]").forEach(input=>{
+    const val=+input.value||0;
+    if(val>0) budgets[input.dataset.cat]=val;
   });
   db.setup.categoryBudgets=budgets;
   save();
   renderBudgetVsActual();
   showToast("Category budgets saved.");
+}
+function renderCustomCatList(){
+  const el=document.getElementById("customCatList"); if(!el) return;
+  const rows=[["Expense",db.customCats.expense],["Income",db.customCats.income]].flatMap(([k,a])=>a.map(c=>[k,c]));
+  el.innerHTML = rows.length ? rows.map(([k,c])=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-top:1px solid var(--line)"><span>${escapeHtml(c)} <span class="muted-small">• ${k}</span></span><button type="button" class="fx-link-btn" style="width:auto;flex:none;min-height:0;padding:6px 8px" aria-label="Delete ${escapeHtml(c)}" onclick="deleteCustomCat('${k}',${(k==="Expense"?db.customCats.expense:db.customCats.income).indexOf(c)})">${ic("x",14)}</button></div>`).join("") : '<div class="muted-small">None yet.</div>';
+}
+function addCustomCat(){
+  const type=document.getElementById("ccType").value, inp=document.getElementById("ccName");
+  const name=inp.value.replace(/\s+/g," ").trim(), list=db.customCats[type.toLowerCase()];
+  if(!/^[\p{L}\p{N}][\p{L}\p{M}\p{N} .,\-_\/()+]{0,23}$/u.test(name) || name in {}) return showToast("Use 1-24 letters or numbers (no quotes or symbols like < > &).");
+  if(expenseCats().concat(incomeCats()).some(c=>c.toLowerCase()===name.toLowerCase())) return showToast("That category already exists.");
+  if(list.length>=20) return showToast("You can add up to 20 categories of each type.");
+  list.push(name); save(); inp.value="";
+  renderCustomCatList(); renderCategoryBudgetForm(); fillCategoryBudgetForm();
+  showToast(`Added "${name}". Pick it when you add a ${type.toLowerCase()}.`);
+}
+function deleteCustomCat(type,i){
+  const list=db.customCats[type.toLowerCase()], name=list[i]; if(name===undefined) return;
+  if(!confirm(`Delete "${name}"? Entries already saved under it keep this name.`)) return;
+  list.splice(i,1); if(type==="Expense") delete db.setup.categoryBudgets[name];
+  save(); renderCustomCatList(); renderCategoryBudgetForm(); fillCategoryBudgetForm(); renderBudgetVsActual();
 }
 function renderBudgetVsActual(){
   const el=document.getElementById("budgetVsActual");
@@ -5916,13 +5991,20 @@ const VOICE_EXPENSE_CATEGORY_KEYWORDS={
   "Entertainment":["movie","cinema","game","সিনেমা","মুভি"],
   "Credit Card Bill":["credit card bill","card bill","ক্রেডিট কার্ড বিল","কার্ড বিল"],
   "Bill":["utility bill","gas bill","electricity bill","বিল পরিশোধ"],
-  "Loan Payment":["loan payment","emi","installment","লোন পেমেন্ট","কিস্তি"]
+  "Loan Payment":["loan payment","emi","installment","লোন পেমেন্ট","কিস্তি"],
+  "Education":["tuition","school fee","course","coaching","স্কুল","কোচিং","টিউশন"],
+  "Insurance":["insurance","premium","বীমা"],
+  "Subscriptions":["netflix","spotify","subscription","সাবস্ক্রিপশন"],
+  "Mobile & Internet":["recharge","mobile data","রিচার্জ"],
+  "Gifts & Donations":["zakat","donation","charity","যাকাত","দান"],
+  "Travel":["flight","hotel","air ticket","ভ্রমণ"]
 };
 const VOICE_INCOME_CATEGORY_KEYWORDS={
   "Salary":["salary","বেতন"],
   "Business":["business","ব্যবসা"],
   "Freelance":["freelance","ফ্রিল্যান্স"],
-  "Gift":["gift","উপহার"]
+  "Gift":["gift","উপহার"],
+  "Bonus":["bonus","বোনাস"]
 };
 function detectVoiceCategory(text,type){
   const lower=text.toLowerCase();
@@ -6457,10 +6539,7 @@ function render(){
   animateNumber(document.getElementById("mFuture"),z.future);
   renderAnalytics();
 
-  let rl=reminders();
-  document.getElementById("reminderList").innerHTML = rl.length
-    ? rl.map(r=>`<div class="reminder-item r-${r.level}"><span class="dot"></span>${escapeHtml(r.text)}</div>`).join("")
-    : `<div class="muted">${ic('check',14)} No reminders right now — you're on track.</div>`;
+  renderReminderList();
 
   document.getElementById("ringInvest").innerHTML=ring(db.setup.invest?z.invest/db.setup.invest*100:0,"var(--invest)");
   document.getElementById("ringSavings").innerHTML=ring(db.setup.savings?z.savings/db.setup.savings*100:0,"var(--savings)");
@@ -6469,6 +6548,8 @@ function render(){
 
   const assets=db.assets.filter(x=>x.type=="Asset").reduce((a,x)=>a+ +x.amount,0), debts=db.assets.filter(x=>x.type=="Debt").reduce((a,x)=>a+ +x.amount,0);
   animateNumber(document.getElementById("netWorth"),assets-debts);
+  animateNumber(document.getElementById("netWorthAssets"),assets);
+  animateNumber(document.getElementById("netWorthDebts"),debts);
 
   document.getElementById("monthlyIncome").value=db.setup.income;
   document.getElementById("investmentBudget").value=db.setup.invest;
@@ -6508,10 +6589,9 @@ function render(){
   document.getElementById("futureReminder").textContent = z.future>=db.setup.futureMonthly && db.setup.futureMonthly ? "This month's future savings goal is reached." : `${taka(Math.max(0,db.setup.futureMonthly-z.future))} left to reach this month's goal.`;
 
   renderSmartTargets();
-  const cb=categoryBreakdown();
-  document.getElementById("pieChartHolder").innerHTML=pieChartSVG(cb);
-  document.getElementById("pieLegendHolder").innerHTML=pieLegendHTML(cb);
-  document.getElementById("trendChartHolder").innerHTML=trendChartSVG(monthlyTrend(6));
+  const cb=categoryBreakdown().filter(d=>!ANALYTICS_SET_ASIDE_CATS.includes(d.label)&&!ANALYTICS_DEBT_CATS.includes(d.label)); 
+  document.getElementById("catTopHolder").innerHTML=catTopHTML(cb);
+  document.getElementById("trendChartHolder").innerHTML=trendChartSVG(monthlyTrend(6),340,95);
   renderLockSettings();
   renderSettingsUI();
   applyI18n();
@@ -6528,6 +6608,7 @@ function render(){
 
   renderCategoryBudgetForm();
   fillCategoryBudgetForm();
+  renderCustomCatList();
   renderBudgetVsActual();
   updateThemeToggleIcon();
   updateIncomeEyeIcons();
@@ -7125,7 +7206,8 @@ function renderBills(){
     let cls=st=="PAID"?"tag good":st=="OVERDUE"?"tag danger":st=="DUE SOON"?"tag warn":"tag";
     return `<div class="item"><div class="row"><b>${escapeHtml(x.name)}</b><span class="${cls}">${st}</span></div>
       ${x.lastPaidDate?`<div class="row"><small class="muted">✓ Paid ${x.lastPaidDate}${x.lastPaidAmount?` • ${taka(x.lastPaidAmount)}`:''}</small></div>`:''}
-      <div class="row"><span class="muted">${x.due} • ${taka(x.amount)}</span>
+      ${x.est&&x.paid!="Yes"?`<div class="row"><small class="muted">Estimate (last bill) — enter the real amount when you pay</small></div>`:''}
+      <div class="row"><span class="muted">${x.due} • ${x.est&&x.paid!="Yes"?'≈ ':''}${taka(x.amount)}</span>
       <span class="item-actions">
         <button onclick="openBill(${i})" title="Edit">${ic('edit',15)}</button>
         <button onclick="toggleBill(${i})" title="${x.paid=='Yes'?'Mark unpaid':'Mark paid'}">${x.paid=="Yes"?ic('corner-up-left',15):ic('check',15)}</button>
@@ -7399,13 +7481,12 @@ function computeFuturePlan(){
     const allocated=Math.min(g.required,Math.max(0,leftover));
     leftover-=allocated;
     const shortfall=Math.max(0,g.required-allocated);
-    let status="ok",suggestedMonths=g.months,suggestedDate=g.date;
+    let status="ok",suggestedDate=g.date;
     if(shortfall>0.5 && g.remaining>0){
       status="behind";
-      const pace=Math.max(allocated,1);
-      suggestedMonths=Math.max(g.months,Math.ceil(g.remaining/pace));
-      const d=new Date(); d.setMonth(d.getMonth()+suggestedMonths);
-      suggestedDate=localDateStr(d);
+      const suggestedMonths=allocated>0 ? Math.max(g.months,Math.ceil(g.remaining/allocated)) : Infinity;
+      if(suggestedMonths>120) suggestedDate=null;
+      else { const d=new Date(); d.setMonth(d.getMonth()+suggestedMonths); suggestedDate=localDateStr(d); }
     }
     return {...g,allocated,shortfall,status,suggestedDate};
   });
@@ -7445,8 +7526,10 @@ function renderFuturePlan(){
       : `<span class="fx-badge over">Behind</span>`;
     const line = g.status==="ok"
       ? `Set aside ${taka(g.required)}/month to reach this by ${fmtMonthYear(g.date)}.`
-      : `Your current budget covers about ${taka(g.allocated)}/month here — at that pace you'd reach it around ${fmtMonthYear(g.suggestedDate)} instead of ${fmtMonthYear(g.date)}.`;
-    const actionBtn = g.status==="behind"
+      : !g.suggestedDate
+        ? `Your current budget leaves ${g.allocated>0?"only about "+taka(g.allocated)+"/month":"nothing"} for this goal — free up some money or choose a later date to make it reachable.`
+        : `Your current budget covers about ${taka(g.allocated)}/month here — at that pace you'd reach it around ${fmtMonthYear(g.suggestedDate)} instead of ${fmtMonthYear(g.date)}.`;
+    const actionBtn = g.status==="behind" && g.suggestedDate
       ? `<button class="fx-link-btn" onclick="applyFutureSuggestedDate(${g.idx},'${g.suggestedDate}')">Use ${fmtMonthYear(g.suggestedDate)} →</button>`
       : "";
     return `<div class="fx-plan-order-item">
@@ -7590,10 +7673,9 @@ function openTx(type, idx=null){
   const d = idx!==null ? db.tx[idx] : null;
   const isEdit = idx!==null;
   if(type==="Transfer") return openTransferTx(d, idx);
-  const categories = type=="Income"
-    ? ["Salary","Business","Freelance","Investment Return","Gift","Other Income"]
-    : ["Food","Transport","Rent/Housing","Utilities","Shopping","Health","Entertainment","Investment","Savings","Debt Payment","Credit Card Bill","Bill","Loan Payment","Emergency","Future","Other"];
-  const catOptions = categories.map(c=>`<option value="${c}" ${d&&d.category==c?'selected':''}>${c}</option>`).join('');
+  const categories = (type=="Income" ? incomeCats() : expenseCats()).slice();
+  if(d && d.category && !categories.includes(d.category)) categories.push(d.category); 
+  const catOptions = categories.map(c=>`<option value="${escapeHtml(c)}" ${d&&d.category==c?'selected':''}>${escapeHtml(c)}</option>`).join('');
   const acctOptions = db.accounts.map(a=>`<option value="${escapeHtml(a.id)}" ${(d?d.accountId:db.accounts[0].id)==a.id?'selected':''}>${escapeHtml(a.name)}</option>`).join('');
   const showLinkFields = type=="Expense" && !isEdit;
   const billLinkOptions = showLinkFields ? db.bills.map((b,i)=>
@@ -7693,6 +7775,7 @@ function payBillFromTx(billIdx, amount, paidDateStr){
   while(next<=todayStr){ next=addOneMonthClampDay(next); }
   b.due=next;
   b.paid="No";
+  if(b.varies){ b.amount=+amount||b.amount; b.est=true; }
   return b;
 }
 function payDebtFromTx(debtIdx, amount, paidDateStr){
@@ -7704,6 +7787,20 @@ function payDebtFromTx(debtIdx, amount, paidDateStr){
   dbt.lastPaidCycle=monthKey(paidDateStr);
   linkDebtsIntoAssets(db);
   return {name:dbt.name, prevCurrent, newCurrent:dbt.current};
+}
+[["en", "Budget almost used", "Budget limit crossed", "Only {n} left this month. You've used 90% of this category's budget.", "You're {n} over this category's budget this month."],["bn", "বাজেট প্রায় শেষ", "বাজেটের সীমা ছাড়িয়েছে", "এই মাসে আর মাত্র {n} বাকি। এই ক্যাটাগরির বাজেটের ৯০% খরচ হয়ে গেছে।", "এই মাসে এই ক্যাটাগরির বাজেটের চেয়ে {n} বেশি খরচ হয়েছে।"],["hi", "बजट लगभग खत्म", "बजट सीमा पार हो गई", "इस महीने सिर्फ़ {n} बचे हैं। इस श्रेणी का 90% बजट खर्च हो चुका है।", "इस महीने इस श्रेणी के बजट से {n} ज़्यादा खर्च हुआ है।"],["ur", "بجٹ تقریباً ختم", "بجٹ کی حد پار ہو گئی", "اس مہینے صرف {n} باقی ہیں۔ اس زمرے کا 90% بجٹ خرچ ہو چکا ہے۔", "اس مہینے اس زمرے کے بجٹ سے {n} زیادہ خرچ ہوا ہے۔"],["ar", "الميزانية شارفت على النفاد", "تم تجاوز حد الميزانية", "تبقّى {n} فقط هذا الشهر. استخدمت 90% من ميزانية هذه الفئة.", "تجاوزت ميزانية هذه الفئة بمقدار {n} هذا الشهر."],["es", "Presupuesto casi agotado", "Límite de presupuesto superado", "Solo quedan {n} este mes. Has usado el 90 % del presupuesto de esta categoría.", "Has superado el presupuesto de esta categoría en {n} este mes."],["fr", "Budget presque épuisé", "Limite de budget dépassée", "Il ne reste que {n} ce mois-ci. Vous avez utilisé 90 % du budget de cette catégorie.", "Vous avez dépassé le budget de cette catégorie de {n} ce mois-ci."],["pt", "Orçamento quase esgotado", "Limite do orçamento ultrapassado", "Restam apenas {n} este mês. Você usou 90% do orçamento desta categoria.", "Você ultrapassou o orçamento desta categoria em {n} este mês."],["ru", "Бюджет почти исчерпан", "Лимит бюджета превышен", "В этом месяце осталось только {n}. Использовано 90% бюджета этой категории.", "В этом месяце бюджет этой категории превышен на {n}."],["zh", "预算快用完了", "已超出预算上限", "本月仅剩 {n}。该类别预算已使用 90%。", "本月该类别已超出预算 {n}。"]].forEach(function(r){ Object.assign(I18N[r[0]],{bw_near:r[1],bw_over:r[2],bw_near_sub:r[3],bw_over_sub:r[4]}); });
+[["en", "{c} is {n} over budget", "More", "Show less"],["bn", "{c}: বাজেটের চেয়ে {n} বেশি খরচ হয়েছে", "আরও দেখুন", "কম দেখান"],["hi", "{c}: बजट से {n} ज़्यादा खर्च", "और देखें", "कम दिखाएँ"],["ur", "{c}: بجٹ سے {n} زیادہ خرچ", "مزید دیکھیں", "کم دکھائیں"],["ar", "{c}: تجاوزت الميزانية بمقدار {n}", "عرض المزيد", "عرض أقل"],["es", "{c}: {n} por encima del presupuesto", "Ver más", "Ver menos"],["fr", "{c} : {n} au-dessus du budget", "Voir plus", "Voir moins"],["pt", "{c}: {n} acima do orçamento", "Ver mais", "Ver menos"],["ru", "{c}: превышение бюджета на {n}", "Ещё", "Свернуть"],["zh", "{c}：超出预算 {n}", "查看更多", "收起"]].forEach(function(r){ Object.assign(I18N[r[0]],{bw_rem_over:r[1],bw_more:r[2],bw_less:r[3]}); });
+function budgetLimitWarn(cat,amount,date){
+  const budget=+((db.setup.categoryBudgets||{})[cat])||0, mk=thisMonth();
+  if(!db.settings.notifBudget || budget<=0 || !(amount>0) || monthKey(date)!==mk) return;
+  const spent=db.tx.filter(x=>x.type==="Expense"&&x.category===cat&&monthKey(x.date)===mk).reduce((a,x)=>a+ +x.amount,0), prev=spent-amount;
+  const lvl = spent>=budget&&prev<budget ? "over" : (spent>=budget*0.9&&spent<budget&&prev<budget*0.9 ? "near" : "");
+  if(!lvl) return;
+  const w=db.budgetWarned=(db.budgetWarned&&db.budgetWarned.m===mk)?db.budgetWarned:{m:mk,k:{}};
+  if(w.k[cat+"|"+lvl]) return;
+  w.k[cat+"|near"]=1; if(lvl==="over") w.k[cat+"|over"]=1; save();
+  const sub=lvl==="over" ? t("bw_over_sub").replace("{n}",taka(spent-budget)) : t("bw_near_sub").replace("{n}",taka(budget-spent));
+  modal(`<div class="bw-pop"><h3>${ic("alert",18)} ${t(lvl==="over"?"bw_over":"bw_near")}</h3><p><b>${escapeHtml(cat)}</b> \u2022 ${taka(spent)} / ${taka(budget)}</p><p>${sub}</p><div class="row-btns"><button type="button" class="primary" onclick="closeModal()">OK</button></div></div>`);
 }
 function addTx(type){
   const accountId=fAcct.value, amount=+fAmt.value||0;
@@ -7724,6 +7821,7 @@ function addTx(type){
   if(type==="Expense" && accountId==="borrow") showToast(`Added ${taka(amount)} to your Borrowed money debt.`);
   if(paidBill) showCelebration("Bill paid!",`${paidBill.name} • next due ${paidBill.due}`);
   if(paidDebt && paidDebt.newCurrent>0 && paidDebt.prevCurrent>paidDebt.newCurrent) showCelebration("Payment logged!",`${taka(paidDebt.prevCurrent-paidDebt.newCurrent)} paid toward ${paidDebt.name}`);
+  if(type==="Expense") budgetLimitWarn(category,amount,fDate.value);
 }
 function saveTx(idx){
   const t = db.tx[idx];
@@ -7853,10 +7951,9 @@ function openRecurring(idx=null){
   const r = idx!==null ? db.recurring[idx] : null;
   const isEdit = idx!==null;
   const type = r?r.type:"Expense";
-  const categories = type=="Income"
-    ? ["Salary","Business","Freelance","Investment Return","Gift","Other Income"]
-    : ["Food","Transport","Rent/Housing","Utilities","Shopping","Health","Entertainment","Investment","Savings","Debt Payment","Credit Card Bill","Bill","Loan Payment","Emergency","Future","Other"];
-  const catOptions = categories.map(c=>`<option value="${c}" ${r&&r.category==c?'selected':''}>${c}</option>`).join('');
+  const categories = (type=="Income" ? incomeCats() : expenseCats()).slice();
+  if(r && r.category && !categories.includes(r.category)) categories.push(r.category);
+  const catOptions = categories.map(c=>`<option value="${escapeHtml(c)}" ${r&&r.category==c?'selected':''}>${escapeHtml(c)}</option>`).join('');
   const acctOptions = db.accounts.map(a=>`<option value="${escapeHtml(a.id)}" ${(r?r.accountId:db.accounts[0].id)==a.id?'selected':''}>${escapeHtml(a.name)}</option>`).join('');
   modal(`<h3>${isEdit?'Edit':'Add'} recurring transaction</h3><div class="form">
     <label>Name<input id="rcName" placeholder="e.g. Rent, Netflix" value="${r?escapeHtml(r.name):''}"></label>
@@ -7942,6 +8039,7 @@ function advanceBillCycles(){
     if(advanced){
       b.due=localDateStr(d);
       b.paid="No";
+      if(b.varies) b.est=true; 
       changed=true;
     }
   });
@@ -9184,16 +9282,29 @@ function openBill(idx=null){
     <label>Bill name<input id="bName" value="${d?escapeHtml(d.name):''}"></label>
     <label>Due date<input id="bDue" type="date" value="${d?d.due:''}"></label>
     <label>Amount<input id="bAmt" type="number" inputmode="decimal" value="${d?d.amount:''}"></label>
+    <label style="display:flex;align-items:center;gap:8px;font-weight:500"><input id="bVar" type="checkbox" style="width:auto" ${d&&d.varies?'checked':''}> Amount changes every month (electricity, gas, phone…)</label>
     <button class="primary" onclick="${isEdit?`saveBill(${idx})`:`addBill()`}">${isEdit?'Update':'Save'}</button></div>`);
 }
-function addBill(){db.bills.push({name:bName.value,due:bDue.value,amount:+bAmt.value||0,paid:'No'});save();closeModal();render()}
-function saveBill(idx){db.bills[idx]={name:bName.value,due:bDue.value,amount:+bAmt.value||0,paid:db.bills[idx].paid};save();closeModal();render()}
+function addBill(){const b={name:bName.value,due:bDue.value,amount:+bAmt.value||0,paid:'No'}; if(bVar.checked) b.varies=true; db.bills.push(b);save();closeModal();render()}
+function saveBill(idx){const b=db.bills[idx]; Object.assign(b,{name:bName.value,due:bDue.value,amount:+bAmt.value||0}); if(bVar.checked) b.varies=true; else delete b.varies; delete b.est; save();closeModal();render()}
 function toggleBill(i){
   const b=db.bills[i];
+  if(b.varies && b.paid!=="Yes"){
+    modal(`<h3>${escapeHtml(b.name)}</h3><div class="form"><label>Actual bill amount<input id="bActual" type="number" inputmode="decimal" value="${+b.amount||''}"></label><button class="primary" onclick="confirmVaryBill(${i})">Mark paid</button></div>`);
+    return;
+  }
   const wasUnpaid=b.paid!=="Yes";
   b.paid=b.paid=="Yes"?"No":"Yes";
   save();render();
   if(wasUnpaid && b.paid==="Yes") showCelebration("Bill paid!",`${b.name} • ${taka(b.amount)}`);
+}
+
+function confirmVaryBill(i){
+  const b=db.bills[i], raw=bActual.value;
+  if(raw==="" || !(+raw>=0)){ showToast("Enter the bill amount."); return; }
+  b.amount=+raw; b.lastPaidAmount=+raw; b.lastPaidDate=localDateStr(); b.paid="Yes"; delete b.est;
+  save();closeModal();render();
+  showCelebration("Bill paid!",`${b.name} • ${taka(b.amount)}`);
 }
 
 function openDebt(idx=null){
@@ -9259,7 +9370,8 @@ function openAsset(idx=null){
   const isEdit = idx!==null;
   modal(`<h3>${isEdit?'Edit':'Add'} Asset / Debt</h3><div class="form">
     <label>Name<input id="aName" value="${d?escapeHtml(d.name):''}"></label>
-    <label>Type<select id="aType"><option ${d&&d.type=="Asset"?'selected':''}>Asset</option><option ${d&&d.type=="Debt"?'selected':''}>Debt</option></select></label>
+    <label>Type<select id="aType" onchange="document.getElementById('aDebtHint').style.display=this.value==='Debt'?'':'none'"><option ${d&&d.type=="Asset"?'selected':''}>Asset</option><option ${d&&d.type=="Debt"?'selected':''}>Debt</option></select></label>
+    <div class="muted-small" id="aDebtHint" style="display:${d&&d.type=="Debt"?'':'none'}">Paying off a loan? Add it in the Debt tab instead — it shows up here automatically. Use this only for debts you don't track there.</div>
     <label>Amount<input id="aAmt" type="number" value="${d?d.amount:''}"></label>
     <button class="primary" onclick="${isEdit?`saveAsset(${idx})`:`addAsset()`}">${isEdit?'Update':'Save'}</button></div>`);
 }
@@ -9330,7 +9442,6 @@ const PRIVACY_POLICY_HTML = `<div class="legalmodal"><div class="top"><h1>Privac
     <table>
       <tr><th>Service</th><th>Used for</th><th>What it receives</th></tr>
       <tr><td>Google Identity Services &amp; Google Drive API</td><td>"Sign in with Google" and backing up your data to your own private Drive app-data folder</td><td>Your Google account info (name, email) and your app data (only if you sign in — this is entirely optional, see "Continue without Google")</td></tr>
-      <tr><td>Google Fonts</td><td>Loading the app's typeface</td><td>Standard font-request data (e.g. your IP address, as with any web font request), no app data</td></tr>
       <tr><td>SheetJS (bundled with the app, not loaded from any third party)</td><td>Generating the "Export to Excel" file</td><td>Nothing — the library ships as part of the app itself, runs locally in your browser, and builds the file from data already on your device; no data is uploaded anywhere, and nothing is fetched from any outside server for this</td></tr>
       <tr><td>jsPDF (bundled with the app, not loaded from any third party)</td><td>Generating the one-click PDF report</td><td>Nothing — same as above, ships with the app, runs locally, no data leaves your device, nothing fetched from any outside server</td></tr>
       <tr><td>Your own Vercel + Upstash + cron-job.org backend <i>(only if you set this up yourself, and only if you also turn on the in-app "Background push" toggle)</i></td><td>Optional true background push notifications — lets a reminder reach you even when the app is fully closed. Described in <code>push-backend/SETUP.md</code></td><td>A device push-subscription (no account/email), and a small reminder summary: unpaid bill names, amounts and due dates, and whether this month is over budget. No transactions, balances, accounts, or profile data are included. This only ever reaches a Vercel project and Upstash database you create and control — never the app's original author.</td></tr>
@@ -9411,7 +9522,7 @@ const TERMS_HTML = `<div class="legalmodal"><h1>Terms &amp; Conditions — FexaF
 
   <div class="lcard">
     <h2>8. Third-party services</h2>
-    <p>Optional features rely on third-party services (Google Sign-In, Google Drive, Google Fonts, and CDN-hosted libraries for Excel/PDF export) — see the <a href="javascript:void(0)" onclick="showLegalDoc('privacy')">Privacy Policy</a> for what each one does. Your use of those optional features is also subject to that provider's own terms.</p>
+    <p>Optional features rely on third-party services (Google Sign-In and Google Drive; the typefaces and the Excel/PDF export libraries are bundled with the app) — see the <a href="javascript:void(0)" onclick="showLegalDoc('privacy')">Privacy Policy</a> for what each one does. Your use of those optional features is also subject to that provider's own terms.</p>
   </div>
 
   <div class="lcard">
@@ -10773,7 +10884,8 @@ function updateAccountUI(){
     el.innerHTML=`
       <div class="acct-row">
         ${currentUser.picture?`<img class="acct-avatar" src="${escapeHtml(currentUser.picture)}" referrerpolicy="no-referrer">`:`<div class="acct-avatar-fallback">${initial}</div>`}
-        <div><b style="display:block">${escapeHtml(currentUser.name)}</b><span class="muted">${escapeHtml(currentUser.email)}</span></div>
+        <div style="min-width:0"><b style="display:block">${escapeHtml(currentUser.name)}</b><span class="muted" style="overflow-wrap:anywhere">${escapeHtml(currentUser.email)}</span></div>
+        <span id="acctPlan"></span>
       </div>
       <div class="muted" id="syncStatus" style="margin-top:10px"></div>
       <div class="row" style="margin-top:12px;gap:8px">
@@ -10783,6 +10895,7 @@ function updateAccountUI(){
       </div>
       ${localStorage.getItem(DRIVE_ENC_STATE_KEY)?`<div class="row" style="margin-top:8px"><button class="linktext" onclick="forgotDrivePassword()">Forgot Drive backup password?</button></div>`:''}`;
     updateSyncStatus();
+    if(typeof plusRenderBadge==="function") plusRenderBadge();
     return;
   }
 
@@ -10792,7 +10905,8 @@ function updateAccountUI(){
     el.innerHTML=`
       <div class="acct-row">
         <div class="acct-avatar-fallback">${initial}</div>
-        <div><b style="display:block">${p.name||"Local account"}</b><span class="muted">${p.email||""}</span></div>
+        <div style="min-width:0"><b style="display:block">${p.name||"Local account"}</b><span class="muted" style="overflow-wrap:anywhere">${p.email||""}</span></div>
+        <span id="acctPlan"></span>
       </div>
       <div class="muted" style="margin-top:10px">Local login — data is saved on this device only. Download a backup regularly, or connect Google Drive for automatic cloud backup.</div>
       <div class="row" style="margin-top:12px;gap:8px">
@@ -10801,6 +10915,7 @@ function updateAccountUI(){
       <div class="row" style="margin-top:8px;gap:8px">
         <button class="iconbtn" style="width:auto;border-radius:10px;padding:0 14px" onclick="logoutLocal()">Sign out</button>
       </div>`;
+    if(typeof plusRenderBadge==="function") plusRenderBadge();
   }
 }
 
@@ -11020,7 +11135,7 @@ document.addEventListener("DOMContentLoaded",()=>{
 });
 
 function hideBootSkeleton(){
-  const MIN_SPLASH_MS=550;
+  const MIN_SPLASH_MS=250;
   const elapsed=Date.now()-(window.__bootStart||Date.now());
   const wait=Math.max(0,MIN_SPLASH_MS-elapsed);
   setTimeout(()=>{
@@ -12054,8 +12169,6 @@ function tidy(){
     const g=document.getElementById("fxHomeGoalsCard"); if(g) g.classList.toggle("hidden",none);
     const n=document.getElementById("fxHomeSaveNote");
     if(n){ n.classList.toggle("hidden",!none); const tx=document.getElementById("fxHomeSaveNoteText"); if(tx) tx.textContent=t("home_nosave"); }
-    const cb=categoryBreakdown(), h=document.getElementById("pieChartHolder");
-    if(h && Array.isArray(cb) && cb.length===1) h.innerHTML="";
   }catch(e){}
 }
 const _r=window.render;
@@ -12253,7 +12366,19 @@ function plusSignInFromPopup(){
   if(typeof connectGoogleBackupFromLocal==="function") connectGoogleBackupFromLocal();
 }
 
+[["en","Free","Free trial"],["bn","ফ্রি","ফ্রি ট্রায়াল"],["hi","फ्री","फ्री ट्रायल"],["ur","فری","فری ٹرائل"],["ar","مجاني","تجربة مجانية"],["es","Gratis","Prueba gratis"],["fr","Gratuit","Essai gratuit"],["pt","Grátis","Teste grátis"],["ru","Бесплатно","Пробный период"],["zh","免费","免费试用"]].forEach(function(r){ Object.assign(I18N[r[0]],{acct_plan_free:r[1],acct_plan_trial:r[2]}); });
+function plusRenderBadge(){
+  const el=document.getElementById("acctPlan");
+  if(!el) return;
+  const s=plusStatus();
+  if(s==="off"){ el.className=""; el.textContent=""; el.onclick=null; return; }
+  const plus=s==="plus";
+  el.className="plan-pill "+(plus?"plus":"free");
+  el.textContent=plus?"\u2726 Plus":t(s==="trial"?"acct_plan_trial":"acct_plan_free");
+  el.onclick=(s==="anon"||s==="expired")?function(){ plusShowPopup("calc"); }:null;
+}
 function plusApplyUI(){
+  plusRenderBadge();
   const scr=document.getElementById("calculators");
   if(!scr) return;
   const locked=!plusCan("calc");

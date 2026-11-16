@@ -1,0 +1,2 @@
+v141 — Home: compact "Monthly spending trend"
+The 6-month trend chart on Home is now about half as tall, and a "Details ->" link opens Analytics on its "6 Months" tab. Same data, labels and values; Analytics unchanged.

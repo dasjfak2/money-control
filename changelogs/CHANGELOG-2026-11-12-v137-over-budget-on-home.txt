@@ -1,0 +1,2 @@
+v137 — Over-budget categories stay on Home
+Any category whose spending this month is above its limit (Budget > Category limits) is shown in the Home "Reminders" card as a red line ("Food is ৳500 over budget"), biggest overspend first, until the month changes or the spending drops back under the limit. Home shows the top 2; a "More (n)" button shows the rest (and "Show less" hides them). 90%-used categories are NOT listed on Home (they only trigger the v136 popup). Follows Settings > "Budget exceeded alerts" (default ON). Texts in all 10 languages.

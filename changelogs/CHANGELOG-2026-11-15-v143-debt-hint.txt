@@ -1,0 +1,2 @@
+v143 — Net Worth "Add asset / debt": hint for loans
+When Type = Debt is chosen (or an existing manual debt is edited), a one-line hint appears: "Paying off a loan? Add it in the Debt tab instead — it shows up here automatically. Use this only for debts you don't track there." This avoids counting the same loan twice. Nothing else changed.

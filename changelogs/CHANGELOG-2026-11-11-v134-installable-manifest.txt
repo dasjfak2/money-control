@@ -1,0 +1,8 @@
+v134 — Chrome "Install app" fix (2026-11-11)
+Problem: Chrome on Android showed "This app cannot be installed" (only "Create shortcut").
+Cause (reproduced with Chrome's own installability check, also on v129): the web manifest was built at runtime as a blob: URL. (1) the page's Content-Security-Policy (default-src 'self') does not allow a blob manifest, so Chrome saw no manifest at all; (2) even with the CSP relaxed, a blob manifest cannot resolve start_url "./", so it is rejected ("start-url-not-valid").
+Fix: a real manifest.webmanifest file + icons/ (192, 512, maskable, svg) next to index.html; index.html links it; the runtime blob code is removed. CSP stays as strict as before.
+- Manifest name is now "FexaFY - Money Tracker" (short name FexaFY); shortcuts Add Expense / Add Income kept.
+- sw.js precaches the manifest and icons (best effort).
+Verified with Chrome's installability check at "/" and at a "/money-control/" sub-path (GitHub Pages layout): no errors. Upload manifest.webmanifest and icons/ together with index.html and sw.js.
+Tests: tools/v134_test.mjs + full regression (unchanged).

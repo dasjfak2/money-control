@@ -1,0 +1,8 @@
+v133 — Fonts bundled (2026-11-11)
+- Fraunces and Manrope are now served from the app itself (fonts/*.woff2, SIL Open Font License included) instead of Google Fonts.
+  * Same typefaces and weights (variable fonts, same unicode ranges), so the design is unchanged.
+  * No request to Google Fonts any more: no user IP sent to Google, nothing to declare for it, works offline with the exact same look.
+  * Cyrillic (Russian) loads only when needed. Content-Security-Policy no longer allows fonts.googleapis.com / fonts.gstatic.com.
+  * sw.js caches the 4 font files (best effort, never blocks an update).
+- Privacy Policy and Terms (in-app) no longer list Google Fonts.
+Tests: tools/v133_test.mjs (real HTTP + service worker: no Google request, fonts load, CSP clean, Russian on demand, offline reload keeps fonts) + full regression.

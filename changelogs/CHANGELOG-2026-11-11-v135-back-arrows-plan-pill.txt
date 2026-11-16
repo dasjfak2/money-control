@@ -1,0 +1,5 @@
+v135 — Back arrows on Account screens + plan pill (2026-11-11)
+- Settings, Data & reports and Suggestions & reports now have the same round back arrow as the calculators (top-left of the title) -> returns to More. RTL languages flip it.
+- Account card: a small plan pill at the right of the name: "Plus" (gold) / "Free trial" / "Free" (10 languages). While Plus is OFF (launch setting) nothing is shown. Tapping "Free" opens the Plus popup (sign in / what Plus gives); "Plus" and "Free trial" are display-only. Updates live when the status changes.
+- No data/schema change. sw.js APP_VERSION = v135.
+Tests: tools/v135_test.mjs (mobile+desktop, 10 languages, RTL, long name/email, all 4 statuses) + full regression.

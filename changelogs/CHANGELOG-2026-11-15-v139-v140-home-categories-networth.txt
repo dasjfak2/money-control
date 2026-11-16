@@ -1,0 +1,6 @@
+v139 — Home: compact "Spending by category" and richer Net worth card
+Spending by category (Home): the big pie + 11-row legend is replaced by the top 4 categories as coloured bars with amount and %. "See all ->" and "+ N more categories ->" open Analytics, scrolled to its "Spending by category" card. Fewer than 5 categories: no "more" link; nothing spent: the same friendly message as before.
+Net worth (Home): the card now shows the net worth, plus Assets and Debts boxes, and tapping it (or Enter on the keyboard) opens the Net Worth screen.
+No data, calculation or other screen changed. Light/dark and RTL checked.
+
+v140 — Home "Spending by category" now follows the same rule as Analytics: everyday spending only (Savings, Investment, Emergency, Future and debt/bill payments are left out), so the top categories and percentages on Home match the Analytics "Spending by category" card exactly.

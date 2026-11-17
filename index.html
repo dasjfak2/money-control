@@ -644,11 +644,12 @@ main{
   display:flex;flex-direction:column;
   overflow:hidden;
 }
-#modalBody{
+#modalBody,#lbBody{
   overflow:auto;
   padding:20px;
   padding-top:48px;
 }
+#lbBody{padding-top:24px}
 @keyframes sheetup{from{transform:translateY(30px);opacity:0}to{transform:none;opacity:1}}
 .modalbox h3{font-size:18px;margin-bottom:16px}
 .close{position:absolute;right:14px;top:12px;border:0;background:transparent;font-size:24px;color:var(--ink-soft);cursor:pointer;width:36px;height:36px;display:flex;align-items:center;justify-content:center;z-index:2}
@@ -863,10 +864,11 @@ main{
     max-height:90vh;
     margin:auto;
   }
-  #modalBody{
+  #modalBody,#lbBody{
     padding:24px;
     padding-top:48px;
   }
+  #lbBody{padding-top:24px}
 }
 @media(min-width:1200px){
   .nav{width:236px}
@@ -2094,6 +2096,7 @@ html[dir="rtl"] .fx-more-row::after,html[dir="rtl"] .fx-more-calc .calc-nav-item
   <div class="card">
     <div class="row"><h3 style="margin:0">Accounts</h3><button class="linktext" id="txAddAccountBtn" onclick="openAccount()">＋ Add account</button></div>
     <div id="acctStrip" class="acct-strip"></div>
+    <div id="acctHint" class="muted-small"></div>
   </div>
 
   <div class="card">
@@ -3123,7 +3126,7 @@ html[dir="rtl"] .fx-more-row::after,html[dir="rtl"] .fx-more-calc .calc-nav-item
 
 <script>
 const SENTRY_DSN = "https://accd3f87b3f615f44f3274b4045fa63d@o4512055606640640.ingest.de.sentry.io/4512055628726352"; 
-const APP_VERSION = "v144"; 
+const APP_VERSION = "v148"; 
 const CRASH_LOG_KEY = "mc_crashlog";
 function logCrashLocally(err, source){
   try{
@@ -3267,7 +3270,7 @@ function renderTruePushBlock(){
   }
   const on = !!(db.settings && db.settings.notifTruePush);
   let st=null; try{ st=JSON.parse(localStorage.getItem("mc_push_status")||"null"); }catch(_){}
-  const stLine = (on && st) ? `<div class="muted-small" id="truePushStatus"></div>` : "";
+  const stLine = (on && st) ? `<div class="muted-small" id="truePushStatus" style="margin-top:8px"></div>` : "";
   el.innerHTML = `<div class="switchrow"><span>Background push (works even when fully closed)</span><label class="switch"><input type="checkbox" id="swTruePush" ${on?"checked":""} onchange="toggleTruePush(this.checked)"><span class="slider"></span></label></div>
   <div class="muted-small">Sends bill names/amounts/due dates, a budget-over flag, and (if the daily reminder is on) its on/off state, your two reminder times, whether you've logged anything yet today, and your timezone offset — to your own backend so it can notify this device even when FexaFY isn't open. See Privacy Policy section 4.</div>${stLine}`;
   const stEl = document.getElementById("truePushStatus");
@@ -7737,8 +7740,10 @@ function addTransferTx(){
   if(from===to){ showToast("Pick two different accounts to transfer between."); return; }
   const amount=+fAmt.value||0;
   if(amount<=0){ showToast("Please enter an amount."); return; }
-  db.tx.push({date:fDate.value,type:"Transfer",fromAccountId:from,toAccountId:to,accountId:from,description:fDesc.value,amount,category:"Transfer"});
+  db.tx.push({date:fDate.value,type:"Transfer",fromAccountId:from,toAccountId:to,accountId:from,description:fDesc.value,amount,category:"Transfer",borrowSynced:true});
+  syncBorrowDebt(null,"Transfer",from,amount);
   save();closeModal();render();
+  if(from==="borrow") showToast(`Added ${taka(amount)} to your Borrowed money debt.`);
 }
 function saveTransferTx(idx){
   const from=fFromAcct.value, to=fToAcct.value;
@@ -7746,7 +7751,9 @@ function saveTransferTx(idx){
   const amount=+fAmt.value||0;
   if(amount<=0){ showToast("Please enter an amount."); return; }
   const t=db.tx[idx];
+  const before={type:t.type,fromAccountId:t.fromAccountId,amount:t.amount,borrowSynced:t.borrowSynced};
   t.date=fDate.value; t.fromAccountId=from; t.toAccountId=to; t.accountId=from; t.description=fDesc.value; t.amount=amount;
+  if(t.borrowSynced) syncBorrowDebt(before,"Transfer",from,amount); 
   save();closeModal();render();
 }
 function toggleTxLinkFields(){
@@ -7802,8 +7809,38 @@ function budgetLimitWarn(cat,amount,date){
   const sub=lvl==="over" ? t("bw_over_sub").replace("{n}",taka(spent-budget)) : t("bw_near_sub").replace("{n}",taka(budget-spent));
   modal(`<div class="bw-pop"><h3>${ic("alert",18)} ${t(lvl==="over"?"bw_over":"bw_near")}</h3><p><b>${escapeHtml(cat)}</b> \u2022 ${taka(spent)} / ${taka(budget)}</p><p>${sub}</p><div class="row-btns"><button type="button" class="primary" onclick="closeModal()">OK</button></div></div>`);
 }
+let lowBalOk=false, lowBalNeed=0;
+function lowBalancePrompt(accountId,amount){
+  const a=db.accounts.find(x=>x.id===accountId), srcs=db.accounts.filter(x=>x.id!==accountId);
+  if(!a || accountId==="borrow" || !(amount>0) || !srcs.length) return false;
+  const bal=accountBalance(accountId), need=Math.round((amount-bal)*100)/100;
+  if(need<=0.005) return false;
+  lowBalNeed=need;
+  const real=srcs.filter(x=>x.id!=="borrow"), pick=real.find(x=>accountBalance(x.id)>=need)||real.slice().sort((x,y)=>accountBalance(y.id)-accountBalance(x.id)).find(x=>accountBalance(x.id)>0)||srcs[0];
+  const opts=srcs.map(x=>`<option value="${escapeHtml(x.id)}" ${x.id===pick.id?"selected":""}>${escapeHtml(x.name)} — ${x.id==="borrow"?"adds to your Borrowed money debt":taka(accountBalance(x.id))}</option>`).join("");
+  let m=document.getElementById("lbModal");
+  if(!m){ m=document.createElement("div"); m.id="lbModal"; m.className="modal hidden"; m.innerHTML='<div class="modalbox"><div id="lbBody"></div></div>'; document.body.appendChild(m); }
+  document.getElementById("lbBody").innerHTML=`<div class="bw-pop"><h3>${ic("alert",18)} Not enough in ${escapeHtml(a.name)}</h3>
+    <p>${escapeHtml(a.name)} has ${taka(bal)}, but this expense is ${taka(amount)}. Move ${taka(need)} in from another account first?</p>
+    <div class="form"><label>Transfer from<select id="lbSrc">${opts}</select></label></div>
+    <div class="row-btns"><button type="button" class="primary" onclick="lowBalTransfer()">Transfer ${taka(need)} &amp; save</button><button type="button" class="filebtn" onclick="lowBalSkip()">Save without transfer</button><button type="button" class="linktext" onclick="lowBalClose()">Cancel</button></div></div>`;
+  m.classList.remove("hidden");
+  return true;
+}
+function lowBalClose(){ const m=document.getElementById("lbModal"); if(m) m.classList.add("hidden"); }
+function lowBalSkip(){ lowBalClose(); lowBalOk=true; addTx("Expense"); }
+function lowBalTransfer(){
+  const src=document.getElementById("lbSrc").value, to=fAcct.value;
+  if(!src || src===to || !(lowBalNeed>0)){ lowBalClose(); return; }
+  db.tx.push({date:fDate.value,type:"Transfer",fromAccountId:src,toAccountId:to,accountId:src,description:"Top-up for a low balance",amount:lowBalNeed,category:"Transfer",borrowSynced:true});
+  syncBorrowDebt(null,"Transfer",src,lowBalNeed);
+  lowBalClose(); lowBalOk=true; addTx("Expense");
+  if(src==="borrow") showToast(`Added ${taka(lowBalNeed)} to your Borrowed money debt.`);
+}
 function addTx(type){
   const accountId=fAcct.value, amount=+fAmt.value||0;
+  if(type==="Expense" && !lowBalOk && lowBalancePrompt(accountId,amount)) return;
+  lowBalOk=false;
   const category=fCat.value;
   db.tx.push({date:fDate.value,type,category,description:fDesc.value,amount,accountId,need:type=="Expense"?fNW.value:"",investment:type=="Expense"?fInv.value:"No",receipt:pendingReceiptData||null});
   syncBorrowDebt(null,type,accountId,amount);
@@ -7872,8 +7909,8 @@ function getOrCreateBorrowDebt(){
   return debt;
 }
 function syncBorrowDebt(oldTx,newType,newAccountId,newAmount){
-  const oldCounts = oldTx && oldTx.type==="Expense" && oldTx.accountId==="borrow";
-  const newCounts = newType==="Expense" && newAccountId==="borrow";
+  const oldCounts = oldTx && ((oldTx.type==="Expense" && oldTx.accountId==="borrow") || (oldTx.type==="Transfer" && oldTx.borrowSynced && oldTx.fromAccountId==="borrow"));
+  const newCounts = (newType==="Expense" || newType==="Transfer") && newAccountId==="borrow";
   const oldAmt = oldCounts ? (+oldTx.amount||0) : 0;
   const newAmt = newCounts ? (+newAmount||0) : 0;
   const delta = newAmt-oldAmt;
@@ -7945,6 +7982,14 @@ function renderAccounts(){
       <b>${escapeHtml(a.name)}</b>
       <span>${taka(accountBalance(a.id))}</span>
     </div>`).join('');
+  const hint=document.getElementById("acctHint"), neg=db.accounts.filter(a=>a.id!=="borrow"&&accountBalance(a.id)<-0.005);
+  if(hint) hint.innerHTML = neg.length ? `<div style="margin-top:8px">${escapeHtml(neg.map(a=>a.name).join(", "))} ${neg.length>1?"are":"is"} below zero. If you took money from another account (like your bank), add a Transfer. <button class="linktext" style="width:auto;min-height:0;padding:0" onclick="openLowBalTransfer()">Add transfer</button></div>` : "";
+}
+function openLowBalTransfer(){
+  const to=db.accounts.find(a=>a.id!=="borrow"&&accountBalance(a.id)<-0.005); if(!to) return;
+  const from=db.accounts.filter(a=>a.id!==to.id&&a.id!=="borrow").sort((x,y)=>accountBalance(y.id)-accountBalance(x.id))[0]||db.accounts.find(a=>a.id!==to.id);
+  if(!from) return;
+  openTransferTx({date:localDateStr(),fromAccountId:from.id,toAccountId:to.id,description:"",amount:Math.round(-accountBalance(to.id)*100)/100},null);
 }
 
 function openRecurring(idx=null){
@@ -9441,7 +9486,7 @@ const PRIVACY_POLICY_HTML = `<div class="legalmodal"><div class="top"><h1>Privac
     <p>The app is mostly offline. It only contacts the following outside services, and only for the specific features named below:</p>
     <table>
       <tr><th>Service</th><th>Used for</th><th>What it receives</th></tr>
-      <tr><td>Google Identity Services &amp; Google Drive API</td><td>"Sign in with Google" and backing up your data to your own private Drive app-data folder</td><td>Your Google account info (name, email) and your app data (only if you sign in — this is entirely optional, see "Continue without Google")</td></tr>
+      <tr><td>Google Identity Services &amp; Google Drive API</td><td>"Sign in with Google" and backing up your data to your own private Drive app-data folder</td><td>Your Google account info (name, email) and your app data (only if you sign in — this is entirely optional, see "Continue without Google"). To renew your Drive sign-in quietly in the background, a sign-in token travels from your phone through this app's own small sign-in helper to Google; the helper does not save or log it, and the long-term sign-in stays only on your device.</td></tr>
       <tr><td>SheetJS (bundled with the app, not loaded from any third party)</td><td>Generating the "Export to Excel" file</td><td>Nothing — the library ships as part of the app itself, runs locally in your browser, and builds the file from data already on your device; no data is uploaded anywhere, and nothing is fetched from any outside server for this</td></tr>
       <tr><td>jsPDF (bundled with the app, not loaded from any third party)</td><td>Generating the one-click PDF report</td><td>Nothing — same as above, ships with the app, runs locally, no data leaves your device, nothing fetched from any outside server</td></tr>
       <tr><td>Your own Vercel + Upstash + cron-job.org backend <i>(only if you set this up yourself, and only if you also turn on the in-app "Background push" toggle)</i></td><td>Optional true background push notifications — lets a reminder reach you even when the app is fully closed. Described in <code>push-backend/SETUP.md</code></td><td>A device push-subscription (no account/email), and a small reminder summary: unpaid bill names, amounts and due dates, and whether this month is over budget. No transactions, balances, accounts, or profile data are included. This only ever reaches a Vercel project and Upstash database you create and control — never the app's original author.</td></tr>
@@ -10244,6 +10289,7 @@ function initGoogleUI(fromUserGesture){
   }
   document.getElementById("setupStep").style.display="none";
   document.getElementById("signinStep").style.display="block";
+  if(gdEnabled()){ bindSignInButton(); return; } 
   if(!gsiReady || !window.google){
     showAuthError("Loading Google Sign-In… if this doesn't change in a few seconds, check your connection.");
     setTimeout(()=>initGoogleUI(false), 800); 
@@ -10280,7 +10326,8 @@ function setupTokenClient(){
 function bindSignInButton(){
   const btn=document.getElementById("googleSignInBtn");
   btn.onclick=()=>{
-    if(!tokenClient){ setupTokenClient(); }
+    if(gdEnabled()){ gdSignIn(true); return; }
+    if(!tokenClient){ try{ setupTokenClient(); }catch(e){} }
     try{ tokenClient.requestAccessToken({prompt:"consent"}); }
     catch(e){ showAuthError("Google Sign-In isn't ready yet — please wait a moment and try again."); }
   };
@@ -10337,6 +10384,7 @@ async function enterApp(){
   window.addEventListener("online",()=>{ updateSyncStatus(); processPendingSync(); });
   window.addEventListener("offline",()=>updateSyncStatus());
   await pullThenPush(true); 
+  setTimeout(gdMaybePrompt,6000);
 }
 
 async function enterGoogleAppFromCache(email){
@@ -10359,13 +10407,19 @@ async function enterGoogleAppFromCache(email){
   if(gsiReady && window.google){
     setupTokenClient();
     pullThenPush();
+  } else if(localStorage.getItem(GD_RT_KEY)){
+    pullThenPush(); 
   } else {
     updateSyncStatus();
   }
+  setTimeout(gdMaybePrompt,6000);
 }
 
 function signOut(){
   if(!confirm("Sign out? Your data stays saved on this device and in your Google Drive.")) return;
+  const rt=localStorage.getItem(GD_RT_KEY);
+  if(rt && gdEndpoint()){ try{ fetch(gdEndpoint(),{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"revoke",token:rt}),keepalive:true}).catch(()=>{}); }catch(e){} }
+  localStorage.removeItem(GD_RT_KEY); localStorage.removeItem(GD_STATE_KEY);
   accessToken=null; currentUser=null; driveFileId=null;
   localStorage.removeItem(LAST_ACCOUNT_KEY);
   location.reload();
@@ -10490,15 +10544,131 @@ function saveProfileEdit(){
 }
 
 function reconnectGoogleSync(){
+  if(gdEnabled()){ gdSignIn(false); return; }
   if(!gsiReady || !window.google){ showToast("Still loading Google Sign-In — please try again in a moment."); return; }
   setupTokenClient();
   try{ tokenClient.requestAccessToken({prompt:"consent"}); }
   catch(e){ showToast("Couldn't open the Google reconnect prompt. Please try again."); }
 }
 
+const GD_RT_KEY="mc_gd_rt", GD_STATE_KEY="mc_gd_state", GD_PROMPT_KEY="mc_gd_prompt", GD_MSG_KEY="fx_oauth_msg";
+const GD_SCOPE="email profile https://www.googleapis.com/auth/drive.appdata";
+let gdBrokerOff=false, gdRenewing=null;
+function gdEndpoint(){ return PUSH_ENDPOINT ? PUSH_ENDPOINT.replace(/register$/,"drive") : ""; }
+function gdEnabled(){ return !!(gdEndpoint() && googleClientId && window.crypto && crypto.subtle && !gdBrokerOff); }
+function gdGetState(){ try{ return JSON.parse(localStorage.getItem(GD_STATE_KEY)||"null"); }catch(e){ return null; } }
+function gdSetState(ok,reason){
+  const prev=gdGetState();
+  try{ localStorage.setItem(GD_STATE_KEY,JSON.stringify({ok,t:Date.now(),reason:reason||"",since:ok?0:((prev&&!prev.ok&&prev.since)||Date.now())})); }catch(e){}
+  gdRenderStatus();
+}
+function gdRenderStatus(){
+  const el=document.getElementById("gdStatus"); if(!el) return;
+  if(!gdEnabled()){ el.textContent=""; return; }
+  const st=gdGetState(), has=!!localStorage.getItem(GD_RT_KEY);
+  el.textContent = !has ? "Silent backup: off — tap Reconnect once to turn it on"
+    : (st&&!st.ok) ? "Silent backup: paused — "+String(st.reason||"unknown")
+    : "Silent backup: on";
+}
+async function gdPost(body){
+  const ac=new AbortController(), tm=setTimeout(()=>ac.abort(),8000);
+  try{
+    const r=await fetch(gdEndpoint(),{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body),signal:ac.signal});
+    let j=null; try{ j=await r.json(); }catch(e){}
+    return {ok:r.ok,status:r.status,json:j||{}};
+  } finally { clearTimeout(tm); }
+}
+function gdB64(bytes){ return btoa(String.fromCharCode.apply(null,bytes)).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,""); }
+function gdRand(n){ const a=new Uint8Array(n); crypto.getRandomValues(a); return gdB64(a); }
+async function gdChallenge(v){ return gdB64(new Uint8Array(await crypto.subtle.digest("SHA-256",new TextEncoder().encode(v)))); }
+function gdWait(state,popup){
+  return new Promise(resolve=>{
+    const t0=Date.now(); let closedAt=0;
+    const iv=setInterval(()=>{
+      let m=null; try{ m=JSON.parse(localStorage.getItem(GD_MSG_KEY)||"null"); }catch(e){}
+      if(m && m.state===state){ clearInterval(iv); try{ localStorage.removeItem(GD_MSG_KEY); }catch(e){} resolve(m); return; }
+      if(popup.closed && !closedAt) closedAt=Date.now();
+      if((closedAt && Date.now()-closedAt>1500) || Date.now()-t0>180000){ clearInterval(iv); resolve(null); }
+    },300);
+  });
+}
+async function gdSignIn(chooser){
+  const popup=window.open("about:blank","fxgd","width=480,height=680");
+  if(!popup){ showAuthError("Your browser blocked the Google sign-in window. Allow pop-ups for this site and try again."); return false; }
+  const reconnecting = loginType==="google" && !!currentUser;
+  try{
+    const verifier=gdRand(48), state=gdRand(24), redirect=new URL("oauth-callback.html",location.href).href;
+    try{ localStorage.removeItem(GD_MSG_KEY); }catch(e){}
+    const q=new URLSearchParams({client_id:googleClientId,redirect_uri:redirect,response_type:"code",scope:GD_SCOPE,access_type:"offline",
+      prompt:chooser?"select_account consent":"consent",state,code_challenge:await gdChallenge(verifier),code_challenge_method:"S256"});
+    if(!chooser && currentUser && currentUser.email) q.set("login_hint",currentUser.email);
+    popup.location.href="https://accounts.google.com/o/oauth2/v2/auth?"+q.toString();
+    const m=await gdWait(state,popup);
+    try{ popup.close(); }catch(e){}
+    if(!m){ showAuthError("Sign-in was cancelled. Please try again."); return false; }
+    if(m.error || !m.code){ showAuthError("Sign-in failed: "+(m.error||"no code")); return false; }
+    const r=await gdPost({action:"exchange",code:m.code,verifier,redirect_uri:redirect});
+    if(!r.ok || !r.json.access_token){
+      gdBrokerOff=true; gdSetState(false,"sign-in helper unavailable");
+      showAuthError("The sign-in helper is unavailable right now. Tap Sign in again to use the standard Google sign-in.");
+      return false;
+    }
+    if(reconnecting){
+      const u=await fetch("https://www.googleapis.com/oauth2/v3/userinfo",{headers:{Authorization:"Bearer "+r.json.access_token}}).then(x=>x.json()).catch(()=>null);
+      if(!u || u.email!==currentUser.email){
+        if(r.json.refresh_token) gdPost({action:"revoke",token:r.json.refresh_token}).catch(()=>{});
+        showToast("That is a different Google account. Please choose "+currentUser.email+".");
+        return false;
+      }
+      accessToken=r.json.access_token; tokenExpiry=Date.now()+((r.json.expires_in||3600)*1000-60000);
+    }
+    if(r.json.refresh_token){ localStorage.setItem(GD_RT_KEY,r.json.refresh_token); gdSetState(true,""); }
+    else gdSetState(false,"Google did not issue a long-term sign-in");
+    if(reconnecting){ showToast("Reconnected."); try{ plusRefresh(); }catch(e){} pullThenPush(false); return true; }
+    await handleTokenResponse({access_token:r.json.access_token,expires_in:r.json.expires_in});
+    return true;
+  }catch(e){
+    try{ popup.close(); }catch(x){}
+    showAuthError("Sign-in failed. Check your connection and try again.");
+    return false;
+  }
+}
+function gdRenew(){
+  const rt=localStorage.getItem(GD_RT_KEY);
+  if(!rt || !gdEnabled()) return Promise.resolve(false);
+  if(gdRenewing) return gdRenewing;
+  gdRenewing=(async()=>{
+    try{
+      const r=await gdPost({action:"renew",refresh_token:rt});
+      if(r.ok && r.json.access_token){ accessToken=r.json.access_token; tokenExpiry=Date.now()+((r.json.expires_in||3600)*1000-60000); gdSetState(true,""); return true; }
+      if(r.status===401){ localStorage.removeItem(GD_RT_KEY); gdSetState(false,"Google needs you to sign in again"); }
+      else gdSetState(false,"couldn't reach the sign-in helper");
+      return false;
+    }catch(e){ gdSetState(false,"offline or the sign-in helper is unreachable"); return false; }
+    finally{ gdRenewing=null; }
+  })();
+  return gdRenewing;
+}
+function gdMaybePrompt(){
+  if(loginType!=="google" || !currentUser || !gdEnabled()) return;
+  const st=gdGetState(), has=!!localStorage.getItem(GD_RT_KEY);
+  const why = !has ? "setup" : (st && !st.ok && st.since && Date.now()-st.since>3*86400000) ? "lost" : "";
+  if(!why) return;
+  if(Date.now()-(+localStorage.getItem(GD_PROMPT_KEY)||0) < (why==="lost"?2:7)*86400000) return;
+  const hidden=id=>{ const e=document.getElementById(id); return !e || e.classList.contains("hidden"); };
+  if(!hidden("modal") || !hidden("lockScreen") || !hidden("authGate")) return;
+  try{ localStorage.setItem(GD_PROMPT_KEY,String(Date.now())); }catch(e){}
+  modal(`<div class="bw-pop"><h3>${ic("alert",18)} ${why==="lost"?"Reconnect Google Drive":"Turn on silent backup"}</h3>
+    <p>${why==="lost"?"FexaFY couldn't reach your Google Drive for a few days, so your backup may be out of date. Reconnect and choose your Google account to fix it.":"Sign in with Google once more and FexaFY will back up to your Drive quietly in the background — no more pop-ups afterwards."}</p>
+    <div class="row-btns"><button type="button" class="primary" onclick="closeModal();gdSignIn(true)">Reconnect</button><button type="button" class="filebtn" onclick="closeModal()">Not now</button></div></div>`);
+}
+
 async function ensureFreshToken(interactive){
   if(accessToken && Date.now()<tokenExpiry) return true;
+  if(await gdRenew()) return true;
+  if(localStorage.getItem(GD_RT_KEY)) return false;
   if(!tokenClient) return false;
+  if(!interactive && navigator.userActivation && !navigator.userActivation.isActive) return false;
   const tryPrompt=(promptValue)=>new Promise(resolve=>{
     let settled=false;
     const finish=(ok)=>{
@@ -10515,7 +10685,7 @@ async function ensureFreshToken(interactive){
       tokenExpiry=Date.now()+((resp.expires_in||3300)*1000-60000);
       finish(true);
     };
-    try{ tokenClient.requestAccessToken({prompt:promptValue}); }
+    try{ tokenClient.requestAccessToken(currentUser&&currentUser.email ? {prompt:promptValue,hint:currentUser.email} : {prompt:promptValue}); }
     catch(e){ finish(false); }
   });
   const silentOk=await tryPrompt("");
@@ -10526,6 +10696,7 @@ async function ensureFreshToken(interactive){
 async function maybeRefreshDriveToken(){
   if(loginType!=="google" || !currentUser || !navigator.onLine) return;
   await ensureFreshToken(false);
+  gdMaybePrompt();
 }
 
 const DRIVE_ENC_STATE_KEY="mc_drive_enc_state"; 
@@ -10860,6 +11031,7 @@ function syncReasonHtml(){
   return lastSyncFailReason ? `<br><span style="font-size:11px;opacity:.8">Reason: ${escapeHtml(lastSyncFailReason)}</span>` : "";
 }
 function updateSyncStatus(state){
+  gdRenderStatus();
   const el=document.getElementById("syncStatus");
   if(!el) return;
   if(!navigator.onLine){ el.innerHTML='<span class="sync-dot warn"></span>Offline — saved on this device, will sync when online'; return; }
@@ -10888,6 +11060,7 @@ function updateAccountUI(){
         <span id="acctPlan"></span>
       </div>
       <div class="muted" id="syncStatus" style="margin-top:10px"></div>
+      <div class="muted-small" id="gdStatus" style="margin-top:6px"></div>
       <div class="row" style="margin-top:12px;gap:8px">
         <button class="primary" style="flex:1" onclick="pullThenPush(true)"><span class="navicon" data-icon="arrow-up-down" data-icon-size="15"></span> Sync now</button>
         <button class="iconbtn" style="width:auto;border-radius:10px;padding:0 14px" onclick="reconnectGoogleSync()" title="If sync keeps failing, tap to reconnect">Reconnect</button>

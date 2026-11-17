@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'">
+<title>FexaFY sign-in</title>
+<style>
+body{font-family:system-ui,sans-serif;margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;text-align:center;padding:24px;background:#f6f1e8;color:#2b2140}
+@media (prefers-color-scheme:dark){body{background:#17121f;color:#eee}}
+</style>
+</head>
+<body>
+<p id="m">Finishing sign-in…</p>
+<script>
+/* Google sends the person back here after sign-in with ?code=…&state=… . This page only hands them to FexaFY (same
+   origin, via localStorage), removes them from the address bar, and closes itself. Nothing is sent anywhere. */
+(function(){
+  var q=new URLSearchParams(location.search), ok=false;
+  var msg={state:q.get("state")||"",code:q.get("code")||"",error:q.get("error")||"",t:Date.now()};
+  try{ history.replaceState(null,"",location.pathname); }catch(e){}
+  try{ localStorage.setItem("fx_oauth_msg",JSON.stringify(msg)); ok=true; }catch(e){}
+  document.getElementById("m").textContent = ok ? "Signed in — you can return to FexaFY." : "Return to FexaFY and try again.";
+  setTimeout(function(){ try{ window.close(); }catch(e){} },400);
+})();
+</script>
+</body>
+</html>

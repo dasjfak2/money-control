@@ -1,0 +1,3 @@
+v145 — Push status line spacing (2026-11-17)
+- Settings: the small "Last sync OK / failed" line under Background push now has a little space above it.
+- Nothing else changed. register.js is unchanged since v144 (no Vercel redeploy needed).

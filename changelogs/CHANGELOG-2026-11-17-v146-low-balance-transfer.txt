@@ -1,0 +1,15 @@
+v146 — Negative-account hint + "not enough balance" transfer pop-up (2026-11-17)
+
+1) Hint on Transactions -> Accounts: when an account (except Borrow) is below zero, a short line explains
+   it usually means money was moved in from another account without a Transfer, with an "Add transfer"
+   button that opens the normal Transfer form pre-filled (richest other account -> the negative one, missing amount).
+
+2) Pop-up before saving a NEW expense: if the paying account can't cover it, a pop-up (on top of the open form,
+   nothing typed is lost) offers "Transfer <missing amount> & save" from a chosen account (Bank / other accounts /
+   Borrow), "Save without transfer", or "Cancel". The transfer is a normal Transfer entry, so balances and totals
+   stay correct (a Transfer is never income or expense). Not shown when: the balance is enough, the expense is paid
+   from Borrow (borrowing by design), there is only one account, or an existing expense is being edited.
+
+3) Borrow as a source: a Transfer out of Borrow now adds that amount to the "Borrowed money" debt
+   (edit/delete of that transfer keeps the debt in step). Only transfers created from v146 on are affected;
+   older transfers are never changed retroactively. Transfers INTO Borrow do not reduce the debt (repay on the Debt screen, as before).

@@ -1,0 +1,23 @@
+v148 — Always-silent background Google Drive sync (2026-11-17)
+
+Goal: Drive backup renews by itself in the background — no pop-up, no account chooser, no tap needed.
+
+How (stateless "token broker"):
+- New /api/drive (drive.js) on the existing Vercel backend does only the two steps that need Google's client secret
+  (exchange sign-in code -> tokens, renew token) plus revoke on sign-out. It STORES NOTHING and LOGS NOTHING; the only
+  Redis use is a per-IP rate-limit counter. The long-term token lives only on the person's own device.
+- New oauth-callback.html (same origin as the app) receives Google's redirect, hands the code to the app via
+  localStorage, wipes it from the address bar and closes itself.
+- index.html: Sign in / Reconnect use Google's code flow with PKCE (no secret in the app). Renew is silent (no popup).
+  Reconnect must be the SAME Google account (otherwise refused and the new token revoked). Sign-out revokes the token.
+  Status line "Silent backup: on / off / paused — reason". An in-app pop-up (not a browser pop-up) asks to
+  turn on / reconnect: not set up (every 7 days) or Drive unreachable 3+ days (every 2 days); never over the PIN screen
+  or another dialog. If the helper is ever unavailable the app falls back to the standard Google sign-in.
+- Sign-in screen no longer waits for Google's old script (broker sign-in does not need it).
+- Privacy policy: one sentence added about the sign-in helper.
+- Existing Google users: press Reconnect once (the pop-up offers it).
+
+Your steps: Vercel — add api/drive.js and env GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET (Sensitive); PLUS_ALLOWED_ORIGIN already set.
+Google Cloud — add redirect URIs https://dasjfak2.github.io/money-control/oauth-callback.html and
+https://dasjfak2.github.io/FexaFY-firebase/oauth-callback.html ; consent screen "In production".
+GitHub — index.html, sw.js, oauth-callback.html, README.md, changelogs/.

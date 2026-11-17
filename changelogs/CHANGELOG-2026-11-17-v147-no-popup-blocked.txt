@@ -1,0 +1,13 @@
+v147 — "Pop-up blocked" and surprise Google account chooser (2026-11-17)
+
+Cause: for Google-signed-in users the app renews its Drive sign-in through Google's token client, which works
+by opening a popup. The app tried this in the background (5-minute timer, app open / coming back, PIN screen,
+after a save). A browser only allows a popup right after a tap, so those attempts showed Chrome's
+"Pop-up blocked" bar and always failed anyway. And when the app tried right after a tap, Google did not know
+which account to use, so on phones with several Google accounts it showed "Choose an account".
+
+Fix (index.html, sw.js = v147):
+- A renew that was NOT started by a tap is skipped (it could never succeed). The next tap renews it as before
+  (existing "first tap" listener) and "Sync now" still works; a save still marks the backup as pending.
+- Every renew now passes the signed-in account as a hint, so Google does not show the account chooser.
+- Unchanged: sign-in / Reconnect buttons, local (non-Google) mode, browsers without the userActivation API.

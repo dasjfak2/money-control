@@ -1,0 +1,9 @@
+Server fix (2026-11-18) — daily "add your transactions" reminder not arriving (api/check.js + api/register.js)
+
+Cause: the server remembers "already logged today" (loggedToday) from the app's last sync, with no date on it.
+After one logged day, the flag stayed true, so the server never sent the 11:00 / 21:00 reminder until the app synced again.
+Fix: the flag now counts only if it was reported on the SAME local day (using the device's own time zone offset).
+A flag from an earlier day is ignored, so reminders resume. The wake-up schedule also covers "logged today -> next
+reminder tomorrow morning". App (index.html / sw.js) unchanged — stays v148.
+Tests: new v149_backend_test.mjs (16 checks; proves the old code sends nothing, the fixed code sends), plus all earlier backend suites pass.
+Upload: replace api/check.js and api/register.js on Vercel (GitHub), then redeploy.

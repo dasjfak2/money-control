@@ -1800,10 +1800,10 @@ html[lang="bn"] .screen:not(.fx-theme) .card h3{letter-spacing:0;text-transform:
 [data-theme="dark"] .fx-subtab.on{background:var(--gold);color:#241A30;border-color:var(--gold)}
 .fx-more-card{padding-bottom:6px}
 .fx-more-calc{display:flex !important;flex-direction:column;padding:0}
-.fx-more-calc .calc-nav-item{display:flex;width:100%;align-items:center;justify-content:space-between;gap:10px;background:none;border:0;border-top:1px solid var(--line);padding:14px 2px;font:inherit;font-size:15px;font-weight:600;color:var(--ink);text-align:start;cursor:pointer}
+.fx-more-calc .calc-nav-item{display:flex;width:100%;align-items:center;justify-content:flex-start;gap:12px;background:none;border:0;border-top:0;padding:9px 2px;font:inherit;font-size:15px;font-weight:600;color:var(--ink);text-align:start;cursor:pointer}
 .fx-more-calc .calc-nav-item small{font-size:inherit;font-weight:inherit;opacity:1}
 .fx-more-calc .calc-nav-item.hidden{display:none !important}
-.fx-more-row{display:flex;width:100%;align-items:center;justify-content:space-between;gap:10px;background:none;border:0;border-top:1px solid var(--line);padding:14px 2px;font:inherit;font-size:15px;font-weight:600;color:var(--ink);text-align:start;cursor:pointer}
+.fx-more-row{display:flex;width:100%;align-items:center;justify-content:flex-start;gap:12px;background:none;border:0;border-top:0;padding:9px 2px;font:inherit;font-size:15px;font-weight:600;color:var(--ink);text-align:start;cursor:pointer}
 #calculators #calcModeRow{display:none !important}
 .fx-titlebar{display:flex;align-items:center;gap:10px}
 .fx-titlebar h2{margin:0;min-width:0}
@@ -1813,7 +1813,19 @@ html[dir="rtl"] .fx-back svg{transform:scaleX(-1)}
 .plan-pill{margin-inline-start:auto;flex:none;font-size:11px;font-weight:700;padding:3px 10px;border-radius:99px;border:1px solid var(--line);color:var(--ink-soft);white-space:nowrap}
 .plan-pill.free{cursor:pointer}
 .plan-pill.plus{background:linear-gradient(135deg,#e9c46a,#d9a441);color:#2C1B3D;border-color:transparent}
-.fx-more-row::after,.fx-more-calc .calc-nav-item::after{content:"\203A";opacity:.5;font-size:22px;line-height:1}
+.fx-more-row::after,.fx-more-calc .calc-nav-item::after{content:"\203A";opacity:.5;font-size:22px;line-height:1;margin-inline-start:auto}
+.fx-more-extra{display:none !important}
+.fx-rico{flex:none;width:36px;height:36px;border-radius:12px;display:inline-flex;align-items:center;justify-content:center;background:rgba(108,75,160,.11);color:var(--plum)}
+[data-theme="dark"] .fx-rico{background:rgba(233,196,106,.14);color:var(--gold)}
+.fx-chip{margin-inline-start:auto;display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:999px;padding:5px 11px;font:inherit;font-size:12.5px;font-weight:700;color:var(--ink);background:var(--card);cursor:pointer}
+.fx-more-showall{display:flex;align-items:center;gap:8px;width:100%;border:0;background:none;font:inherit;font-size:13.5px;font-weight:700;color:var(--plum);padding:10px 2px 8px;padding-inline-start:50px;cursor:pointer}
+[data-theme="dark"] .fx-more-showall{color:var(--gold)}
+.fx-more-showall.hidden{display:none}
+.fx-pick{display:flex;align-items:center;gap:12px;width:100%;background:none;border:0;border-top:1px solid var(--line);padding:11px 4px;font:inherit;font-size:15px;font-weight:600;color:var(--ink);text-align:start;cursor:pointer}
+.fx-pick small{display:block;font-weight:500;opacity:.65;font-size:12px}
+.fx-pick-fl{font-size:22px;width:28px;text-align:center}
+.fx-pick-ck{margin-inline-start:auto}
+#more{padding-bottom:96px}
 html[dir="rtl"] .fx-more-row::after,html[dir="rtl"] .fx-more-calc .calc-nav-item::after{content:"\2039"}
 </style>
 <title>Personal Finance</title>
@@ -2792,11 +2804,11 @@ html[dir="rtl"] .fx-more-row::after,html[dir="rtl"] .fx-more-calc .calc-nav-item
   <div class="card fx-more-card" id="calcOthers">
     <h3><span class="fx-ico"><span data-icon="calculator"></span></span><span data-i18n="calc_others">Other calculators</span></h3>
     <div class="calc-nav-sub">
-<button type="button" class="fx-more-row calc-nav-item" data-calc="loan" onclick="openCalcFromNav('loan')"><span data-i18n="calc_tab_loan">Loan Calculator</span></button>
-<button type="button" class="fx-more-row calc-nav-item" data-calc="deposit" onclick="openCalcFromNav('deposit')"><span data-i18n="calc_tab_deposit">Deposit Calculator</span></button>
-<button type="button" class="fx-more-row calc-nav-item hidden" data-calc="tax" onclick="openCalcFromNav('tax')"><span data-i18n="calc_menu_tax">Income Tax Calculator</span></button>
-<button type="button" class="fx-more-row calc-nav-item hidden" data-calc="zakat" onclick="openCalcFromNav('zakat')"><span data-i18n="calc_tab_zakat">Zakat Calculator</span></button>
-<button type="button" class="fx-more-row calc-nav-item hidden" data-calc="taxUS" onclick="openCalcFromNav('taxUS')"><span data-i18n="calc_menu_taxus">US Income Tax Calculator</span></button>
+<button type="button" class="fx-more-row calc-nav-item" data-calc="loan" onclick="openCalcFromNav('loan')"><span class="fx-rico"><span data-icon="landmark" data-icon-size="18"></span></span><span data-i18n="calc_tab_loan">Loan Calculator</span></button>
+<button type="button" class="fx-more-row calc-nav-item" data-calc="deposit" onclick="openCalcFromNav('deposit')"><span class="fx-rico"><span data-icon="wallet" data-icon-size="18"></span></span><span data-i18n="calc_tab_deposit">Deposit Calculator</span></button>
+<button type="button" class="fx-more-row calc-nav-item hidden" data-calc="tax" onclick="openCalcFromNav('tax')"><span class="fx-rico"><span data-icon="file-text" data-icon-size="18"></span></span><span data-i18n="calc_menu_tax">Income Tax Calculator</span></button>
+<button type="button" class="fx-more-row calc-nav-item hidden" data-calc="zakat" onclick="openCalcFromNav('zakat')"><span class="fx-rico"><span data-icon="pie-chart" data-icon-size="18"></span></span><span data-i18n="calc_tab_zakat">Zakat Calculator</span></button>
+<button type="button" class="fx-more-row calc-nav-item hidden" data-calc="taxUS" onclick="openCalcFromNav('taxUS')"><span class="fx-rico"><span data-icon="file-text" data-icon-size="18"></span></span><span data-i18n="calc_menu_taxus">US Income Tax Calculator</span></button>
     </div>
   </div>
 
@@ -2806,20 +2818,21 @@ html[dir="rtl"] .fx-more-row::after,html[dir="rtl"] .fx-more-calc .calc-nav-item
 <section id="more" class="screen fx-theme">
   <h2 data-i18n="nav_more">More</h2>
   <div class="card fx-more-card">
-    <h3><span class="fx-ico"><span data-icon="calculator"></span></span><span data-i18n="calc">Calc</span></h3>
+    <h3><span class="fx-ico"><span data-icon="calculator"></span></span><span data-i18n="calc">Calc</span><button type="button" class="fx-chip" onclick="fxCalcOpenPicker()"><span id="calcCountryLbl"></span><span data-icon="chevron-down" data-icon-size="14"></span></button></h3>
     <div class="calc-nav-sub fx-more-calc">
-    <button type="button" class="fx-more-row calc-nav-item" data-calc="loan" onclick="openCalcFromNav('loan')"><span data-i18n="calc_tab_loan">Loan Calculator</span></button>
-    <button type="button" class="fx-more-row calc-nav-item" data-calc="deposit" onclick="openCalcFromNav('deposit')"><span data-i18n="calc_tab_deposit">Deposit Calculator</span></button>
-    <button type="button" class="fx-more-row calc-nav-item hidden" data-calc="tax" onclick="openCalcFromNav('tax')"><span data-i18n="calc_menu_tax">Income Tax Calculator</span></button>
-    <button type="button" class="fx-more-row calc-nav-item hidden" data-calc="zakat" onclick="openCalcFromNav('zakat')"><span data-i18n="calc_tab_zakat">Zakat Calculator</span></button>
-    <button type="button" class="fx-more-row calc-nav-item hidden" data-calc="taxUS" onclick="openCalcFromNav('taxUS')"><span data-i18n="calc_menu_taxus">US Income Tax Calculator</span></button>
+    <button type="button" class="fx-more-row calc-nav-item" data-calc="loan" onclick="openCalcFromNav('loan')"><span class="fx-rico"><span data-icon="landmark" data-icon-size="18"></span></span><span data-i18n="calc_tab_loan">Loan Calculator</span></button>
+    <button type="button" class="fx-more-row calc-nav-item" data-calc="deposit" onclick="openCalcFromNav('deposit')"><span class="fx-rico"><span data-icon="wallet" data-icon-size="18"></span></span><span data-i18n="calc_tab_deposit">Deposit Calculator</span></button>
+    <button type="button" class="fx-more-row calc-nav-item hidden" data-calc="tax" onclick="openCalcFromNav('tax')"><span class="fx-rico"><span data-icon="file-text" data-icon-size="18"></span></span><span data-i18n="calc_menu_tax">Income Tax Calculator</span></button>
+    <button type="button" class="fx-more-row calc-nav-item hidden" data-calc="zakat" onclick="openCalcFromNav('zakat')"><span class="fx-rico"><span data-icon="pie-chart" data-icon-size="18"></span></span><span data-i18n="calc_tab_zakat">Zakat Calculator</span></button>
+    <button type="button" class="fx-more-row calc-nav-item hidden" data-calc="taxUS" onclick="openCalcFromNav('taxUS')"><span class="fx-rico"><span data-icon="file-text" data-icon-size="18"></span></span><span data-i18n="calc_menu_taxus">US Income Tax Calculator</span></button>
     </div>
+    <button type="button" class="fx-more-showall hidden" id="calcMoreBtn" onclick="fxCalcMoreToggle()"></button>
   </div>
   <div class="card fx-more-card">
     <h3><span class="fx-ico"><span data-icon="cloud"></span></span><span data-i18n="more_account">Account</span></h3>
-    <button type="button" class="fx-more-row" id="moreSetBtn" onclick="fxOpenSync('set')"><span data-i18n="sync_tab_settings">Settings</span></button>
-    <button type="button" class="fx-more-row" id="moreDataBtn" onclick="fxOpenSync('data')"><span data-i18n="sync_tab_data">Data &amp; reports</span></button>
-    <button type="button" class="fx-more-row" id="moreFbBtn" onclick="goToScreen('feedback')"><span data-i18n="fb_title">Suggestions &amp; reports</span></button>
+    <button type="button" class="fx-more-row" id="moreSetBtn" onclick="fxOpenSync('set')"><span class="fx-rico"><span data-icon="sliders" data-icon-size="18"></span></span><span data-i18n="sync_tab_settings">Settings</span></button>
+    <button type="button" class="fx-more-row" id="moreDataBtn" onclick="fxOpenSync('data')"><span class="fx-rico"><span data-icon="file-text" data-icon-size="18"></span></span><span data-i18n="sync_tab_data">Data &amp; reports</span></button>
+    <button type="button" class="fx-more-row" id="moreFbBtn" onclick="goToScreen('feedback')"><span class="fx-rico"><span data-icon="edit" data-icon-size="18"></span></span><span data-i18n="fb_title">Suggestions &amp; reports</span></button>
   </div>
 </section>
 
@@ -3126,7 +3139,7 @@ html[dir="rtl"] .fx-more-row::after,html[dir="rtl"] .fx-more-calc .calc-nav-item
 
 <script>
 const SENTRY_DSN = "https://accd3f87b3f615f44f3274b4045fa63d@o4512055606640640.ingest.de.sentry.io/4512055628726352"; 
-const APP_VERSION = "v148"; 
+const APP_VERSION = "v149"; 
 const CRASH_LOG_KEY = "mc_crashlog";
 function logCrashLocally(err, source){
   try{
@@ -8211,14 +8224,16 @@ const MUSLIM_MAJORITY_COUNTRY_CODES=new Set([
   "+234", 
   "+90"   
 ]);
+let calcViewCC=""; 
+function calcCC(){ return calcViewCC || (db && db.profile && db.profile.countryCode) || ""; }
 function shouldShowZakatCalculator(){
-  return !!(db && db.profile && MUSLIM_MAJORITY_COUNTRY_CODES.has(db.profile.countryCode));
+  return MUSLIM_MAJORITY_COUNTRY_CODES.has(calcCC());
 }
 function shouldShowTaxEstimator(){
-  return !!(db && db.profile && db.profile.countryCode==="+880");
+  return calcCC()==="+880";
 }
 function shouldShowUSTaxEstimator(){
-  return !!(db && db.profile && db.profile.countryCode==="+1");
+  return calcCC()==="+1";
 }
 function refreshZakatTabVisibility(){
   refreshCalcNavItems();
@@ -11396,25 +11411,36 @@ const REG={};
 window.__fxExtraCalc={
   register(mode,def){ REG[mode]=def; },
   modes(){ return Object.keys(REG); },
-  visible(mode){ try{ const d=REG[mode]; if(!d) return false; if(d.always) return true; if(showAll()) return true; const cc=(typeof db!=="undefined"&&db&&db.profile)?db.profile.countryCode:""; return !!(d.countries&&d.countries.indexOf(cc)>=0); }catch(e){ return false; } }
+  visible(mode){ try{ const d=REG[mode]; if(!d) return false; if(d.always) return true; const cc=calcCC(); return !!(d.countries&&d.countries.indexOf(cc)>=0); }catch(e){ return false; } }
 };
-let SHOW_ALL=false; 
-function showAll(){ return SHOW_ALL; }
-window.fxCalcToggleAll=function(){ SHOW_ALL=!SHOW_ALL; if(typeof refreshCalcNavItems==="function") refreshCalcNavItems(); updateToggle(); };
+const CALC_FLAG={"+880":"\u{1F1E7}\u{1F1E9}","+1":"\u{1F1FA}\u{1F1F8}","+44":"\u{1F1EC}\u{1F1E7}","+61":"\u{1F1E6}\u{1F1FA}","+65":"\u{1F1F8}\u{1F1EC}","+60":"\u{1F1F2}\u{1F1FE}"};
+const calcCountryName=cc=>{ const r=COUNTRY_CODES.find(x=>x[0]===cc); return r?r[1]:cc; };
+let calcListOpen=false;
 function updateToggle(){
-  const b=document.getElementById("fxCalcAllToggle"); if(!b) return;
-  const hasGated=Object.keys(REG).some(m=>!REG[m].always);
-  b.classList.toggle("hidden",!hasGated);
-  b.textContent=(typeof t==="function")?t(showAll()?"calc_all_hide":"calc_all_show"):"";
+  const lbl=document.getElementById("calcCountryLbl"); if(lbl){ const cc=calcCC(); lbl.textContent=(CALC_FLAG[cc]?CALC_FLAG[cc]+" ":"")+calcCountryName(cc); }
+  const sub=document.querySelector("#more .fx-more-calc"); if(!sub) return;
+  const rows=[...sub.querySelectorAll(".calc-nav-item:not(.hidden)")];
+  rows.forEach((b,i)=>b.classList.toggle("fx-more-extra",!calcListOpen&&i>=3));
+  const btn=document.getElementById("calcMoreBtn"); if(!btn) return;
+  btn.classList.toggle("hidden",rows.length<=3);
+  btn.innerHTML=(calcListOpen?t("calc_show_less"):t("calc_show_all").replace("{n}",rows.length))+" "+ic(calcListOpen?"chevron-up":"chevron-down",14);
 }
+window.fxCalcMoreToggle=function(){ calcListOpen=!calcListOpen; updateToggle(); };
+window.fxCalcOpenPicker=function(){
+  const own=(db&&db.profile&&db.profile.countryCode)||"", cur=calcCC();
+  const set=new Set([own,"+880","+1"]); Object.keys(REG).forEach(m=>(REG[m].countries||[]).forEach(c=>set.add(c)));
+  const rows=COUNTRY_CODES.filter(x=>set.has(x[0])).sort((a,b)=>(b[0]===own)-(a[0]===own)).map(([c,n])=>
+    `<button type="button" class="fx-pick" onclick="fxCalcPick('${c}')"><span class="fx-pick-fl">${CALC_FLAG[c]||""}</span><span>${n}${c===own?`<small>${t("calc_your_country")}</small>`:""}</span>${c===cur?`<span class="fx-pick-ck">${ic("check",18)}</span>`:""}</button>`).join("");
+  modal(`<div class="bw-pop"><h3>${t("calc_pick_title")}</h3>${rows}<div class="row-btns"><button type="button" class="filebtn" onclick="closeModal()">${t("pf_cancel")}</button></div></div>`);
+};
+window.fxCalcPick=function(cc){
+  if(!COUNTRY_CODES.some(x=>x[0]===cc)) return;
+  calcViewCC=(db&&db.profile&&cc===db.profile.countryCode)?"":cc; calcListOpen=false;
+  closeModal(); refreshCalcNavItems();
+};
 function setup(){
   const row=document.getElementById("calcModeRow");
   if(!row) return;
-  if(!document.getElementById("fxCalcAllToggle")){
-    const tg=document.createElement("button"); tg.type="button"; tg.id="fxCalcAllToggle"; tg.className="fx-pill hidden"; tg.style.margin="12px 0 0"; tg.setAttribute("onclick","fxCalcToggleAll()");
-    const list=document.querySelector(".fx-more-calc");
-    (list?list.parentNode:row.parentNode).appendChild(tg);
-  }
   Object.keys(REG).forEach(mode=>{
     const d=REG[mode];
     if(!document.getElementById(d.tileId)){
@@ -11436,7 +11462,7 @@ function setup(){
       const b=document.createElement("button");
       b.type="button"; b.className="fx-more-row calc-nav-item hidden"; b.setAttribute("data-calc",mode);
       b.setAttribute("onclick","openCalcFromNav('"+mode+"')");
-      b.innerHTML='<span data-i18n="'+d.navKey+'"></span>';
+      b.innerHTML='<span class="fx-rico"><span data-icon="calculator" data-icon-size="18"></span></span><span data-i18n="'+d.navKey+'"></span>';
       sub.appendChild(b);
     });
   });
@@ -11480,7 +11506,7 @@ window.refreshCalcNavItems=function(){
   return r;
 };
 const _a0=window.applyI18n; window.applyI18n=function(){ const r=_a0.apply(null,arguments); try{ updateToggle(); }catch(e){} return r; };
-window.__fxExtraCalc.setup=function(){ setup(); applyVisibility(); if(typeof applyI18n==="function") applyI18n(); if(typeof renderIcons==="function"){ try{renderIcons();}catch(e){} } };
+window.__fxExtraCalc.setup=function(){ setup(); applyVisibility(); if(typeof applyI18n==="function") applyI18n(); if(typeof applyIcons==="function"){ try{applyIcons();}catch(e){} } };
 })();
 </script>
 <script>
@@ -11542,8 +11568,8 @@ function gulfEosb(o){
 }
 window.gulfEosb=gulfEosb;
 
-Object.assign(I18N.en,{ calc_all_show:"Show calculators for other countries", calc_all_hide:"Show only my country's calculators" });
-Object.assign(I18N.bn,{ calc_all_show:"অন্যান্য দেশের calculator দেখান", calc_all_hide:"শুধু আমার দেশের calculator দেখান" });
+Object.assign(I18N.en,{ calc_show_all:"Show all {n} calculators", calc_show_less:"Show fewer", calc_pick_title:"Calculators for which country?", calc_your_country:"Your country" });
+Object.assign(I18N.bn,{ calc_show_all:"সব {n}টি calculator দেখান", calc_show_less:"কম দেখান", calc_pick_title:"কোন দেশের calculator?", calc_your_country:"আপনার দেশ" });
 Object.assign(I18N.en,{
  eosb_tab:"End-of-Service Gratuity (Gulf)", eosb_tab_sub:"UAE, Saudi Arabia, Qatar & Oman — estimate your gratuity when your job ends", eosb_menu:"End-of-Service Gratuity",
  eosb_disclaimer:"Rough estimate based on each country's private-sector labour law (UAE Federal Decree-Law 33/2021, Saudi Labour Law Arts. 84–85, Qatar Labour Law Art. 54, Oman Labour Law as clarified by the Ministry of Labour in 2024). Your contract, unpaid leave, special termination cases and company policy can change the real figure — confirm with your HR / the ministry before relying on it. Free-zone, government and domestic-worker rules can differ.",

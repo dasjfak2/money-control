@@ -1,0 +1,14 @@
+v149 — Tidier "More" page + calculator country picker (2026-11-18)
+
+1. More page: every row has a soft icon tile; rows are a little tighter; the Calculators card shows its first 3 rows
+   with "Show all N calculators / Show fewer"; extra space at the bottom so the + button never covers the last row.
+2. Country picker: the old "Show calculators for other countries" button is replaced by a country chip on the
+   Calculators card. Tap it -> sheet with the countries that have a country-specific calculator (Bangladesh, US/Canada,
+   UK, Australia, Singapore, Malaysia; plus your own country first). Pick one -> only that country's calculators
+   (Loan, Deposit and Gulf gratuity stay for everyone). Applies to ALL country calculators (BD tax, Zakat, US tax too).
+   Session only: never saved, the app always starts on your own country.
+- Rows in the "Other calculators" list on the calculator page get the same icons.
+- New text (English + Bangla; other languages fall back to English): calc_show_all/less, calc_pick_title, calc_your_country.
+- Also fixed: icons of rows added by the extra-calculator code are now drawn (applyIcons was misnamed).
+- App only (index.html, sw.js = v149). No server change, no new network call, no new permission.
+Tests: v149_test.mjs (34 checks); v128/v131 updated for the new picker; every earlier suite passes.
